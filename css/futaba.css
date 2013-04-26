@@ -20,8 +20,15 @@ a:hover {
 	color:#800000;
 	width:100%;
 }
-.theader {
+.replymode {
 	background:#E04000;
+	text-align:center;
+	padding:2px;
+	color:#FFFFFF;
+	width:100%;
+}
+.catalogmode {
+	background:#0040E0;
 	text-align:center;
 	padding:2px;
 	color:#FFFFFF;
@@ -104,8 +111,12 @@ color:#CC1105;
 	color:#707070;
 }
 .reply {
-	background:#F0E0D6;
-	color:#800000;
+	background: #F0E0D6;
+	color: #800000;
+}
+.replyhl {
+	background: #F0C0B0;
+	color: #800000;
 }
 .doubledash {
  	vertical-align:top;
@@ -135,6 +146,6 @@ color:#CC1105;
 	border: 2px dashed #EEAA88;
 }
 
-.watchedthreads {
+#watchedthreads {
 	background-color: #F0E0D6 !important;
 }

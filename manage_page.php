@@ -36,7 +36,7 @@ require_once(TC_ROOTDIR . 'inc/classes/board-post.class.php');
 require_once(TC_ROOTDIR . 'inc/classes/bans.class.php');
 require_once(TC_ROOTDIR . 'inc/encryption.php');
 
-$smarty->assign('lang_manageboards', _('Manage boards'));
+$smarty->assign('lang_manageboards', _gettext('Manage boards'));
 
 $manage_class = new Manage();
 $bans_class = new Bans();
@@ -80,7 +80,7 @@ function manage_page($action = 'posting_rates') {
     if (is_callable(array($manage_class, $action))) {
         $manage_class->$action();
     } else {
-        $tpl_page .= sprintf(_('%s not implemented.'), $action);
+        $tpl_page .= sprintf(_gettext('%s not implemented.'), $action);
     }
     
     $manage_class->Footer();

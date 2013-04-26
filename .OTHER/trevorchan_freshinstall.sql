@@ -1,5 +1,5 @@
 -- 
--- Table structure for table `PREFIX_banlist`
+-- Table structure for table `banlist`
 -- 
 
 CREATE TABLE `PREFIX_banlist` (
@@ -15,12 +15,37 @@ CREATE TABLE `PREFIX_banlist` (
   `until` int(20) NOT NULL,
   `reason` text NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM ;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_boards`
+-- Table structure for table `bannedhashes`
+-- 
+
+CREATE TABLE `PREFIX_bannedhashes` (
+  `id` int(10) NOT NULL auto_increment,
+  `md5` varchar(255) NOT NULL,
+  `bantime` int(10) NOT NULL default '0',
+  `description` text NOT NULL,
+  UNIQUE KEY `id` (`id`)
+) ENGINE=MyISAM ;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `board_filetypes`
+-- 
+
+CREATE TABLE `PREFIX_board_filetypes` (
+  `boardid` tinyint(5) NOT NULL default '0',
+  `typeid` mediumint(5) NOT NULL default '0'
+) ENGINE=MyISAM;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `boards`
 -- 
 
 CREATE TABLE `PREFIX_boards` (
@@ -34,9 +59,9 @@ CREATE TABLE `PREFIX_boards` (
   `section` tinyint(2) NOT NULL default '0',
   `maximagesize` int(20) NOT NULL default '1024000',
   `maxpages` int(20) NOT NULL default '10',
-  `maxage` int(20) NOT NULL default '96',
+  `maxage` int(20) NOT NULL default '0',
+  `markpage` tinyint(4) NOT NULL default '9',
   `maxreplies` int(5) NOT NULL default '200',
-  `filetypes` varchar(255) NOT NULL default 'GIF|JPG|PNG',
   `messagelength` int(10) NOT NULL default '8192',
   `createdon` int(20) NOT NULL,
   `locked` tinyint(1) NOT NULL default '0',
@@ -45,32 +70,32 @@ CREATE TABLE `PREFIX_boards` (
   `forcedanon` tinyint(1) NOT NULL default '0',
   `trial` tinyint(1) NOT NULL default '0',
   `popular` tinyint(1) NOT NULL default '0',
-  `defaultstyle` varchar(50) NOT NULL default 'Futaba',
+  `defaultstyle` varchar(50) NOT NULL,
   `enablereporting` tinyint(1) NOT NULL default '1',
   `enablecaptcha` tinyint(1) NOT NULL default '0',
   `enablenofile` tinyint(1) NOT NULL default '0',
+  `enablearchiving` tinyint(1) NOT NULL default '0',
+  `enablecatalog` tinyint(1) NOT NULL default '1',
+  `loadbalanceurl` varchar(255) NOT NULL,
+  `loadbalancepassword` varchar(255) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `PREFIX_dnsbl`
--- 
-
-CREATE TABLE `PREFIX_dnsbl` (
-  `ip` varchar(30) NOT NULL,
-  `date` int(15) NOT NULL,
-  `proxy` int(1) NOT NULL,
-  `list` int(1) NOT NULL,
-  `reason` text NOT NULL,
-  PRIMARY KEY  (`ip`)
 ) ENGINE=MyISAM ;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_filetypes`
+-- Table structure for table `events`
+-- 
+
+CREATE TABLE `PREFIX_events` (
+  `name` varchar(255) NOT NULL,
+  `at` int(20) NOT NULL
+) ENGINE=MyISAM;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `filetypes`
 -- 
 
 CREATE TABLE `PREFIX_filetypes` (
@@ -80,25 +105,26 @@ CREATE TABLE `PREFIX_filetypes` (
   `image` varchar(255) NOT NULL,
   `image_w` int(7) NOT NULL default '0',
   `image_h` int(7) NOT NULL default '0',
+  `force_thumb` int(1) NOT NULL default '1',
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM ;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_loginattempts`
+-- Table structure for table `loginattempts`
 -- 
 
 CREATE TABLE `PREFIX_loginattempts` (
   `username` varchar(255) NOT NULL,
   `ip` varchar(20) NOT NULL,
   `timestamp` int(20) NOT NULL
-) ENGINE=MyISAM ;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_modlog`
+-- Table structure for table `modlog`
 -- 
 
 CREATE TABLE `PREFIX_modlog` (
@@ -106,25 +132,25 @@ CREATE TABLE `PREFIX_modlog` (
   `user` varchar(255) NOT NULL,
   `category` tinyint(2) NOT NULL default '0',
   `timestamp` int(20) NOT NULL
-) ENGINE=MyISAM ;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_module_settings`
+-- Table structure for table `module_settings`
 -- 
 
 CREATE TABLE `PREFIX_module_settings` (
   `module` varchar(255) NOT NULL,
   `key` varchar(255) NOT NULL,
-  `value` text NOT NULL,
-  `type` varchar(255) NOT NULL
-) ENGINE=MyISAM ;
+  `value` text character set utf8 collate utf8_unicode_ci NOT NULL,
+  `type` varchar(255) NOT NULL default 'string'
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_news`
+-- Table structure for table `news`
 -- 
 
 CREATE TABLE `PREFIX_news` (
@@ -135,24 +161,24 @@ CREATE TABLE `PREFIX_news` (
   `postedby` varchar(75) NOT NULL,
   `postedemail` varchar(75) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `PREFIX_passcache`
--- 
-
-CREATE TABLE `PREFIX_passcache` (
-  `md5` varchar(100) NOT NULL,
-  `name` varchar(75) NOT NULL,
-  `tripcode` varchar(10) NOT NULL
 ) ENGINE=MyISAM ;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_reports`
+-- Table structure for table `passcache`
+-- 
+
+CREATE TABLE `PREFIX_passcache` (
+  `md5` varchar(100) NOT NULL,
+  `name` varchar(75) NOT NULL,
+  `tripcode` varchar(30) NOT NULL
+) ENGINE=MyISAM;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `reports`
 -- 
 
 CREATE TABLE `PREFIX_reports` (
@@ -163,12 +189,12 @@ CREATE TABLE `PREFIX_reports` (
   `when` int(20) NOT NULL,
   `ip` varchar(75) NOT NULL,
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM ;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_sections`
+-- Table structure for table `sections`
 -- 
 
 CREATE TABLE `PREFIX_sections` (
@@ -176,30 +202,30 @@ CREATE TABLE `PREFIX_sections` (
   `order` tinyint(3) NOT NULL default '0',
   `hidden` tinyint(1) NOT NULL default '0',
   `name` varchar(255) NOT NULL,
-  `abbreviation` char(4) NOT NULL,
+  `abbreviation` varchar(10) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM ;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_staff`
+-- Table structure for table `staff`
 -- 
 
 CREATE TABLE `PREFIX_staff` (
   `id` tinyint(5) NOT NULL auto_increment,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `isadmin` tinyint(1) NOT NULL default '0',
+  `type` tinyint(1) NOT NULL default '0',
   `boards` text,
   `addedon` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM ;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_watchedthreads`
+-- Table structure for table `watchedthreads`
 -- 
 
 CREATE TABLE `PREFIX_watchedthreads` (
@@ -209,12 +235,12 @@ CREATE TABLE `PREFIX_watchedthreads` (
   `ip` char(15) NOT NULL,
   `lastsawreplyid` int(20) NOT NULL,
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM ;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `PREFIX_wordfilter`
+-- Table structure for table `wordfilter`
 -- 
 
 CREATE TABLE `PREFIX_wordfilter` (
@@ -225,6 +251,6 @@ CREATE TABLE `PREFIX_wordfilter` (
   `time` int(20) NOT NULL,
   `regex` tinyint(1) NOT NULL default '0',
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 ;
+) ENGINE=MyISAM ;
 
-INSERT INTO `PREFIX_filetypes` (`id`, `filetype`, `mime`, `image`, `image_w`, `image_h`) VALUES (1, 'swf', '', 'flash.png', 86, 86) ;
+INSERT INTO `PREFIX_filetypes` (filetype, force_thumb) VALUES ('jpg', 0), ('gif', 0), ('png', 0) ;

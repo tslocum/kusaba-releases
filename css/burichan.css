@@ -35,8 +35,13 @@ a:hover {
 	color:#AF0A0F;
 	width:100%;
 }
-.theader {
+.replymode {
 	background:#0010E0;
+	color:#FFFFFF;
+	width:100%;
+}
+.catalogmode {
+	background:#0040E0;
 	color:#FFFFFF;
 	width:100%;
 }
@@ -139,6 +144,10 @@ a:hover {
 	color:#000000;
 	font-family:serif;
 }
+.replyhl {
+	background: #D6BAD0;
+	color: #000000;
+}
 .doubledash {
  	vertical-align:top;
 	clear:both;
@@ -167,4 +176,6 @@ a:hover {
 
 .watchedthreads {
 	background-color: #D6DAF0 !important;
+	border: 1px dotted #D6DAF0 !important;
+	border-top: 0px none !important;
 }

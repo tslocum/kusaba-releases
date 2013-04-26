@@ -124,7 +124,8 @@ hr {
 	border-color: #000000;
 }
 
-.watchedthreads {
+#watchedthreads {
 	background-color: #DCDDDC !important;
   	border: 1px solid #919191 !important;
+  	border-top: 0px none !important;
 }

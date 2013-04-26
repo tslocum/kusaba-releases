@@ -22,6 +22,9 @@
 * +------------------------------------------------------------------------------+
 */
 class Parse {
+	var $boardtype;
+	var $parentid;
+	
 	function MakeClickable($txt) {
 		/* Make http:// urls in posts clickable */
 		$txt = preg_replace('#(http://)([^(\s<)]*)#', '<a href="\\1\\2">\\1\\2</a>', $txt);
@@ -36,6 +39,8 @@ class Parse {
 			'`\[u\](.+?)\[/u\]`is', 
 			'`\[s\](.+?)\[/s\]`is', 
 			'`\[code\](.+?)\[/code\]`is', 
+			'`\[aa\](.+?)\[/aa\]`is', 
+			'`\[spoiler\](.+?)\[/spoiler\]`is', 
 			);
 		$replaces =  array(
 			'<strong>\\1</strong>', 
@@ -43,6 +48,8 @@ class Parse {
 			'<span style="border-bottom: 1px dotted">\\1</span>', 
 			'<strike>\\1</strike>', 
 			'<div style="whitespace: pre; font-family: monospace;">\\1</div>', 
+			'<div style="font-family: monospace; font-family: Mona,\'MS PGothic\' !important; ">\\1</div>', 
+			'<span class="spoiler" onmouseover="this.style.color=\'white\';" onmouseout="this.style.color=\'black\'">\\1</span>', 
 			);
 		$string = preg_replace($patterns, $replaces , $string);
 		
@@ -71,7 +78,7 @@ class Parse {
 		return $buffer;
 	}
 	
-	function ClickableQuote($buffer, $board, $boardtype, $threadid, $ispage = false) {
+	function ClickableQuote($buffer, $board, $boardtype, $parentid, $ispage = false) {
 		global $thread_board_return;
 		$thread_board_return = $board;
 		
@@ -85,30 +92,35 @@ class Parse {
 	}
 	
 	function InterthreadQuoteCheck($matches) {
-		global $tc_db, $thread_board_return;
-	
-		$query = "SELECT `threadid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($thread_board_return)."` WHERE `id` = '".mysql_real_escape_string($matches[1])."'";
-		$result = $tc_db->GetOne($query);
-		if ($result!='') {
-			if ($result==0) {
-				$realid = $matches[1];
+		global $tc_db, $ispage, $thread_board_return;
+		
+		if ($this->boardtype != 1) {
+			$query = "SELECT `parentid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($thread_board_return)."` WHERE `id` = '".mysql_real_escape_string($matches[1])."'";
+			$result = $tc_db->GetOne($query);
+			if ($result!='') {
+				if ($result==0) {
+					$realid = $matches[1];
+				} else {
+					$realid = $result;
+				}
 			} else {
-				$realid = $result;
+				return $matches[0];
 			}
-			return '<a href="'.TC_BOARDSFOLDER.$thread_board_return.'/res/'.$realid.'.html#'.$matches[1].'">'.$matches[0].'</a>';
+		} else {
+			$realid = $this->parentid;
 		}
 		
-		return $matches[0];
+		$return = '<a href="'.TC_BOARDSFOLDER.$thread_board_return.'/res/'.$realid.'.html#'.$matches[1].'" onclick="javascript:highlight(\'' . $matches[1] . '\', true);">'.$matches[0].'</a>';
+		
+		return $return;
 	}
 	
 	function InterboardQuoteCheck($matches) {
 		global $tc_db;
-	
-		$query = "SELECT COUNT(*) FROM `".TC_DBPREFIX."boards` WHERE `name` = '".mysql_real_escape_string($matches[1])."'";
-		$result = $tc_db->GetOne($query);
+
+		$result = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."boards` WHERE `name` = '".mysql_real_escape_string($matches[1])."'");
 		if ($result==1) {
-			$query = "SELECT `threadid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($matches[1])."` WHERE `id` = '".mysql_real_escape_string($matches[2])."'";
-			$result2 = $tc_db->GetOne($query);
+			$result2 = $tc_db->GetOne("SELECT `parentid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($matches[1])."` WHERE `id` = '".mysql_real_escape_string($matches[2])."'");
 			if ($result2!='') {
 				if ($result2==0) {
 					$realid = $matches[2];
@@ -132,11 +144,8 @@ class Parse {
 			if (in_array($board, $array_boards)) {
 				$replace_word = $line['word'];
 				$replace_replacedby = $line['replacedby'];
-				if ($line['regex']==1) {
-					$buffer = preg_replace($replace_word, $replace_replacedby, $buffer);
-				} else {
-					$buffer = str_ireplace($replace_word, $replace_replacedby, $buffer);
-				}
+				
+				$buffer = ($line['regex'] == 1) ? preg_replace($replace_word, $replace_replacedby, $buffer) : str_ireplace($replace_word, $replace_replacedby, $buffer);
 			}
 		}
 		
@@ -156,24 +165,6 @@ class Parse {
 		}
 	}
 	
-	function EscapeQuotes($receive) {
-		if (!is_array($receive)) {
-			$thearray = array($receive);
-		} else {
-			$thearray = $receive;
-		}
-		
-		foreach (array_keys($thearray) as $string) {
-			$thearray[$string] = addslashes($thearray[$string]);
-		}
-		
-		if (!is_array($receive)) {
-			return $thearray[0];
-		} else {
-			return $thearray;
-		}
-	}
-	
 	function CutWord($txt, $where) {
 		if (empty($txt)) return false;
 		for ($c = 0, $a = 0, $g = 0; $c<strlen($txt); $c++) {
@@ -190,20 +181,22 @@ class Parse {
 		return implode("", $d);
 	}
 	
-	function ParsePost($message, $board, $boardtype, $threadid, $ispage = false) {
+	function ParsePost($message, $board, $boardtype, $parentid, $ispage = false) {
+		$this->boardtype = $boardtype;
+		$this->parentid = $parentid;
+		
 		$message = $this->CutWord($message, TC_MAXCHAR);
 		$message = trim($message);
 		$message = htmlspecialchars($message, ENT_QUOTES);
-		$message = $this->ClickableQuote($message, $board, $boardtype, $threadid, $ispage);
-		$message = $this->ColoredQuote($message, $boardtype);
 		if (TC_MAKELINKS) {
 			$message = $this->MakeClickable($message);
 		}
+		$message = $this->ClickableQuote($message, $board, $boardtype, $parentid, $ispage);
+		$message = $this->ColoredQuote($message, $boardtype);
 		$message = str_replace("\n", '<br>', $message);
 		$message = $this->BBCode($message);
 		$message = $this->Wordfilter($message, $board);
 		$message = $this->CheckNotEmpty($message);
-		$message = $this->EscapeQuotes($message);
 	
 		return $message;
 	}

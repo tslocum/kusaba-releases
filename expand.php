@@ -35,11 +35,11 @@ if ($board_name != '') {
 	die('<font color="red">Invalid board.</font>');
 }
 
-$results = $tc_db->GetAll('SELECT * FROM `'.TC_DBPREFIX.'posts_'.$board_class->board_dir.'` WHERE `IS_DELETED` = 0 AND `threadid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` ASC');
+$results = $tc_db->GetAll('SELECT * FROM `'.TC_DBPREFIX.'posts_'.$board_class->board_dir.'` WHERE `IS_DELETED` = 0 AND `parentid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` ASC');
 
 $output = '';
 foreach($results AS $line_reply) {
-	$output .= $board_class->BuildPost($page, $board_class->board_dir, $board_class->board_type, $line_reply['id'], $line_reply['threadid'], $line_reply['user'], $line_reply['tripcode'], $line_reply['email'], $line_reply['subject'], $line_reply['message'], $line_reply['image'], $line_reply['imagetype'], $line_reply['image_w'], $line_reply['image_h'], $line_reply['image_size'], $line_reply['thumb_w'], $line_reply['thumb_h'], $line_reply['postedat'], $line_reply['stickied'], $line_reply['locked'], $line_reply['posterauthority']);
+	$output .= $board_class->BuildPost(false, $board_class->board_dir, $board_class->board_type, $line_reply);
 }
 
 echo $output;

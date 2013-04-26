@@ -29,5 +29,6 @@ $smarty->config_dir = TC_ROOTDIR . 'smarty/configs';
 $smarty->assign('tc_name', TC_NAME);
 $smarty->assign('tc_webpath', TC_WEBPATH);
 $smarty->assign('tc_boardspath', TC_BOARDSPATH);
+$smarty->assign('tc_cgipath', TC_CGIPATH);
 
 ?>

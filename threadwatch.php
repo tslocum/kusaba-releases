@@ -29,85 +29,109 @@ require_once(TC_ROOTDIR . 'inc/operations.functions.php');
 require_once(TC_ROOTDIR . 'inc/classes/board-post.class.php');
 
 $output = '';
-//$tc_db->debug = true;
+
 if (isset($_GET['do'])) {
 	if ($_GET['do'] == 'addthread') {
 		$viewing_thread_is_watched = $tc_db->GetOne("SELECT COUNT(*) FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
 		if ($viewing_thread_is_watched == 0) {
-			$newestreplyid = $tc_db->GetOne('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `threadid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` DESC LIMIT 1');
+			$newestreplyid = $tc_db->GetOne('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `parentid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` DESC LIMIT 1');
+			$newestreplyid = max(0, $newestreplyid);
 			
 			$tc_db->Execute("INSERT INTO `" . TC_DBPREFIX . "watchedthreads` ( `threadid` , `board` , `ip` , `lastsawreplyid` ) VALUES ( " . mysql_real_escape_string($_GET['threadid']) . " , '" . mysql_real_escape_string($_GET['board']) . "' , '" . $_SERVER['REMOTE_ADDR'] . "' , " . $newestreplyid . " )");
+			
+			if (TC_APC) apc_delete('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
 		}
 	} elseif ($_GET['do'] == 'removethread') {
 		$viewing_thread_is_watched = $tc_db->GetOne("SELECT COUNT(*) FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
 		if ($viewing_thread_is_watched > 0) {
 			$tc_db->Execute("DELETE FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
+			
+			if (TC_APC) apc_delete('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
 		}
 	}
 } else {
-	/* If the users is sending this request while viewing a thread, check if it is a thread they are watching, and if so, update it to show they have viewed all current replies */
+	/* If the user is sending this request while viewing a thread, check if it is a thread they are watching, and if so, update it to show they have viewed all current replies */
 	if ($_GET['threadid'] > 0) {
 		$viewing_thread_is_watched = $tc_db->GetOne("SELECT COUNT(*) FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
 		if ($viewing_thread_is_watched > 0) {
-			$newestreplyid = $tc_db->GetOne('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `threadid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` DESC LIMIT 1');
+			$newestreplyid = $tc_db->GetOne('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `parentid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` DESC LIMIT 1');
+			$newestreplyid = max(0, $newestreplyid);
 			
 			$tc_db->Execute("UPDATE `" . TC_DBPREFIX . "watchedthreads` SET `lastsawreplyid` = " . $newestreplyid . " WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
+			
+			if (TC_APC) apc_delete('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
 		}
 	}
 	
-	$watched_threads = $tc_db->GetAll("SELECT `threadid` , `lastsawreplyid` FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' ORDER BY `lastsawreplyid` DESC");
-	if (count($watched_threads) > 0) {
-		foreach ($watched_threads as $watched_thread) {
-			$threadinfo = $tc_db->GetAll('SELECT `subject` , `name` , `tripcode` FROM `'.TC_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `id` = ' . $watched_thread['threadid'] . ' LIMIT 1');
-			
-			$output .= '<a href="' . TC_BOARDSFOLDER . mysql_real_escape_string($_GET['board']) . '/res/' . $watched_thread['threadid'] . '.html">' . $watched_thread['threadid'] . '</a> - ';
-			
-			if ($threadinfo['subject'] != '') {
-				$output .= '<span class="filetitle">' . stripslashes($threadinfo['subject']) . '</span> - ';
-			}
-			
-			if ($threadinfo['user'] == '' && $threadinfo['tripcode'] == '') {
-				$output .= TC_ANONYMOUS;
-			} else if ($post_user==''&&$threadinfo['tripcode']!='') {
-				/* Just display the tripcode, no added html */
-			} else {
-				$output .= stripslashes($threadinfo['user']);
-			}
-			
-			if ($threadinfo['tripcode']!='') {
-				$info_post .= '<span class="postertrip">!' . $threadinfo['tripcode'] . '</span>';
-			}
-			
-			$output .= ': ';
+	$cached = false;
+	if (TC_APC) {
+		$cache_threadwatch = apc_fetch('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
+		if ($cache_threadwatch !== false) {
+			$cached = true;
+			$output .= $cache_threadwatch;
+		}
+	}
 	
-			$numnewreplies = $tc_db->GetOne('SELECT COUNT(*) FROM `'.TC_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `threadid` = ' . $watched_thread['threadid'] . ' AND `id` >  ' . $watched_thread['lastsawreplyid'] . ' LIMIT 1');
-			
-			if ($numnewreplies > 0) {
-				$output .= '<a href="' . TC_BOARDSFOLDER . mysql_real_escape_string($_GET['board']) . '/res/' . $watched_thread['threadid'] . '.html#' . $watched_thread['lastsawreplyid'] . '"><b><font color="red">' . $numnewreplies . ' new repl';
-				if ($numnewreplies != 1) {
-					$output .= 'ies';
-				} else {
-					$output .= 'y';
+	if (!$cached) {
+		$watched_threads = $tc_db->GetAll("SELECT `threadid` , `lastsawreplyid` FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' ORDER BY `lastsawreplyid` DESC");
+		if (count($watched_threads) > 0) {
+			foreach ($watched_threads as $watched_thread) {
+				$threadinfo = $tc_db->GetAll('SELECT `subject` , `name` , `tripcode` FROM `'.TC_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `id` = ' . $watched_thread['threadid'] . ' LIMIT 1');
+				
+				$threadinfo = $threadinfo[0];
+				
+				$output .= '<a href="' . TC_BOARDSFOLDER . mysql_real_escape_string($_GET['board']) . '/res/' . $watched_thread['threadid'] . '.html">' . $watched_thread['threadid'] . '</a> - ';
+				
+				if ($threadinfo['subject'] != '') {
+					$output .= '<span class="filetitle">' . $threadinfo['subject'] . '</span> - ';
 				}
-				$output .= '</font></b></a>';
-			} else {
-				$output .= '<b>0</b>';
+				
+				if ($threadinfo['name'] == '' && $threadinfo['tripcode'] == '') {
+					$output .= TC_ANONYMOUS;
+				} else if ($threadinfo['name'] == '' && $threadinfo['tripcode'] != '') {
+					/* Just display the tripcode, no added html */
+				} else {
+					$output .= $threadinfo['name'];
+				}
+				
+				if ($threadinfo['tripcode']!='') {
+					$output .= '<span class="postertrip">!' . $threadinfo['tripcode'] . '</span>';
+				}
+				
+				$output .= ': ';
+		
+				$numnewreplies = $tc_db->GetOne('SELECT COUNT(*) FROM `'.TC_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `parentid` = ' . $watched_thread['threadid'] . ' AND `id` >  ' . $watched_thread['lastsawreplyid'] . ' LIMIT 1');
+				
+				if ($numnewreplies > 0) {
+					$output .= '<a href="' . TC_BOARDSFOLDER . mysql_real_escape_string($_GET['board']) . '/res/' . $watched_thread['threadid'] . '.html#' . $watched_thread['lastsawreplyid'] . '"><b><font color="red">' . $numnewreplies . ' new repl';
+					if ($numnewreplies != 1) {
+						$output .= 'ies';
+					} else {
+						$output .= 'y';
+					}
+					$output .= '</font></b></a>';
+				} else {
+					$output .= '<b>0</b>';
+				}
+				
+				$output .= ' <a href="#" onclick="javascript:removefromwatchedthreads(\'' . $watched_thread['threadid'] . '\', \'' . $_GET['board'] . '\');return false;" title="Un-watch"><img src="' . TC_WEBPATH . '/lib/icons/x.gif" border="0" alt="x"></a><br>';
 			}
-			
-			$output .= ' &#91;<a href="#" onclick="javascript:removefromwatchedthreads(\'' . $watched_thread['threadid'] . '\', \'' . $_GET['board'] . '\');return false;" title="Un-watch">U</a>&#93;<br>';
-		}
+		} else {
+			$output .= 'None.<br>';
+		}	
+		
+		/*$output .= '<div id="watchedthreadsbuttons">
+		<a href="#" onclick="javascript:hidewatchedthreads();return false;" title="Hide the watched threads box">
+		<img src="' . TC_WEBPATH . '/lib/icons/arrow-upleft.gif" border="0" alt="hide">
+		</a>&nbsp;
+		<a href="#" onclick="javascript:getwatchedthreads(\'0\', \'' . $_GET['board'] . '\');return false;" title="Refresh watched threads">
+		<img src="' . TC_WEBPATH . '/lib/icons/refresh.gif" border="0" alt="refresh">
+		</a>';
+		
+		$output .= '</div>';*/
 	} else {
-		$output .= 'None.<br>';
-	}
-	
-	
-	
-	$output .= '<br><a href="#" onclick="javascript:hidewatchedthreads();return false;" title="Hide the watched threads box">Hide</a>';
-	
-	if ($_GET['threadid'] > 0) {
-		$viewing_thread_is_watched = $tc_db->GetOne("SELECT COUNT(*) FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
-		if ($viewing_thread_is_watched == 0) {
-			$output .= ' - <a href="#" onclick="javascript:addtowatchedthreads(\'' . $_GET['threadid'] . '\', \'' . $_GET['board'] . '\');return false;">Watch this thread</a>';
+		if (TC_APC) {
+			apc_store('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR'], $output, 600);
 		}
 	}
 }

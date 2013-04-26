@@ -38,13 +38,13 @@ class RSS {
 				$items .= '<item>
 				<title>'.$row['id'].'</title>
 				<link>';
-				if ($row['threadid']!='0') {
-					$items .= TC_BOARDSPATH.'/'.$rssboard.'/res/'.$row['threadid'] .'.html#'.$row['id'].'</link>';
+				if ($row['parentid']!='0') {
+					$items .= TC_BOARDSPATH.'/'.$rssboard.'/res/'.$row['parentid'] .'.html#'.$row['id'].'</link>';
 				} else {
 					$items .= TC_BOARDSPATH.'/'.$rssboard.'/res/'.$row['id'].'.html</link>';
 				}
 				$items .= '<description><![CDATA[';
-				if ($row['image']!='') $items .= '['.TC_BOARDSPATH.'/'.$rssboard.'/src/'.$row['image'].'.'.$row['imagetype'].'] <br /><br>';
+				if ($row['filename']!='') $items .= '['.TC_BOARDSPATH.'/'.$rssboard.'/src/'.$row['filename'].'.'.$row['filetype'].'] <br /><br>';
 				if (trim($row['message'])!='') {
 					$items .= stripslashes($row['message']).'<br>';
 				}

@@ -25,7 +25,9 @@
 if (file_exists("install.php")) {
 	die('You are seeing this message because either you haven\'t ran the install file yet, and can do so <a href="install.php">here</a>, or already have, and <b>must delete it</b>.');
 }
-$preconfig_db_unnecessary = true;
+if (!isset($_GET['info'])) {
+	$preconfig_db_unnecessary = true;
+}
 require('config.php');
 
 ?>
@@ -34,10 +36,50 @@ require('config.php');
 <head>
 <title><?php echo TC_NAME; ?></title>
 <link rel="shortcut icon" href="/favicon.ico">
+<?php
+if (isset($tc_config)) {
+	if ($tc_config['is_trevorchan']) {
+		echo '<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+		</script>
+		<script type="text/javascript">
+		_uacct = "UA-71983-8";
+		urchinTracker();
+		</script>';
+	}
+}
+?>
 </head>
-<frameset cols="15%,*" frameborder="0" border="0">
-<frame src="menu.php" name="menu">
-<frame src="news.php" name="main">
+<?php
+if (isset($_GET['info'])) {
+	require_once(TC_ROOTDIR . 'inc/module.php');
+	
+	echo '<body>';
+	
+	echo '<h1>General info:</h1><ul>';
+	$bans = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."banlist`");
+	echo '<li>Active bans: ' . $bans . '</li>';
+	echo '<li>Modules loaded: ';
+	$modules = modules_list();
+	if (count($modules) > 0) {
+		$moduleslist = '';
+		foreach ($modules as $module) {
+			$moduleslist .= $module . ', ';
+		}
+		echo substr($moduleslist, 0, -2);
+	} else {
+		echo 'none';
+	}
+	echo '</li>';
+	echo '</ul>';
+	
+	echo '</body></html>';
+	
+	die();
+}
+?>
+<frameset cols="18%,*" frameborder="0" border="0">
+<frame src="menu.html" name="menu" id="menu">
+<frame src="news.php" name="main" id="main">
 <noframes>
 Your browser doesn't support frames, which <?php echo TC_NAME; ?> requires.<br>
 Please upgrade to something newer.

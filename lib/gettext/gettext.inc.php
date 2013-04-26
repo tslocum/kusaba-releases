@@ -39,7 +39,7 @@ require('gettext.php');
 
 global $text_domains, $default_domain, $LC_CATEGORIES, $EMULATEGETTEXT, $CURRENTLOCALE;
 $text_domains = array();
-$default_domain = 'messages';
+$default_domain = 'trevorchan';
 $LC_CATEGORIES = array('LC_CTYPE', 'LC_NUMERIC', 'LC_TIME', 'LC_COLLATE', 'LC_MONETARY', 'LC_MESSAGES', 'LC_ALL');
 $EMULATEGETTEXT = 0;
 $CURRENTLOCALE = '';
@@ -55,9 +55,9 @@ function _get_reader($domain=null, $category=5, $enable_cache=true) {
 	if (!isset($domain)) $domain = $default_domain;
 	if (!isset($text_domains[$domain]->l10n)) {
 		// get the current locale
-		$locale = _setlocale(LC_MESSAGES, 0);
-		$p = isset($text_domains[$domain]->path) ? $text_domains[$domain]->path : './';
-		$path = $p . "$locale/". $LC_CATEGORIES[$category] ."/$domain.mo";
+		$locale = _setlocale(LC_ALL, TC_LOCALE);
+		$p = './';
+		$path = TC_ROOTDIR . 'inc/lang/' . $locale . '/' . $LC_CATEGORIES[$category] ."/$domain.mo";
 		if (file_exists($path)) {
 			$input = new FileReader($path);
 		}
@@ -128,7 +128,7 @@ function _setlocale($category, $locale) {
     } else {
         $ret = 0;
         if (function_exists('setlocale')) // I don't know if this ever happens ;)
-           $ret = setlocale($category, $locale);
+           $ret = setlocale(LC_ALL, $locale);
         if (($ret and $locale == '') or ($ret == $locale)) {
             $EMULATEGETTEXT = 0;
             $CURRENTLOCALE = $ret;
@@ -178,6 +178,7 @@ function _gettext($msgid) {
 	//return $l10n->translate($msgid);
 	return _encode($l10n->translate($msgid));
 }
+
 /**
  * Alias for gettext.
  */

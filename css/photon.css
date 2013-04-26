@@ -25,11 +25,22 @@ a:hover {
 	color:#FF6600;
 	/*width:100%;*/
 }
-.theader, .passvalid {
+.replymode, .passvalid {
 	background:#DDDDDD;
 	text-align:center;
 	padding:2px;
 	color:#2266AA;
+	clear: both;
+	font-weight: bold;
+	margin-bottom: .5em;
+	border: solid 1px #CCCCCC;
+	-moz-border-radius: 5px;
+}
+.catalogmode {
+	background: #0040E0;
+	text-align: center;
+	padding: 2px;
+	color: #DDDDDD;
 	clear: both;
 	font-weight: bold;
 	margin-bottom: .5em;
@@ -174,7 +185,7 @@ table td {
 	border: 2px dashed #EE6600;
 }
 
-.watchedthreads {
+#watchedthreads {
 	background-color: #DDDDDD !important;
   	border: 1px solid #CCCCCC !important;
   	-moz-border-radius: 5px;

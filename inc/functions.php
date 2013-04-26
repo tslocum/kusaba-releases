@@ -35,46 +35,55 @@ function print_page($filename, $contents, $board) {
 	$fp = fopen($tempfile, 'w');
 	fwrite($fp, $contents);
 	fclose($fp);
-	if (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN') { /* Windows systems refuse to rename a file to a file which already exists, so we have to delete the old file first.  This creates the problem of sporadic 404 errors, since the file doesn't exist for a short amount of time */
-		unlink($filename);
+	/* If we aren't able to use the rename function, try the alternate method */
+	if (!@rename($tempfile, $filename)) {
+		copy($tempfile, $filename);
+		unlink($tempfile);
 	}
-	rename($tempfile, $filename);
+	
 	chmod($filename, 0664); /* it was created 0600 */
 }
 
-function print_stylesheets($prefered_stylesheet = 'Burichan') {
+function print_stylesheets($prefered_stylesheet = TC_DEFAULTSTYLE) {
 	global $tc_db;
-	
 	$output_stylesheets = '';
-	if ($prefered_stylesheet!='Burichan'&&$prefered_stylesheet!='Futaba'&&$prefered_stylesheet!='Gurochan'&&$prefered_stylesheet!='Photon'&&$prefered_stylesheet!='Fuhrerchan') {
-		$prefered_stylesheet = 'Burichan';
+	$styles = explode(':', TC_STYLES);
+	
+	if (!in_array($prefered_stylesheet, $styles)) {
+		$prefered_stylesheet = TC_DEFAULTSTYLE;
 	}
-	$stylesheets = array(array('burichan','Burichan'),array('futaba','Futaba'),array('gurochan','Gurochan'),array('photon','Photon'),array('fuhrerchan','Fuhrerchan'));
-	foreach ($stylesheets as $stylesheet) {
+	
+	foreach ($styles as $stylesheet) {
 		$output_stylesheets .= '<link rel="';
-		if ($stylesheet[1]!=$prefered_stylesheet) {
+		if ($stylesheet != $prefered_stylesheet) {
 			$output_stylesheets .= 'alternate ';
 		}
-		$output_stylesheets .= 'stylesheet" type="text/css" href="'.TC_BOARDSPATH.'/css/'.$stylesheet[0].'.css" title="'.$stylesheet[1].'">' . "\n";
+		$output_stylesheets .= 'stylesheet" type="text/css" href="' . TC_BOARDSPATH . '/css/' . $stylesheet . '.css" title="' . ucfirst($stylesheet) . '">' . "\n";
 	}
+	
 	return $output_stylesheets;
 }
-/* Posting */
 
 /* Checks if the supplied md5 file hash is currently recorded inside of the database, attached to a non-deleted post */
 function check_md5($md5, $board) {
 	global $tc_db;
 
-	$results = $tc_db->GetAll("SELECT COUNT(*) FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `imagemd5` = '".mysql_real_escape_string($md5)."' AND `IS_DELETED` = 0 LIMIT 1");
-	if ($results[0][0]>0) {
-		$results = $tc_db->GetAll("SELECT `id`, `threadid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `imagemd5` = '".mysql_real_escape_string($md5)."' AND `IS_DELETED` = 0 LIMIT 1");
+	$num_matches = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `filemd5` = '".mysql_real_escape_string($md5)."' AND `IS_DELETED` = 0 LIMIT 1");
+	if ($num_matches > 0) {
+		$results = $tc_db->GetAll("SELECT `id`, `parentid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `filemd5` = '".mysql_real_escape_string($md5)."' AND `IS_DELETED` = 0 LIMIT 1");
 		/* We want the first (and only) row */
 		$results = $results[0];
-		$real_threadid = ($results[1]==0) ? $results[0] : $results[1];
+		$real_parentid = ($results[1]==0) ? $results[0] : $results[1];
 		
-		return array($real_threadid, $results[0]);
+		return array($real_parentid, $results[0]);
 	} else {
 		return false;
+	}
+}
+
+function clearpostcache($id, $board) {
+	if (TC_APC) {
+		apc_delete('post|' . $board . '|' . $id);
 	}
 }
 
@@ -113,7 +122,7 @@ function getfiletypeinfo($filetype) {
 }
 
 /* Add an entry to the modlog */
-function management_addlogentry($entry, $category = 0) {
+function management_addlogentry($entry, $category = 0, $forceusername = '') {
 	/* Categories
 	0 - no category
 	1 - login
@@ -129,14 +138,16 @@ function management_addlogentry($entry, $category = 0) {
 	11 - wordfilter */
 	global $tc_db;
 	
+	$username = ($forceusername == '') ? $_SESSION['manageusername'] : $forceusername;
+	
 	if ($entry != '') {
-		$tc_db->Execute("INSERT INTO `" . TC_DBPREFIX . "modlog` ( `entry` , `user` , `category` , `timestamp` ) VALUES ( '" . mysql_real_escape_string($entry) . "' , '" . $_SESSION['manageusername'] . "' , '" . mysql_real_escape_string($category) . "' , '" . time() . "' )");
+		$tc_db->Execute("INSERT INTO `" . TC_DBPREFIX . "modlog` ( `entry` , `user` , `category` , `timestamp` ) VALUES ( '" . mysql_real_escape_string($entry) . "' , '" . $username . "' , '" . mysql_real_escape_string($category) . "' , '" . time() . "' )");
 	}
 	if (TC_RSS) {
 		require_once(TC_ROOTDIR . 'inc/classes/rss.class.php');
 		$rss_class = new RSS();
 		
-		print_page(TC_BOARDSDIR . '/modlogrss.xml', $rss_class->GenerateModLogRSS($entry), '');
+		print_page(TC_BOARDSDIR . 'modlogrss.xml', $rss_class->GenerateModLogRSS($entry), '');
 	}
 }
 

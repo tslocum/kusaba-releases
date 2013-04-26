@@ -52,14 +52,24 @@ if (!isset($_POST['replyto'])) {
 	$_POST['replyto'] = '0';
 }
 
-echo '<head>
+$use_selfy = false;
+if (substr($_POST['applet'], -6) == '_selfy') {
+	$use_selfy = true;
+	$_POST['applet'] = substr($_POST['applet'], 0, -6);
+}
+
+echo '
+<head>
 <style type="text/css">
 body{
 margin: 0;
 padding: 0
 }
-</style>
-</head><body bgcolor="#AEAED9">';
+</style>';
+if ($use_selfy) {
+	echo '<script type="text/javascript" src="'.TC_WEBPATH.'/lib/javascript/palette_selfy.js"></script>';	
+}
+echo '</head><body bgcolor="#AEAED9">';
 
 
 $applet = $_POST['applet'];
@@ -68,12 +78,12 @@ $OekakiApplet = new OekakiApplet;
 
 if (isset($_POST['replyimage'])) {
 	if ($_POST['replyimage']!='0') {
-		$results = $tc_db->GetAll("SELECT `image`, `imagetype` FROM `".TC_DBPREFIX."posts_".$board_dir."` WHERE `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'");
+		$results = $tc_db->GetAll("SELECT `filename`, `filetype` FROM `".TC_DBPREFIX."posts_".$board_dir."` WHERE `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'");
 		if (count($results)==0) {
 			die("Invalid reply image.");
 		} else {
 			foreach($results AS $line) {
-				$post_image = $line['image'].'.'.$line['imagetype'];
+				$post_image = $line['filename'].'.'.$line['filetype'];
 			}
 			if (is_file(TC_BOARDSDIR.$board_dir.'/src/'.$post_image)) {
 				$imageDim = getimagesize(TC_BOARDSDIR.$board_dir.'/src/'.$post_image);
@@ -93,7 +103,7 @@ $save_id = time().rand(1,100);
 $OekakiApplet->animation = $use_animation;
 	
 // Important to applet!
-$OekakiApplet->applet_id                        = 'oekaki';
+$OekakiApplet->applet_id                        = 'paintbbs';
 
 // Applet display
 $OekakiApplet->applet_width                     = "100%";
@@ -122,5 +132,9 @@ switch($applet) {
 		break;
 	}
 }
-echo '</td></tr></tbody></table></body>';
+echo '</td>';
+if ($use_selfy) {
+	echo '<td><script type="text/javascript">palette_selfy();</script></td>';
+}
+echo '</tr></tbody></table></body>';
 ?>

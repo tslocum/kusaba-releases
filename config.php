@@ -26,7 +26,7 @@
 To enable a feature, change the value to true:
 	define('TC_INSTANTREDIRECT', true);
 To disable a feature, change the value to false:
-	define('TC_INSTANTREDIRECT', false);
+	define('TC_INSTANTREDIRECT'] = false;
 
 To change the text value of a configuration, edit the text in the single quotes:
 	define('TC_NAME', 'Trevorchan');
@@ -48,108 +48,175 @@ Possible values you may use:
 	<!tc_maxthumbwidth />
 	<!tc_maxthumbheight />
 	<!tc_uniqueposts />
-/*
+*/
+$cf = array();
+
+/* Caching (this needs to be set at the start because if enabled, it skips the rest of the configuration process) */
+	$cf['TC_APC'] = false;
+
+$cache_loaded = false;
+if ($cf['TC_APC']) {
+	if (apc_load_constants('config')) {
+		$cache_loaded = true;
+	}
+}
+
+if (!$cache_loaded) {
 	
-
-/* Database */
-	define('TC_DBTYPE', 'mysql'); /* Database type (mysql is the only type tested, use others at own risk) */
-	define('TC_DBHOST', 'sql.yourserver.yoursite.com'); /* Database hostname */
-	define('TC_DBDATABASE', 'tcdb'); /* Database... database */
-	define('TC_DBUSERNAME', 'dbuser'); /* Database username */
-	define('TC_DBPASSWORD', 'dbpassword'); /* Database password */
-	define('TC_DBPREFIX', ''); /* Database table prefix */
-	define('TC_DBUSEPERSISTENT', false); /* Use persistent connection to database */
-
-/* Chan info */
-	define('TC_NAME', 'Trevorchan'); /* The name of your site */
-	define('TC_FANCYNAME', '<font color="#00ccff">Trevor</font><font color="#cc0000">chan</font>'); /* The name of your site including coloring and bolding to make it look pretty */
-	define('TC_HEADERURL', 'http://www.trevorchan.org/trevorchanheader_2c.png'); /* Full URL to the header image (or rotation script) to be displayed, can be left blank for no image */
-	define('TC_IRC', '<a href="irc://irc.zirc.org/trevorchan" title="#trevorchan IRC">#trevorchan @ irc.zirc.org</a>'); /* IRC info, which will be displayed in the menu.  Leave blank to remove it */
-
-/* Paths and URLs */
-	define('TC_ROOTDIR', dirname(__FILE__).'/'); /* Full system path of the folder containing trevorchan.php, with trailing slash;  defaults to dirname(__FILE__).'/', but can be changed if desired */
-	define('TC_BOARDSDIR', TC_ROOTDIR); /* Full system path of the boards server, with trailing slash.  If your boards are in the same place as the rest of Trevorchan, leave it as TC_ROOTDIR. */
-	define('TC_WEBFOLDER', '/'); /* The path from the domain of the board to the folder which Trevorchan is in, including the trailing slash.  Example: "http://www.yoursite.com/misc/trevorchan/" would have a TC_WEBFOLDER of "/misc/trevorchan/" */
-	define('TC_BOARDSFOLDER', TC_WEBFOLDER); //The path from the domain of the board to the folder which the boards are in.  If your boards are in the same place as the rest of Trevorchan, leave it as TC_WEBFOLDER. */
-	define('TC_WEBPATH', 'http://www.yourchan.org'); /* The path to the index folder of Trevorchan, without trailing slash */
-	define('TC_BOARDSPATH', TC_WEBPATH); /* The path to the server which boards are hosted on.  If your boards are in the same place as the rest of Trevorchan, leave it as TC_WEBPATH. */
-
-/* Limitations */
-	define('TC_NEWTHREADDELAY', 5); /* Minimum time in seconds a user must wait before posting a new thread again */
-	define('TC_REPLYDELAY', 5); /* Minimum time in seconds a user must wait before posting a reply again */
-	define('TC_MAXCHAR', 100); /* Maximum number of characters in a row before forcing a linebreak in a post */
-
-/* Image handling */
-	define('TC_THUMBWIDTH', 200); /* Maximum thumbnail width */
-	define('TC_THUMBHEIGHT', 200); /* Maximum thumbnail height */
-
-/* Post handling */
-	define('TC_NEWWINDOW', true); /* When a user clicks a thumbnail, whether to open the link in a new window or not */
-	define('TC_MAKELINKS', true); /* Whether or not to turn http:// links into clickable links */
-	define('TC_ANONYMOUS', 'Anonymous'); /* Name to display in case of the user not entering a name, or the board being set to forced-anonymous */
-
-/* Post display */
-	define('TC_THREADS', 10); /* Number of threads to display on a board page */
-	define('TC_REPLIES', 3); /* Number of replies to display on a board page */
-	define('TC_REPLIESSTICKY', 1); /* Number of replies to display on a board page when a thread is stickied */
-
-/* Pages */
-	define('TC_POSTBOX', '<ul><li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.</li></ul>'); /* Notice displayed under the post area */
-	define('TC_FIRSTPAGE', 'board.html'); /* Filename of the first page of a board.  Only change this if you are willing to maintain the .htaccess files for each board directory (they are created with a DirectoryIndex board.html, change them if you change this) */
-
-/* Extra features */
-	define('TC_ADDBANMSG', true); /* Whether or not to add (USER WAS BANNED FOR THIS POST) in red text to a message when a user is banned for it */
-	define('TC_INSTANTREDIRECT', true); /* Whether or not to instantly redirect the user when posting.  If set to false, the user will be redirected after seeing a notification page */
-	define('TC_RSS', true); /* Whether or not to enable the generation of rss for each board and modlog */
-	define('TC_DNSBL', true); /* Whether or not to enable DNS Block */
-	define('TC_EXPAND', true); /* Whether or not to add the expand button to threads viewed on board pages */
-	define('TC_QUICKREPLY', true); /* Whether or not to add quick reply links on posts */
-	define('TC_WATCHTHREADS', true); /* Whether or not to add thread watching capabilities */
-
-/* Misc config */
-	define('TC_MODLOGDAYS', 7); /* Days to keep modlog entries before removing them */
-	define('TC_RANDOMSEED', 'ENTER RANDOM LETTERS/NUMBERS HERE'); /* Type a bunch of random letters/numbers here, any large amount (35+ characters) will do */
-
-/* Language / timezone */
-	define('TC_LOCALE', 'en'); /* The locale of Trevorchan you would like to use.  Locales available: en, de, no, es */
-	putenv('TZ=US/Pacific'); /* The time zone which the server resides in */
+	/* Database */
+		$cf['TC_DBTYPE'] = 'mysql'; /* Database type (mysql is the only type tested, use others at own risk) */
+		$cf['TC_DBHOST'] = 'localhost'; /* Database hostname */
+		$cf['TC_DBDATABASE'] = 'trevorchan'; /* Database... database */
+		$cf['TC_DBUSERNAME'] = 'root'; /* Database username */
+		$cf['TC_DBPASSWORD'] = ''; /* Database password */
+		$cf['TC_DBPREFIX'] = ''; /* Database table prefix */
+		$cf['TC_DBUSEPERSISTENT'] = false; /* Use persistent connection to database */
 	
-/* Debug */
-	define('TC_DEBUG', false); /* When enabled, debug information will be printed (Warning: all queries will be shown publicly) */
+	/* Chan info */
+		$cf['TC_NAME'] = 'Trevorchan'; /* The name of your site */
+		$cf['TC_SLOGAN'] = ''; /* Site slogan, set to nothing to disable its display */
+		$cf['TC_FANCYNAME'] = '<font color="#00ccff">Trevor</font><font color="#cc0000">chan</font>'; /* The name of your site including coloring and bolding to make it look pretty */
+		$cf['TC_HEADERURL'] = 'http://www.trevorchan.org/trevorchanheader.png'; /* Full URL to the header image (or rotation script) to be displayed, can be left blank for no image */
+		$cf['TC_IRC'] = ''; /* IRC info, which will be displayed in the menu.  Leave blank to remove it */
+	
+	/* Paths and URLs */
+		/* Main installation directory */
+			$cf['TC_ROOTDIR']   = dirname(__FILE__) . '/'; /* Full system path of the folder containing trevorchan.php, with trailing slash;  defaults to dirname(__FILE__).'/', but can be changed if desired */
+			$cf['TC_WEBFOLDER'] = '/'; /* The path from the domain of the board to the folder which Trevorchan is in, including the trailing slash.  Example: "http://www.yoursite.com/misc/trevorchan/" would have a $cf['TC_WEBFOLDER'] of "/misc/trevorchan/" */
+			$cf['TC_WEBPATH']   = 'http://www.crapchan.org'; /* The path to the index folder of Trevorchan, without trailing slash */
+			$cf['TC_DOMAIN'] = '.crapchan.org'; /* Used in cookies for the domain parameter.  Should be a period and then the top level domain, which will allow the cookies to be set for all subdomains.  For http://www.randomchan.org, the domain would be .randomchan.org; http://zachchan.freehost.com would be zach.freehost.com*/
+		
+		/* Board subdomain/alternate directory (optional, change to enable) */
+			$cf['TC_BOARDSDIR']    = $cf['TC_ROOTDIR'];
+			$cf['TC_BOARDSFOLDER'] = $cf['TC_WEBFOLDER'];
+			$cf['TC_BOARDSPATH']   = $cf['TC_WEBPATH'];
+		
+		/* CGI subdomain/alternate directory (optional, change to enable) */
+			$cf['TC_CGIDIR']    = $cf['TC_BOARDSDIR'];
+			$cf['TC_CGIFOLDER'] = $cf['TC_BOARDSFOLDER'];
+			$cf['TC_CGIPATH']   = $cf['TC_BOARDSPATH'];
+	
+	/* Limitations */
+		$cf['TC_NEWTHREADDELAY'] = 1; /* Minimum time in seconds a user must wait before posting a new thread again */
+		$cf['TC_REPLYDELAY'] = 1; /* Minimum time in seconds a user must wait before posting a reply again */
+		$cf['TC_MAXCHAR'] = 200; /* Maximum number of characters in a row before forcing a linebreak in a post */
+	
+	/* Image handling */
+		$cf['TC_THUMBWIDTH'] = 200; /* Maximum thumbnail width */
+		$cf['TC_THUMBHEIGHT'] = 200; /* Maximum thumbnail height */
+		$cf['TC_REPLYTHUMBWIDTH'] = 125; /* Maximum thumbnail width (reply) */
+		$cf['TC_REPLYTHUMBHEIGHT'] = 125; /* Maximum thumbnail height (reply) */
+		$cf['TC_CATTHUMBWIDTH'] = 50; /* Maximum thumbnail width (catalog) */
+		$cf['TC_CATTHUMBHEIGHT'] = 50; /* Maximum thumbnail height (catalog) */
+	
+	/* Post handling */
+		$cf['TC_NEWWINDOW'] = true; /* When a user clicks a thumbnail, whether to open the link in a new window or not */
+		$cf['TC_MAKELINKS'] = true; /* Whether or not to turn http:// links into clickable links */
+		$cf['TC_ANONYMOUS'] = 'Anonymous'; /* Name to display in case of the user not entering a name, or the board being set to forced-anonymous */
+	
+	/* Post display */
+		$cf['TC_THREADS'] = 10; /* Number of threads to display on a board page */
+		$cf['TC_REPLIES'] = 3; /* Number of replies to display on a board page */
+		$cf['TC_REPLIESSTICKY'] = 1; /* Number of replies to display on a board page when a thread is stickied */
+	
+	/* CSS styles */
+		$cf['TC_STYLES'] = 'burichan:futaba:gurochan:photon:fuhrerchan'; /* Styles which are available to be used for the boards, separated by colons, in lower case.  These will be displayed next to [Home] [Manage] if TC_STYLESWITCHER is set to true */
+		$cf['TC_DEFAULTSTYLE'] = 'futaba'; /* If Default is selected in the style list in board options, it will use this style.  Should be lower case */
+		$cf['TC_STYLESWITCHER'] = true; /* Whether or not to display the different styles in a clickable switcher at the top of the board */
+	
+	/* Pages */
+		$cf['TC_POSTBOX'] = '<ul><li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.<!tc_catalog /></li></ul>'; /* Notice displayed under the post area */
+		$cf['TC_FIRSTPAGE'] = 'board.html'; /* Filename of the first page of a board.  Only change this if you are willing to maintain the .htaccess files for each board directory (they are created with a DirectoryIndex board.html, change them if you change this) */
+	
+	/* File tagging */
+		$cf['TC_TAGS'] = array('Japanese' => 'J',
+						'Anime'    => 'A',
+						'Game'     => 'G',
+						'Loop'     => 'L',
+						'Other'    => '*'); /* Used only in Upload imageboards.  These are the tags which a user may choose to use as they are posting a file.  If you wish to disable tagging on Upload imageboards, set this to '' */
+	
+	/* Extra features */
+		$cf['TC_ADDBANMSG'] = true; /* Whether or not to add (USER WAS BANNED FOR THIS POST) in red text to a message when a user is banned for it */
+		$cf['TC_INSTANTREDIRECT'] = true; /* Whether or not to instantly redirect the user when posting.  If set to false, the user will be redirected after seeing a notification page */
+		$cf['TC_RSS'] = true; /* Whether or not to enable the generation of rss for each board and modlog */
+		$cf['TC_EXPAND'] = true; /* Whether or not to add the expand button to threads viewed on board pages */
+		$cf['TC_QUICKREPLY'] = true; /* Whether or not to add quick reply links on posts */
+		$cf['TC_WATCHTHREADS'] = true; /* Whether or not to add thread watching capabilities */
+		$cf['TC_FIRSTLAST'] = true; /* Whether or not to generate extra files for the first 100 posts/last 50 posts */
+		$cf['TC_PINGBACK'] = ''; /* The password to use when making a ping to the chan directory.  Set to nothing ('') to disable */
+	
+	/* Misc config */
+		$cf['TC_MODLOGDAYS'] = 7; /* Days to keep modlog entries before removing them */
+		$cf['TC_RANDOMSEED'] = 'ENTER RANDOM LETTERS/NUMBERS HERE'; /* Type a bunch of random letters/numbers here, any large amount (35+ characters) will do */
+	
+	/* Language / timezone / encoding */
+		$cf['TC_LOCALE'] = 'en'; /* The locale of Trevorchan you would like to use.  Locales available: en, de, no, es */
+		putenv('TZ=US/Pacific'); /* The time zone which the server resides in */
+		$cf['TC_CHARSET'] = 'UTF-8'; /* The character encoding to mark the pages as.  This must be the same in the .htaccess file (AddCharset charsethere .html and AddCharset charsethere .php) to function properly.  Only UTF-8 and Shift_JIS have been tested */
+		
+	/* Debug */
+		$cf['TC_DEBUG'] = false; /* When enabled, debug information will be printed (Warning: all queries will be shown publicly) */
+	
+	/* Version */
+		$cf['TC_VERSION'] = '0.9.7'; /* The current version.  You probably shouldn't modify this unless you upgraded */
+	
+	/* Post-configuration actions, don't modify these */
+		$cf['TC_TAGS'] = serialize($cf['TC_TAGS']);
+		
+		if ($cf['TC_APC']) {
+			apc_define_constants('config', $cf);
+		}
+		while (list($key, $value) = each($cf)) {
+			define($key, $value);
+		}
+		unset($cf);
+}
 
 /* DO NOT MODIFY BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING OR ELSE BAD THINGS MAY HAPPEN */
-define('PROJECT_DIR', realpath('./'));
-define('LOCALE_DIR', TC_ROOTDIR.'inc/lang');
-define('DEFAULT_LOCALE', TC_LOCALE);
 $modules_loaded = array();
 
 require(TC_ROOTDIR.'lib/gettext/gettext.inc.php');
 require(TC_ROOTDIR.'lib/adodb/adodb.inc.php');
 
-define('TC_VERSION', '0.9.4');
-
+/* Gettext */
 $supported_locales = array('en', 'de', 'no', 'es');
-$encoding = 'UTF-8';
-$locale = TC_LOCALE;
-T_setlocale(LC_MESSAGES, $locale);
-$domain = 'trevorchan';
-bindtextdomain($domain, LOCALE_DIR);
+textdomain('trevorchan');
+_setlocale(LC_ALL, TC_LOCALE);
+bindtextdomain('trevorchan', TC_ROOTDIR . 'inc/lang');
 if (function_exists('bind_textdomain_codeset')) {
-	bind_textdomain_codeset($domain, $encoding);
+	bind_textdomain_codeset('trevorchan', 'UTF-8');
 }
-textdomain($domain);
 
+/* MySQL database */
 if (!isset($tc_db) && !isset($preconfig_db_unnecessary)) {
 	$tc_db = &NewADOConnection(TC_DBTYPE);
 	if (TC_DBUSEPERSISTENT) {
-		$tc_db->PConnect(TC_DBHOST, TC_DBUSERNAME, TC_DBPASSWORD, TC_DBDATABASE);
+		$tc_db->PConnect(TC_DBHOST, TC_DBUSERNAME, TC_DBPASSWORD, TC_DBDATABASE) or die('MySQL database connection error: ' . $tc_db->ErrorMsg());
 	} else {
-		$tc_db->Connect(TC_DBHOST, TC_DBUSERNAME, TC_DBPASSWORD, TC_DBDATABASE);
+		$tc_db->Connect(TC_DBHOST, TC_DBUSERNAME, TC_DBPASSWORD, TC_DBDATABASE) or die('MySQL database connection error: ' . $tc_db->ErrorMsg());
 	}
-}
-
-if (TC_DEBUG) {
-	$tc_db->debug = true;
+	
+	/* MySQL debug */
+	if (TC_DEBUG) {
+		$tc_db->debug = true;
+	}
+	
+	$results = $tc_db->GetAll("SELECT * FROM `" . TC_DBPREFIX . "events` WHERE `at` <= " . time());
+	if (count($results) > 0) {
+		foreach($results AS $line) {
+			if ($line['name'] == 'pingback') {
+				$tc_db->Execute("UPDATE `" . TC_DBPREFIX . "events` SET `at` = " . (time() + 43200) . " WHERE `name` = 'pingback'");
+				if (TC_PINGBACK != '') {
+					$ch = curl_init('http://www.trevorchan.org/chans.php?dopingback&name=' . urlencode(TC_NAME) . '&password=' . urlencode(TC_PINGBACK) . '&version=' . TC_VERSION . '&url=' . urlencode(TC_WEBPATH));
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, 0);
+					curl_setopt($ch, CURLOPT_HEADER, 0);
+					curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+					@curl_exec($ch);
+					curl_close($ch);
+				}
+			}
+		}
+	}
 }
 
 /* Thanks Z */

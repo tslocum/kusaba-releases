@@ -27,23 +27,68 @@ function calculateNameAndTripcode($post_name) {
 	global $tc_db;
 	
 	if(ereg("(#|!)(.*)", $post_name, $regs)){
-		$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."passcache` WHERE `md5` = '".md5($post_name)."' LIMIT 1");
+		$results = $tc_db->GetAll("SELECT `name`, `tripcode` FROM `".TC_DBPREFIX."passcache` WHERE `md5` = '".md5($post_name)."' LIMIT 1");
 		if (isset($results[0])) {
-			foreach ($results AS $line) {
-				return array($line['name'], $line['tripcode']);
-			}
+			return array($results[0][0], $results[0][1]);
 		} else {
-			/* From Futabally */
-			
 			$cap = $regs[2];
-			$cap = strtr($cap, "&amp;", "&");
-			$cap = strtr($cap, "&#44;", ", ");
-			$name = ereg_replace("(#|!)(.*)", "", $post_name);
-			$salt = substr($cap."H.", 1, 2);
-			$salt = ereg_replace("[^\.-z]", ".", $salt);
-			$salt = strtr($salt, ":;<=>?@[\\]^_`", "ABCDEFGabcdef"); 
-			$tripcode = substr(crypt($cap, $salt), -10)."";
-			$tc_db->Execute("INSERT INTO `".TC_DBPREFIX."passcache` ( `md5` , `name` , `tripcode` ) VALUES ( '".md5($post_name)."' , '".$name."' , '".$tripcode."' )");
+			
+			if (function_exists('mb_convert_encoding')) {
+				$recoded_cap = mb_convert_encoding($cap, 'SJIS', 'UTF-8');
+				if ($recoded_cap != '') {
+					$cap = $recoded_cap;
+				}
+			}
+			
+			if (strpos($post_name, '#') === false) {
+				$cap_delimiter = '!';
+			} elseif (strpos($post_name, '!') === false) {
+				$cap_delimiter = '#';
+			} else {
+				$cap_delimiter = (strpos($post_name, '#') < strpos($post_name, '!')) ? '#' : '!';
+			}
+			
+			if (ereg("(.*)(" . $cap_delimiter . ")(.*)", $cap, $regs_secure)) {
+				$cap = $regs_secure[1];
+				$cap_secure = $regs_secure[3];
+				$is_secure_trip = true;
+			} else {
+				$is_secure_trip = false;
+			}
+			
+			$tripcode = '';
+			if ($cap != '') {
+				/* From Futabally */
+				$cap = strtr($cap, "&amp;", "&");
+				$cap = strtr($cap, "&#44;", ", ");
+				$salt = substr($cap."H.", 1, 2);
+				$salt = ereg_replace("[^\.-z]", ".", $salt);
+				$salt = strtr($salt, ":;<=>?@[\\]^_`", "ABCDEFGabcdef"); 
+				$tripcode = substr(crypt($cap, $salt), -10);
+			}
+			
+			if ($is_secure_trip) {
+				if ($cap != '') {
+					$tripcode .= '!';
+				}
+				
+				$secure_tripcode = md5($cap_secure . TC_RANDOMSEED);
+				if (function_exists('base64_encode')) {
+					$secure_tripcode = base64_encode($secure_tripcode);
+				}
+				if (function_exists('str_rot13')) {
+					$secure_tripcode = str_rot13($secure_tripcode);
+				}
+				
+				$secure_tripcode = substr($secure_tripcode, 2, 10);
+				
+				$tripcode .= '!' . $secure_tripcode;
+			}
+			
+			$name = ereg_replace("(" . $cap_delimiter . ")(.*)", "", $post_name);
+			
+			$tc_db->Execute("INSERT INTO `".TC_DBPREFIX."passcache` ( `md5` , `name` , `tripcode` ) VALUES ( '" . md5($post_name) . "' , '" . $name . "' , '" . $tripcode . "' )");
+			
 			return array($name, $tripcode);
 		}
 	} else {
@@ -80,71 +125,69 @@ function closeOpenTags($html){
 }
 
 function removeDir($path) {
-$normal_files = glob($path . "*");
-$hidden_files = glob($path . "\.?*");
-$all_files = array_merge($normal_files, $hidden_files);
-
-foreach ($all_files as $file) {
-	/* Skip pseudo links to current and parent dirs (./ and ../). */
-	if (preg_match("/(\.|\.\.)$/", $file))
-	{
-			continue;
+	$normal_files = glob($path . "*");
+	$hidden_files = glob($path . "\.?*");
+	$all_files = array_merge($normal_files, $hidden_files);
+	
+	foreach ($all_files as $file) {
+		/* Skip pseudo links to current and parent dirs (./ and ../). */
+		if (preg_match("/(\.|\.\.)$/", $file))
+		{
+				continue;
+		}
+	
+		if (is_file($file) === TRUE) {
+			/* Remove each file in this Directory */
+			unlink($file);
+			echo "Removed File: " . $file . "<br>";
+		}
+		else if (is_dir($file) === TRUE) {
+			/* If this Directory contains a Subdirectory, run this Function on it */
+			removeDir($file);
+		}
 	}
-
-	if (is_file($file) === TRUE) {
-		/* Remove each file in this Directory */
-		unlink($file);
-		echo "Removed File: " . $file . "<br>";
+	/* Remove Directory once Files have been removed (If Exists) */
+	if (is_dir($path) === TRUE) {
+		rmdir($path);
+		echo "<br>Removed Directory: " . $path . "<br><br>";
 	}
-	else if (is_dir($file) === TRUE) {
-		/* If this Directory contains a Subdirectory, run this Function on it */
-		removeDir($file);
-	}
-}
-/* Remove Directory once Files have been removed (If Exists) */
-if (is_dir($path) === TRUE) {
-	rmdir($path);
-	echo "<br>Removed Directory: " . $path . "<br><br>";
-}
 }
 
 function remove_board($dir){
 	global $tc_db;
 	$dir = '/'.$dir;
 
-	define('loc1', TC_BOARDSDIR, true);
-
 	if(!isset($GLOBALS['remerror'])) {
 		$GLOBALS['remerror'] = false;
 	}
 
-if($handle = opendir(loc1.$dir)){          /* If the folder exploration is sucsessful, continue */
-while (false !== ($file = readdir($handle))){ /* As long as storing the next file to $file is successful, continue */
-	$path = $dir . '/' . $file;
-
-	if(is_file(loc1 . $path)){
-	if(!unlink(loc1 . $path)){
-		echo '<u><font color="red">"' . $path . '" could not be deleted. This may be due to a permissions problem.</u><br>Directory cannot be deleted until all files are deleted.</font><br>';
-		$GLOBALS['remerror'] = true;
-		return false;
+	if($handle = opendir(TC_BOARDSDIR . $dir)){ /* If the folder exploration is sucsessful, continue */
+		while (false !== ($file = readdir($handle))){ /* As long as storing the next file to $file is successful, continue */
+			$path = $dir . '/' . $file;
+		
+			if(is_file(TC_BOARDSDIR . $path)){
+				if(!unlink(TC_BOARDSDIR . $path)){
+					echo '<u><font color="red">"' . $path . '" could not be deleted. This may be due to a permissions problem.</u><br>Directory cannot be deleted until all files are deleted.</font><br>';
+					$GLOBALS['remerror'] = true;
+					return false;
+				}
+			} else
+				if(is_dir(TC_BOARDSDIR . $path) && substr($file, 0, 1) != '.'){
+					remove_board($path);
+					@rmdir(TC_BOARDSDIR . $path);
+				}
+		}
+		closedir($handle); /* Close the folder exploration */
 	}
-	} else
-	if(is_dir(loc1 . $path) && substr($file, 0, 1) != '.'){
-	remove_board($path);
-	@rmdir(loc1 . $path);
-	}
-}
-closedir($handle); /* Close the folder exploration */
-}
-
-if(!$GLOBALS['remerror']) /* If no errors occured, delete the now empty directory */
-if(!rmdir(loc1 . $dir)){
-	echo '<b><font color="red">Could not remove directory "' . $dir . '". This may be due to a permissions problem.</font></b><br>'.$GLOBALS['remerror'];
+	
+	if(!$GLOBALS['remerror']) /* If no errors occured, delete the now empty directory */
+		if(!rmdir(TC_BOARDSDIR . $dir)){
+			echo '<b><font color="red">Could not remove directory "' . $dir . '". This may be due to a permissions problem.</font></b><br>'.$GLOBALS['remerror'];
+			return false;
+		} else
+			return true;
+	
 	return false;
-} else
-	return true;
-
-return false;
 }
 
 /* Image handling */
@@ -172,12 +215,10 @@ function createthumb($name, $filename, $new_w, $new_h) {
 	} else {
 		$percent = $new_h / $old_y;
 	}
-	
 	$thumb_w = round($old_x * $percent);
 	$thumb_h = round($old_y * $percent);
 	
 	$dst_img=ImageCreateTrueColor($thumb_w, $thumb_h);
-	
 	fastimagecopyresampled($dst_img, $src_img, 0, 0, 0, 0, $thumb_w, $thumb_h, $old_x, $old_y);
 	
 	if (preg_match("/png/", $system[0])) {
@@ -352,23 +393,17 @@ function recursive_directory_size($directory, $format=FALSE)
 ------------------------------------------------------------
 */
 
-function ConvertBytes($number)
-{
+function ConvertBytes($number) {
 	$len = strlen($number);
-	if($len < 4)
-	{
-		return sprintf("%d B", $number);
-	}
-	if($len >= 4 && $len <=6)
-	{
-		return sprintf("%0.2f KB", $number/1024);
-	}
-	if($len >= 7 && $len <=9)
-	{
-		return sprintf("%0.2f MB", $number/1024/1024);
+	if($len < 4) {
+		return sprintf("%dB", $number);
+	} elseif($len <= 6) {
+		return sprintf("%0.2fKB", $number/1024);
+	} elseif($len <= 9) {
+		return sprintf("%0.2fMB", $number/1024/1024);
 	}
 
-	return sprintf("%0.2f GB", $number/1024/1024/1024);
+	return sprintf("%0.2fGB", $number/1024/1024/1024);
 						
 }
 

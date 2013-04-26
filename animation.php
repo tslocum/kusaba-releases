@@ -25,12 +25,18 @@ if (!isset($_GET['board']) || !isset($_GET['id'])) {
 require('config.php');
 
 ?>
-<applet name="pch" code="pch2.PCHViewer.class" archive="<?php echo TC_BOARDSFOLDER . PCHViewer123.jar; ?>" width="400" height="426" alt="Applet requires Java 1.1 or later to run!" mayscript">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
+<html>
+<head>
+<title>View Animation</title>
+</head>
+<body>
+<applet name="pch" code="pch2.PCHViewer.class" archive="<?php echo TC_CGIPATH; ?>/PCHViewer123.jar" width="400" height="426" alt="Applet requires Java 1.1 or later to run!" mayscript">
 <param name="archive" value="PCHViewer123.jar">
  <param name="image_width" value="400">
  <param name="image_height" value="400">
 
- <param name="pch_file" value="<?php echo TC_BOARDSFOLDER . $_GET['board'] . '/src/' . $_GET['id'] . '.pch'; ?>">
+ <param name="pch_file" value="<?php echo TC_BOARDSPATH . '/' . $_GET['board'] . '/src/' . $_GET['id'] . '.pch'; ?>">
  <param name="run" value="true">
  <param name="buffer_progress" value="false">
  <param name="buffer_canvas" value="false">
@@ -55,7 +61,8 @@ require('config.php');
  <param name="color_bar_frame_shadow" value="#CCCCFF">
  <div align="center">Java must be installed and enabled to use this applet.  Please refer to our Java setup tutorial for more information.</div>
 </applet>
-
+</body>
+</html>
 <?php
 
 ?>

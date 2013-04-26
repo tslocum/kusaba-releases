@@ -43,18 +43,13 @@ class Bans {
 		$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."banlist` WHERE `type` = '0' AND ( `ipmd5` = '" . md5($ip) . "' OR `ipmd5` = '". md5($_COOKIE['tc_previousip']) . "' ) LIMIT 1");
 		if (count($results)>0) {
 			foreach($results AS $line) {
-				if ($line['until']=='0') {
-					$ban_until = '<font color="red">'._('Does not expire').'</font>';
-				} else {
-					$ban_until = date("F j, Y, g:i a", $line['until']);
-				}
 				if ($line['globalban']!=1) {
 					if (in_array($board, explode('|', $line['boards']))) {
-						echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], date("F j, Y, g:i a", $line['at']), $ban_until);
+						echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until']);
 						die();
 					}
 				} else {
-					echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], date("F j, Y, g:i a", $line['at']), $ban_until);
+					echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until']);
 					die();
 				}
 			}
@@ -63,12 +58,7 @@ class Bans {
 		if (count($results)>0) {
 			foreach($results AS $line) {
 				if (eregi(md5_decrypt($line['ip'], TC_RANDOMSEED), $ip)) {
-					if ($line['until']=='0') {
-						$ban_until = '<font color="red">'._('Does not expire').'</font>';
-					} else {
-						$ban_until = date("F j, Y, g:i a", $line['until']);
-					}
-					echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], date("F j, Y, g:i a", $line['at']), $ban_until);
+					echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until']);
 					die();
 				}
 			}
@@ -76,7 +66,7 @@ class Bans {
 
 		if ($force_display) {
 			/* Instructed to display a page whether banned or not, so we will inform them today is their rucky day */
-			echo '<title>'._('YOU ARE NOT BANNED!').'</title><div align="center"><img src="/youarenotbanned.jpg"><br><br>'._('Unable to find record of your IP being banned.').'</div>';
+			echo '<title>'._gettext('YOU ARE NOT BANNED!').'</title><div align="center"><img src="/youarenotbanned.jpg"><br><br>'._gettext('Unable to find record of your IP being banned.').'</div>';
 		} else {
 			return true;
 		}
@@ -115,23 +105,25 @@ class Bans {
 		/* Set a cookie with the users current IP address in case they use a proxy to attempt to make another post */
 		setcookie('tc_previousip', $_SERVER['REMOTE_ADDR'], (time() + 604800), TC_BOARDSFOLDER);
 		
-		$output = '<title>' . _('YOU ARE BANNED') . '!</title>
-		<div style="text-align: center;">
-		<img src="/youarebanned.jpg" alt=":\'("><br>
-		<h1>' . _('YOU ARE BANNED') . ' :\'(</h1><br>
-		' . _('You are banned from posting on:') . ' ';
-		if ($globalban==1) {
-			$output .= '<b>' . strtoupper(_('All boards')) . '</b>';
-		} else {
-			$output .= $boards;
-		}
-		$output .= '<br><br>
-		' . _('Reason:') . ' ' . stripslashes($reason) . '<br><br>
-		' . _('Placed:') . ' ' . $at . '<br>
-		' . _('Expires:') . ' ' . $until . '
-		</div>';
+		require_once(TC_ROOTDIR . 'lib/smarty.php');
 		
-		return $output;
+		$smarty->assign('title', _gettext('YOU ARE BANNED') . '!');
+		$smarty->assign('youarebanned', _gettext('YOU ARE BANNED') . ' :\'(');
+		if ($globalban==1) {
+			$smarty->assign('boards', strtolower(_gettext('All boards')));
+		} else {
+			$smarty->assign('boards', $boards);
+		}
+		$smarty->assign('reason', $reason);
+		$smarty->assign('at', date("F j, Y, g:i a", $at));
+		if ($until > 0) {
+			$smarty->assign('expires', 'will expire on <b>' . date("F j, Y, g:i a", $until) . '</b>');
+		} else {
+			$smarty->assign('expires', '<b>will not expire</b>');
+		}
+		$smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
+		
+		return $smarty->fetch('banned.tpl');
 	}
 	
 	function UpdateHtaccess() {

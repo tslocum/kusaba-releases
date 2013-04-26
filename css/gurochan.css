@@ -86,8 +86,8 @@ a.quotelink {
 	border:1px solid #CA927B;
 }
 .replyhl {
-	background:#D6BAD0;
-	color:#000000;
+	background: #D6BAD0;
+	color: #000000;
 }
 .doubledash {
  	vertical-align:top;
@@ -118,7 +118,8 @@ a.quotejs:hover {
   text-align: center;
 }
 
-.watchedthreads {
+#watchedthreads {
 	background-color: #D9AF9E !important;
   	border: 1px solid #CA927B !important;
+  	border-top: 0px none !important;
 }
