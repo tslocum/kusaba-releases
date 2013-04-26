@@ -14,9 +14,11 @@
  * You should have received a copy of the GNU General Public License along with
  * Trevorchan; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- * +------------------------------------------------------------------------------+
+ */
+/** 
  * Menu class
- * +------------------------------------------------------------------------------+
+ * 
+ * @package Trevorchan 
  */
 class Menu {
 
@@ -38,10 +40,10 @@ class Menu {
 		
 		$tpl_irc = '';
 		if (TC_IRC!='') {
-			$tpl_irc .= '<h2>&nbsp;IRC</h2>
-			<ul>
-			<li>' . TC_IRC . '</li>
-			</ul>';
+			$tpl_irc .= '<h2>&nbsp;IRC</h2>' . "\n" .
+			'<ul>' . "\n" .
+			'	<li>' . TC_IRC . '</li>' . "\n" .
+			'</ul>' . "\n";
 		}
 		if (isset($tc_config)) {
 			if ($tc_config['is_trevorchan']) {
@@ -52,7 +54,9 @@ class Menu {
 				<li><a href="http://code.google.com/p/trevorchan/wiki/InstallationGuide" target="_top">&nbsp;-&nbsp;Installing</a></li>
 				<li><a href="http://code.google.com/p/trevorchan/wiki/AdministrationGuide" target="_top">&nbsp;-&nbsp;Administration</a></li>
 				<li><a href="http://code.google.com/p/trevorchan/wiki/StaffGuide" target="_top">&nbsp;-&nbsp;Staff</a></li>
+				<li><a href="http://code.google.com/p/trevorchan/wiki/ModuleList" target="_top">&nbsp;-&nbsp;Modules</a></li>
 				<li><a href="http://code.google.com/p/trevorchan/" target="_top">Project page</a></li>
+				<li><a href="http://trevorchan.org/doc/index.html" target="main">Code Documentation</a></li>
 				</ul>
 				
 				<script type="text/javascript"><!--
@@ -79,7 +83,9 @@ class Menu {
 			$tpl_boards = '';
 			$results_boardsexist = $tc_db->GetAll("SELECT `id` FROM `".TC_DBPREFIX."boards` LIMIT 1");
 			if (count($results_boardsexist)==0) {
-				$tpl_boards .= '<ul><li>'._gettext('No visible boards').'</li></ul>';
+				$tpl_boards .= '<ul>' . "\n" .
+				'	<li>'._gettext('No visible boards').'</li>' . "\n" .
+				'</ul>' . "\n";
 			} else {
 				$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."sections` ORDER BY `order` ASC");
 				foreach($results AS $line) {
@@ -89,15 +95,17 @@ class Menu {
 					} else {
 						$tpl_boards .= '&minus;';
 					}
-					$tpl_boards .= '</span>&nbsp;'.$line['name'].'</h2><div id="'.$line['abbreviation'].'" style="';
+					$tpl_boards .= '</span>&nbsp;'.$line['name'].'</h2>' . "\n" .
+					'<div id="'.$line['abbreviation'].'" style="';
 					if ($line['hidden']==1) {
 						$tpl_boards .= 'display: none;';
 					}
-					$tpl_boards .= '"><ul>';
+					$tpl_boards .= '">' . "\n" .
+					'<ul>' . "\n";
 					$resultsboard = $tc_db->GetAll("SELECT `name`, `desc`, `locked`, `trial`, `popular` FROM `".TC_DBPREFIX."boards` WHERE `section` = ".$line['id']." ORDER BY `order` ASC");
 					if (count($resultsboard)>0) {
 						foreach($resultsboard AS $lineboard) {
-							$tpl_boards .= '<li><a href="'.TC_BOARDSPATH.'/'.$lineboard['name'].'/">';
+							$tpl_boards .= '	<li><a href="'.TC_BOARDSPATH.'/'.$lineboard['name'].'/" target="main">';
 							if ($lineboard['trial']==1) { $tpl_boards .= '<i>'; }
 							if ($lineboard['popular']==1) { $tpl_boards .= '<b>'; }
 							if ($i == 1) {
@@ -105,16 +113,19 @@ class Menu {
 							}
 							$tpl_boards .= $lineboard['desc'];
 							if ($lineboard['locked']=="1") {
-								$tpl_boards .= ' <img src="'.TC_BOARDSPATH.'/locked.gif" border="0" alt="Locked" />';
+								$tpl_boards .= ' <img src="'.TC_BOARDSPATH.'/locked.gif" border="0" alt="Locked">';
 							}
 							if ($lineboard['trial']==1) { $tpl_boards .= '</i>'; }
 							if ($lineboard['popular']==1) { $tpl_boards .= '</b>'; }
-							$tpl_boards .= '</a></li>';
+							$tpl_boards .= '</a></li>' . "\n";
 						}
 					} else {
-						$tpl_boards .= '<li>'._gettext('No visible boards').'</li>';
+						$tpl_boards .= '	<li>' . "\n" .
+						_gettext('No visible boards') . "\n" .
+						'</li>' . "\n";
 					}
-					$tpl_boards .= '</ul></div>';
+					$tpl_boards .= '</ul>' . "\n" .
+					'</div>' . "\n";
 				}
 			}
 			$smarty->assign('boards', $tpl_boards);
@@ -124,11 +135,11 @@ class Menu {
 					$smarty->assign('redirscript', "\n" . 'if (getCookie(\'tcshowdirs\') == \'yes\') {' . "\n" .
 					'	window.location = \'' . TC_WEBPATH . '/' . $files[1] . '\';' . "\n" .
 					'}' . "\n");
-					$smarty->assign('showhidedirs', '<li><a target="_self" onclick="javascript:showdirs();" href="' . $files[1] . '">['._gettext('Show Directories').']</a></li>');
+					$smarty->assign('showhidedirs', '<li><a onclick="javascript:showdirs();" href="' . $files[1] . '">['._gettext('Show Directories').']</a></li>');
 					file_put_contents(TC_ROOTDIR . $files[0], $smarty->fetch('menu.tpl'));
 				} else {
 					$smarty->assign('redirscript', '');
-					$smarty->assign('showhidedirs', '<li><a target="_self" onclick="javascript:hidedirs();" href="' . $files[0] . '">['._gettext('Hide Directories').']</a></li>');
+					$smarty->assign('showhidedirs', '<li><a onclick="javascript:hidedirs();" href="' . $files[0] . '">['._gettext('Hide Directories').']</a></li>');
 					file_put_contents(TC_ROOTDIR . $files[1], $smarty->fetch('menu.tpl'));
 				}
 			} else {
@@ -136,14 +147,14 @@ class Menu {
 					$smarty->assign('redirscript', "\n" . 'if (getCookie(\'tcshowdirs\') == \'yes\') {' . "\n" .
 					'	window.location = \'' . TC_WEBPATH . '/' . $files[1] . '\';' . "\n" .
 					'}' . "\n");
-					$smarty->assign('showhidedirs', '<li><a target="_self" onclick="javascript:showdirs();" href="' . $files[1] . '">['._gettext('Show Directories').']</a></li>');
+					$smarty->assign('showhidedirs', '<li><a onclick="javascript:showdirs();" href="' . $files[1] . '">['._gettext('Show Directories').']</a></li>');
 					$menu_nodirs = $smarty->fetch('menu.tpl');
 					if ($option == 'nodirs') {
 						return $menu_nodirs;
 					}
 				} else {
 					$smarty->assign('redirscript', '');
-					$smarty->assign('showhidedirs', '<li><a target="_self" onclick="javascript:hidedirs();" href="' . $files[0] . '">['._gettext('Hide Directories').']</a></li>');
+					$smarty->assign('showhidedirs', '<li><a onclick="javascript:hidedirs();" href="' . $files[0] . '">['._gettext('Hide Directories').']</a></li>');
 					$menu_dirs = $smarty->fetch('menu.tpl');
 					if ($option == 'dirs') {
 						return $menu_dirs;

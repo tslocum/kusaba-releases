@@ -20,17 +20,26 @@
  * http://www.tj9991.com/
  * tslocum@gmail.com
  * +------------------------------------------------------------------------------+
- * Board operations which are available to all users
- * +------------------------------------------------------------------------------+
+ */
+/** 
+ * Board operations which available to all users
+ *
  * This file serves the purpose of providing functionality for all users of the
  * boards.  This includes: posting, reporting posts, and deleting posts.
- * +------------------------------------------------------------------------------+
+ * 
+ * @package Trevorchan  
  */
+
+/** 
+ * Start the session
+ */ 
 session_start();
 
+/** 
+ * Require the configuration file, functions file, board and post class, bans class, and posting class
+ */ 
 require 'config.php';
 require TC_ROOTDIR . 'inc/functions.php';
-require_once TC_ROOTDIR . 'inc/operations.functions.php';
 require_once TC_ROOTDIR . 'inc/classes/board-post.class.php';
 require_once TC_ROOTDIR . 'inc/classes/bans.class.php';
 require_once TC_ROOTDIR . 'inc/classes/posting.class.php';
@@ -65,6 +74,9 @@ if (isset($_POST['board'])) {
 	$board_name = $tc_db->GetOne("SELECT `name` FROM `" . TC_DBPREFIX . "boards` WHERE `name` = '" . mysql_real_escape_string($_POST['board']) . "'");
 	if ($board_name!='') {
 		$board_class = new Board($board_name);
+		if ($board_class->board_locale != '') {
+			changeLocale($board_class->board_locale);
+		}
 	} else {
 		die('<meta http-equiv="refresh" content="0;url=' . TC_WEBPATH . '">');
 	}

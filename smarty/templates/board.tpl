@@ -16,5 +16,6 @@
 <meta http-equiv="expires" content="-1">
 </head>
 {$page}
+<a name="bottom"></a>
 </body>
 </html>

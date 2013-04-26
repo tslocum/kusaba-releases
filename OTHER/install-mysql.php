@@ -1,4 +1,7 @@
 <?php
+/**
+ * @ignore
+ */ 
 ################################################################################
 # Trevorchan MySQL Importing Script v1.0 is © 2007 David Steven-Jennings (relixx@gmail.com)
 #

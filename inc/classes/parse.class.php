@@ -43,8 +43,8 @@ class Parse {
 			'`\[spoiler\](.+?)\[/spoiler\]`is', 
 			);
 		$replaces =  array(
-			'<strong>\\1</strong>', 
-			'<em>\\1</em>', 
+			'<b>\\1</b>', 
+			'<i>\\1</i>', 
 			'<span style="border-bottom: 1px dotted">\\1</span>', 
 			'<strike>\\1</strike>', 
 			'<div style="whitespace: pre; font-family: monospace;">\\1</div>', 
@@ -165,6 +165,41 @@ class Parse {
 		}
 	}
 	
+	/* From http://us.php.net/wordwrap */
+	/*function CutWord($str, $maxLength, $char){
+	    $wordEndChars = array(" ", "\n", "\r", "\f", "\v", "\0");
+	    $count = 0;
+	    $newStr = "";
+	    $openTag = false;
+	    for($i=0; $i<strlen($str); $i++){
+	        $newStr .= $str{$i};   
+			echo 'newstr: ' . $newStr . '<hr>' . "\n";
+	        if($str{$i} == "<"){
+	            $openTag = true;
+	            continue;
+	        }
+	        if(($openTag) && ($str{$i} == ">")){
+	            $openTag = false;
+	            continue;
+	        }
+	       
+	        if(!$openTag){
+	            if(!in_array($str{$i}, $wordEndChars)){//If not word ending char
+	                $count++;
+	                if($count==$maxLength){//if current word max length is reached
+	                    $newStr .= $char;//insert word break char
+	                    $count = 0;
+	                }
+	            }else{//Else char is word ending, reset word char count
+	                    $count = 0;
+	            }
+	        }
+	       
+	    }//End for   
+	    die($newStr);
+	    return $newStr;
+	}*/
+	
 	function CutWord($txt, $where) {
 		if (empty($txt)) return false;
 		for ($c = 0, $a = 0, $g = 0; $c<strlen($txt); $c++) {
@@ -185,8 +220,8 @@ class Parse {
 		$this->boardtype = $boardtype;
 		$this->parentid = $parentid;
 		
-		$message = $this->CutWord($message, TC_MAXCHAR);
 		$message = trim($message);
+		$message = $this->CutWord($message, TC_MAXCHAR, "\n");
 		$message = htmlspecialchars($message, ENT_QUOTES);
 		if (TC_MAKELINKS) {
 			$message = $this->MakeClickable($message);

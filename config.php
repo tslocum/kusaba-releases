@@ -14,14 +14,15 @@
  * You should have received a copy of the GNU General Public License along with
  * Trevorchan; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- * +------------------------------------------------------------------------------+
- * Script configuration
- * +------------------------------------------------------------------------------+
- * Tells the script what to call itself, where the database and other things are
- * located, and a few other configurations.
- * +------------------------------------------------------------------------------+
  */
- 
+/** 
+ * Script configuration
+ *
+ * Tells the script what to call itself, where the database and other things are
+ * located, along with define what features to enable.
+ * 
+ * @package Trevorchan  
+ */
 /*
 To enable a feature, change the value to true:
 	define('TC_INSTANTREDIRECT', true);
@@ -50,6 +51,7 @@ Possible values you may use:
 	<!tc_uniqueposts />
 	<!tc_catalog />
 */
+
 $cf = array();
 
 /* Caching (this needs to be set at the start because if enabled, it skips the rest of the configuration process) */
@@ -174,7 +176,7 @@ if (!$cache_loaded) {
 		$cf['TC_DEBUG'] = false; /* When enabled, debug information will be printed (Warning: all queries will be shown publicly) */
 	
 	/* Post-configuration actions, don't modify these */
-		$cf['TC_VERSION']    = '0.9.8';
+		$cf['TC_VERSION']    = '0.9.9';
 		$cf['TC_TAGS']       = serialize($cf['TC_TAGS']);
 		$cf['TC_TRIPS']      = serialize($cf['TC_TRIPS']);
 		$cf['TC_LINELENGTH'] = $cf['TC_LINELENGTH'] * 15;

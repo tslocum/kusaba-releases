@@ -15,6 +15,13 @@
  * Trevorchan; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
+/** 
+ * Module functions
+ * 
+ * Provides module and hook functionality
+ *  
+ * @package Trevorchan   
+ */
 
 function hook_process($hookname, $data) {
 	global $hooks;

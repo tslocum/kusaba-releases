@@ -510,7 +510,7 @@ class Manage {
 		
 		if (isset($_GET['edit'])) {
 			if (isset($_POST['news'])) {
-				$tc_db->Execute("UPDATE `" . TC_DBPREFIX . "news` SET `subject` = '" . $_POST['subject'] . "', `message` = '" . $_POST['news'] . "', `postedemail` = '" . $_POST['email'] . "' WHERE `id` = '" . mysql_real_escape_string($_GET['edit']) . "'");
+				$tc_db->Execute("UPDATE `" . TC_DBPREFIX . "news` SET `subject` = '" . mysql_real_escape_string($_POST['subject']) . "', `message` = '" . mysql_real_escape_string($_POST['news']) . "', `postedemail` = '" . mysql_real_escape_string($_POST['email']) . "' WHERE `id` = '" . mysql_real_escape_string($_GET['edit']) . "'");
 				$tpl_page .= '<h3>News post edited</h3>';
 			}
 			$tpl_page .= '<h1>Edit news post</h1>';
@@ -594,14 +594,12 @@ class Manage {
 							$filetypes[] = substr($postkey, 9);
 						}
 					}
-					if (isset($_POST['locked'])) {
-						$updateboard_locked = '1';
-					} else {
-						$updateboard_locked = '0';
-					}
+					$updateboard_showid = isset($_POST['showid']) ? '1' : '0';
+					$updateboard_locked = isset($_POST['locked']) ? '1' : '0';
+					
 					if (($_POST['type'] == '0' || $_POST['type'] == '1' || $_POST['type'] == '2' || $_POST['type'] == '3') && ($_POST['uploadtype'] == '0' || $_POST['uploadtype'] == '1' || $_POST['uploadtype'] == '2')) {
 						if (!($_POST['uploadtype'] != '0' && $_POST['type'] == '3')) {
-							$tc_db->Execute("UPDATE `" . TC_DBPREFIX . "boards` SET `type` = '" . mysql_real_escape_string($_POST['type']) . "' , `uploadtype` = '" . mysql_real_escape_string($_POST['uploadtype']) . "' , `order` = '" . mysql_real_escape_string($_POST['order']) . "' , `section` = '" . mysql_real_escape_string($_POST['section']) . "' , `desc` = '" . mysql_real_escape_string($_POST['desc']) . "' , `locked` = '" . $updateboard_locked . "' , `maximagesize` = '" . mysql_real_escape_string($_POST['maximagesize']) . "' , `messagelength` = '" . mysql_real_escape_string($_POST['messagelength']) . "' , `maxpages` = '" . mysql_real_escape_string($_POST['maxpages']) . "' , `maxage` = '" . mysql_real_escape_string($_POST['maxage']) . "' , `markpage` = '" . mysql_real_escape_string($_POST['markpage']) . "' , `maxreplies` = '" . mysql_real_escape_string($_POST['maxreplies']) . "' , `image` = '" . mysql_real_escape_string($_POST['image']) . "' , `includeheader` = '" . mysql_real_escape_string($_POST['includeheader']) . "' , `redirecttothread` = '" . mysql_real_escape_string($_POST['redirecttothread']) . "' , `forcedanon` = '" . mysql_real_escape_string($_POST['forcedanon']) . "' , `trial` = '" . mysql_real_escape_string($_POST['trial']) . "' , `popular` = '" . mysql_real_escape_string($_POST['popular']) . "' , `defaultstyle` = '" . $_POST['defaultstyle'] . "' , `enablereporting` = '" . mysql_real_escape_string($_POST['enablereporting']) . "' , `enablecaptcha` = '" . mysql_real_escape_string($_POST['enablecaptcha']) . "' , `enablenofile` = '" . mysql_real_escape_string($_POST['enablenofile']) . "' , `enablearchiving` = '" . $_POST['enablearchiving'] . "', `enablecatalog` = '" . $_POST['enablecatalog'] . "' , `loadbalanceurl` = '" . mysql_real_escape_string($_POST['loadbalanceurl']) . "' , `loadbalancepassword` = '" . mysql_real_escape_string($_POST['loadbalancepassword']) . "' WHERE `name` = '" . mysql_real_escape_string($_GET['updateboard']) . "'");
+							$tc_db->Execute("UPDATE `" . TC_DBPREFIX . "boards` SET `type` = '" . mysql_real_escape_string($_POST['type']) . "' , `uploadtype` = '" . mysql_real_escape_string($_POST['uploadtype']) . "' , `order` = '" . mysql_real_escape_string($_POST['order']) . "' , `section` = '" . mysql_real_escape_string($_POST['section']) . "' , `desc` = '" . mysql_real_escape_string($_POST['desc']) . "' , `locale` = '" . mysql_real_escape_string($_POST['locale']) . "' , `showid` = '" . $updateboard_showid . "' , `locked` = '" . $updateboard_locked . "' , `maximagesize` = '" . mysql_real_escape_string($_POST['maximagesize']) . "' , `messagelength` = '" . mysql_real_escape_string($_POST['messagelength']) . "' , `maxpages` = '" . mysql_real_escape_string($_POST['maxpages']) . "' , `maxage` = '" . mysql_real_escape_string($_POST['maxage']) . "' , `markpage` = '" . mysql_real_escape_string($_POST['markpage']) . "' , `maxreplies` = '" . mysql_real_escape_string($_POST['maxreplies']) . "' , `image` = '" . mysql_real_escape_string($_POST['image']) . "' , `includeheader` = '" . mysql_real_escape_string($_POST['includeheader']) . "' , `redirecttothread` = '" . mysql_real_escape_string($_POST['redirecttothread']) . "' , `forcedanon` = '" . mysql_real_escape_string($_POST['forcedanon']) . "' , `trial` = '" . mysql_real_escape_string($_POST['trial']) . "' , `popular` = '" . mysql_real_escape_string($_POST['popular']) . "' , `defaultstyle` = '" . $_POST['defaultstyle'] . "' , `enablereporting` = '" . mysql_real_escape_string($_POST['enablereporting']) . "' , `enablecaptcha` = '" . mysql_real_escape_string($_POST['enablecaptcha']) . "' , `enablenofile` = '" . mysql_real_escape_string($_POST['enablenofile']) . "' , `enablearchiving` = '" . $_POST['enablearchiving'] . "', `enablecatalog` = '" . $_POST['enablecatalog'] . "' , `loadbalanceurl` = '" . mysql_real_escape_string($_POST['loadbalanceurl']) . "' , `loadbalancepassword` = '" . mysql_real_escape_string($_POST['loadbalancepassword']) . "' WHERE `name` = '" . mysql_real_escape_string($_GET['updateboard']) . "'");
 							$tc_db->Execute("DELETE FROM `" . TC_DBPREFIX . "board_filetypes` WHERE `boardid` = '" . $boardid . "'");
 							foreach ($filetypes as $filetype) {
 								$tc_db->Execute("INSERT INTO `" . TC_DBPREFIX . "board_filetypes` ( `boardid`, `typeid` ) VALUES ( '" . $boardid . "', '" . mysql_real_escape_string($filetype) . "' )");
@@ -642,6 +640,11 @@ class Manage {
 					$tpl_page .= '<label for="desc">'._gettext('Description').':</label>
 					<input type="text" name="desc" value="'.$lineboard['desc'].'">
 					<div class="desc">'._gettext('The name of the board.').'</div><br>';
+					
+					/* Locale */
+					$tpl_page .= '<label for="locale">Locale:</label>
+					<input type="text" name="locale" value="'.$lineboard['locale'].'">
+					<div class="desc">Locale to use on this board.  Leave blank to use the locale defined in config.php</div><br>';
 					
 					/* Board type */
 					$tpl_page .= '<label for="type">'._gettext('Board type:').'</label>
@@ -693,11 +696,20 @@ class Manage {
 					/* Locked */
 					$tpl_page .= '<label for="locked">'._gettext('Locked').': (<img src="'.TC_BOARDSPATH.'/locked.gif" alt="Lock">)</label>
 					<input type="checkbox" name="locked" ';
-					if ($lineboard['locked'] == "1") {
+					if ($lineboard['locked'] == '1') {
 						$tpl_page .= 'checked ';
 					}
 					$tpl_page .= '>
 					<div class="desc">'._gettext('Only moderators of the board and admins can make new posts/replies').'</div><br>';
+					
+					/* Show ID */
+					$tpl_page .= '<label for="showid">Show ID:</label>
+					<input type="checkbox" name="showid" ';
+					if ($lineboard['showid'] == '1') {
+						$tpl_page .= 'checked ';
+					}
+					$tpl_page .= '>
+					<div class="desc">If enabled, each post will display the poster\'s ID, which is a representation of their IP address.</div><br>';
 	
 					/* Enable reporting */
 					$tpl_page .= '<label for="enablereporting">'._gettext('Enable reporting:').'</label>
@@ -2479,6 +2491,17 @@ class Manage {
 		} else {
 			$tpl_page .= _gettext('No boards');
 		}
+	}
+	
+	function statistics() {
+		global $tc_db, $smarty, $tpl_page;
+		
+		$tpl_page .= '<h2>Statistics</h2><br>';
+		$tpl_page .= '<img src="manage_page.php?graph&type=day"> 
+		<img src="manage_page.php?graph&type=week"> 
+		<img src="manage_page.php?graph&type=postnum"> 
+		<img src="manage_page.php?graph&type=unique"> 
+		<img src="manage_page.php?graph&type=posttime">';
 	}
 	
 	/* If the user logged in isn't an admin, kill the script */

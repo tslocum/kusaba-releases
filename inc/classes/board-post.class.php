@@ -14,48 +14,236 @@
  * You should have received a copy of the GNU General Public License along with
  * Trevorchan; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- * +------------------------------------------------------------------------------+
- * Classes derived from board and post functions from functions.php
- * +------------------------------------------------------------------------------+
- * These classes are used for most board and post operations.
- * +------------------------------------------------------------------------------+
+ */
+/** 
+ * Board and Post classes
+ *  
+ * @package Trevorchan   
+ */
+/** 
+ * Board class
+ * 
+ * Contains all board configurations.  This class handles all board page
+ * rendering, using the template board.tpl
+ * 
+ * @package Trevorchan  
  */
 class Board {
 	/* Declare the public variables */
+	/**
+	 * @var integer Board ID
+	 */	 	
 	var $board_id;
+	/**
+	 * Board types are: 0 - Normal imageboard, 1 - Text board, 2 - Oekaki
+	 * imageboard, 3 - Upload imageboard
+	 * 
+	 * @var integer Board type
+	 */	 
 	var $board_type;
+	/**
+	 * Upload types are: 0 - File upload only, 1 - File upload and video
+	 * embedding allowed, 2 - Video embedding only
+	 * 	 	 	
+	 * @var integer Board upload type
+	 */	 
 	var $board_uploadtype;
+	/**	 	
+	 * @var string Board directory
+	 */	 
 	var $board_dir;
+	/**
+	 * Displayed at the top of the board's pages
+	 * 	 	
+	 * @var string Board description
+	 */	 
 	var $board_desc;
+	/**	 	
+	 * @var integer Enable reporting
+	 */	 
 	var $board_enablereporting;
+	/**	 	
+	 * Displayed at the top of the board, if it is set.  Otherwise, the image
+	 * defined in config.php is used
+	 * 	 	 	
+	 * @var string Board image
+	 */	 
 	var $board_image;
+	/**	 	
+	 * HTML which is inserted into the top of the page
+	 * 	 	 	
+	 * @var string Include header
+	 */	 
 	var $board_includeheader;
+	/**	 	
+	 * Sets whether users are allowed to post with names or not
+	 * 	 	 	
+	 * @var integer Forced anonymous
+	 */	 
 	var $board_forcedanon;
+	/**	 	
+	 * Maxmimum file size allowed to be uploaded
+	 * 	 	 	
+	 * @var integer Maxmimum image size
+	 */	 
 	var $board_maximagesize;
+	/**	 	
+	 * Maxmimum thread age before it is pruned
+	 * 	 	 	
+	 * @var integer Maxmimum thread age
+	 */	 
 	var $board_maxage;
+	/**	 	
+	 * Page at which threads are marked for deletion two hours later, regardless
+	 * of how much they are bumped	 
+	 * 	 	 	
+	 * @var integer Mark page
+	 */	 
 	var $board_markpage;
+	/**	 	
+	 * Number of replies to a thread allowed to bump the thread, which when
+	 * reached, the thread automatically sages with each reply	  
+	 * 	 	 	
+	 * @var integer Maxmimum replies
+	 */	 
 	var $board_maxreplies;
+	/**	 	
+	 * Maxmimum number of pages allowed, where any threads which go past the
+	 * last allowed page will be deleted	   
+	 * 	 	 	
+	 * @var integer Maxmimum pages
+	 */	 
 	var $board_maxpages;
+	/**	 	
+	 * Maxmimum number of characters allowed in a message  
+	 * 	 	 	
+	 * @var integer Message length	 
+	 */	 
 	var $board_messagelength;
+	/**	 	
+	 * If locked, no posts may be made unless they use a mod/admin password in the Mod box	  
+	 * 	 	 	
+	 * @var integer Locked
+	 */	 
 	var $board_locked;
+	/**	 	
+	 * The style which a user will be presented with if they do not already have a preferred style set
+	 * 	 	 	
+	 * @var string Default style
+	 */	 
 	var $board_defaultstyle;
+	/**	 	
+	 * The locale to be forced on any pages made by the board
+	 * 	 	 	
+	 * @var string Locale
+	 */	 
+	var $board_locale;
+	/**	 	
+	 * Whether to show the poster's ID (representation of IP) on each post
+	 * 	 	 	
+	 * @var string Show ID
+	 */	 
+	var $board_showid;
+	/**	 	
+	 * Sets if after making a post, the user will be redirected to the thread they just posted in
+	 * 	 	 	
+	 * @var integer Redirect to thread
+	 */	 
 	var $board_redirecttothread;
+	/**	 	
+	 * If captcha is enabled, all posts must pass a test by having the user enter the letters in the captcha image	 
+	 * 	 	 	
+	 * @var integer Enable captcha
+	 */	 
 	var $board_enablecaptcha;
+	/**	 	
+	 * If enabled, users will be able to check a box which reads "No file", and then will not need to choose a file when making a thread	 
+	 * 	 	 	
+	 * @var integer Enable no file
+	 */	 
 	var $board_enablenofile;
+	/**	 	
+	 * When threads are deleted, if archiving is enabled they are moved to the arch/ directory, preserved so others may view them	  
+	 * 	 	 	
+	 * @var integer Enable archiving
+	 */	 
 	var $board_enablearchiving;
+	/**	 	
+	 * URL of the load balance script which is included with Trevorchan  
+	 * 	 	 	
+	 * @var string Load balance URL
+	 */	 
 	var $board_loadbalanceurl;
+	/**	 	
+	 * Formatted version of the set load balance URL
+	 * 	 	 	
+	 * @var string Load balance URL formatted
+	 */	 
 	var $board_loadbalanceurl_formatted;
+	/**	 	
+	 * Password sent to the load balance script when sending a command
+	 * 	 	 	
+	 * @var string Load balance password
+	 */	 
 	var $board_loadbalancepassword;
+	/**	 	
+	 * Text displayed under the posting area, which usually includes board
+	 * information, such as number of unique posts and upload limitations	 
+	 * 	 	 	
+	 * @var string Postbox notice
+	 */	 
 	var $board_postboxnotice;
+	/**	 	
+	 * Cached header formatted for a reply
+	 * 	 	 	
+	 * @var string Page header (reply)
+	 */	 
 	var $pageheader_reply;
+	/**	 	
+	 * Cached header formatted not for a reply
+	 * 	 	 	
+	 * @var string Page header (no reply)
+	 */	 
 	var $pageheader_noreply;
+	/**	 	
+	 * Cached page header css
+	 * 	 	 	
+	 * @var string Page header (css)
+	 */	 
 	var $pageheader_css;
+	/**	 	
+	 * Cached page header board list
+	 * 	 	 	
+	 * @var string Page header (board list)
+	 */	 
 	var $pageheader_boardlist;
+	/**	 	
+	 * Archive directory, set when archiving is enabled
+	 * 	 	 	
+	 * @var string Archive directory
+	 */	 
 	var $archive_dir;
+	/**	 	
+	 * Smarty class
+	 * 	 	 	
+	 * @var class Smarty
+	 */	 
 	var $smarty;
+	/**	 	
+	 * Load balancer class
+	 * 	 	 	
+	 * @var class Load balancer
+	 */	 
 	var $loadbalancer;
 	
-	/* Initialization function for the Board class, which is called when a new instance of this class is created.  Takes a board directory as an argument */
+	/**
+	 * Initialization function for the Board class, which is called when a new
+	 * instance of this class is created. Takes a board directory as an
+	 * argument
+	 *
+	 * @param string $board Board name/directory	 
+	 * @return class	 	 
+	 */	  
 	function Board($board) {
 		global $tc_db;
 
@@ -81,6 +269,8 @@ class Board {
 				$this->board_messagelength            = $line['messagelength'];
 				$this->board_locked                   = $line['locked'];
 				$this->board_defaultstyle             = $line['defaultstyle'];
+				$this->board_locale                   = $line['locale'];
+				$this->board_showid                   = $line['showid'];
 				$this->board_redirecttothread         = $line['redirecttothread'];
 				$this->board_enablecaptcha            = $line['enablecaptcha'];
 				$this->board_enablenofile             = $line['enablenofile'];
@@ -103,15 +293,24 @@ class Board {
 			}
 		}
 	}
-
-	/* Regenerate all board and thread pages */
+	
+	/**
+	 * Regenerate all board and thread pages	 
+	 */
 	function RegenerateAll() {
 		$this->RegeneratePages();
 		$this->RegenerateThreads();
 	}
-
+	
+	/**
+	 * Regenerate all pages	 
+	 */	  
 	function RegeneratePages() {
 		global $tc_db;
+		
+		if ($this->board_locale != '') {
+			changeLocale($this->board_locale);
+		}
 		
 		$this->InitializeSmarty();
 		
@@ -144,14 +343,7 @@ class Board {
 				$page = $this->pageheader_noreply . $cached_postbox;
 				
 				if ($this->board_type != 1) {
-					$page .= '<script type="text/javascript">' . "\n" .
-					'if (getCookie("tcmod")=="yes") {' . "\n" .
-					'	document.write(\'<form id="delform" action="' . TC_CGIPATH . '/manage_page.php" method="post">\');' . "\n" .
-					'} else {' . "\n" .
-					'	document.write(\'<form id="delform" action="' . TC_CGIPATH . '/board.php" method="post">\');' . "\n" .
-					'}' . "\n" .
-					'</script>' . "\n" .
-					'<input type="hidden" name="board" value="' . mysql_real_escape_string($this->board_dir) . '">';
+					$page .= deletionFormJavascript($this->board_dir);
 				}
 				
 				$results = $tc_db->GetAll("SELECT `id` , `deletedat` FROM `" . TC_DBPREFIX . "posts_" . $this->board_dir . "` WHERE `IS_DELETED` = 0 AND `parentid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC LIMIT " . ($boardpage * $numthreadsdisplayed) . ', ' . $numthreadsdisplayed);
@@ -162,6 +354,7 @@ class Board {
 					/* If the thread is on the page set to mark, and hasn't been marked yet, mark it */
 					if ($line['deletedat'] == 0 && $this->board_markpage > 0 && $boardpage >= $this->board_markpage) {
 						$tc_db->Execute("UPDATE `".TC_DBPREFIX."posts_".$this->board_dir."` SET `deletedat` = '" . (time() + 7200) . "' WHERE `id` = '" . $line['id'] . "' LIMIT 1");
+						$this->RegenerateThread($line['id']);
 					}
 					$thread_ids[] = $line[0];
 				}
@@ -175,73 +368,11 @@ class Board {
 				}
 				
 				if ($this->board_type != 1) {
-					$page .= '<table class="userdelete"><tbody><tr><td>'.ucwords(_gettext('Delete Post')).' [<script type="text/javascript">' . "\n" .
-					'if (getCookie("tcmod")=="yes") {' . "\n" .
-					'	document.write(\'<input type="checkbox" name="multiban" id="multiban" value="on"><label for="multiban">and ban<\/label>]<br>Reason: <input name="reason" size="8" />\');' . "\n" .
-					'} else {' . "\n" .
-					'	document.write(\'';
-					if ($this->board_type != 1) {
-						$page .= '<input type="checkbox" name="fileonly" id="fileonly" value="on"><label for="fileonly">'._gettext('File Only').'<\/label>]<br>';
-					}
-					$page .= _gettext('Password').' <input type="password" name="postpassword" size="8" />\');' . "\n" .
-					'}' . "\n" .
-					'</script>&nbsp;<script type="text/javascript">' . "\n" .
-					'if (getCookie("tcmod")=="yes") {' . "\n" .
-					'	document.write(\'<input name="action" value="multidel" type="submit" />\');' . "\n" .
-					'} else {' . "\n" .
-					'	document.write(\'<input name="deletepost" value="'._gettext('Delete').'" type="submit">\');' . "\n" .
-					'}' . "\n" .
-					'</script>' . "\n";
-		
-					if ($this->board_enablereporting == 1) {
-						$page .= '<input name="reportpost" value="'._gettext('Report').'" type="submit">' . "\n";
-					}
+					$page .= deletePostBox($this->board_type, $this->board_enablereporting);
 					
-					$page .= '</td></tr></tbody></table><script type="text/javascript">' . "\n" .
-					'	document.write(\'<\/form>\');' . "\n" .
-					'</script>' . "\n";
-					
-					$page .= "\n" . '<script type="text/javascript">set_delpass("delform")</script>' . "\n";
+					$page .= setDelPassJavascript();
 
-					$page .= '<table border="1"><tbody><tr><td>';
-					
-					if ($boardpage==0) {
-						$page .= _gettext('Previous');
-					} else {
-						if ($boardpage-1!=0) {
-							$page .= '<form method="get" action="'.TC_BOARDSFOLDER.$this->board_dir.'/'.($boardpage-1).'.html"><input value="'._gettext('Previous').'" type="submit"></form>';
-						} else {
-							$page .= '<form method="get" action="'.TC_BOARDSFOLDER.$this->board_dir.'/"><input value="'._gettext('Previous').'" type="submit"></form>';
-						}
-					}
-					
-					$page .= '</td><td>';
-					
-					for ($i=0;$i<=$boardstooutput;$i++) {
-						if ($boardpage == $i) {
-							$page .= '&#91;'.$i.'&#93;';
-						} else {
-							if ($i != 0) {
-								$page .= '&#91;<a href="'.TC_BOARDSFOLDER.$this->board_dir.'/'.$i.'.html">'.$i.'</a>&#93;';
-							} else {
-								$page .= '&#91;<a href="'.TC_BOARDSFOLDER.$this->board_dir.'/">'.$i.'</a>&#93;';
-							}
-						}
-						$page .= ' ';
-					}
-					
-					/* Remove the unwanted space */
-					$page = substr($page, 0, -1);
-					
-					$page .= '</td><td>';
-					
-					if ($boardpage == $boardstooutput) {
-						$page .= _gettext('Next');
-					} else {
-						$page .= '<form method="get" action="'.TC_BOARDSFOLDER.$this->board_dir.'/'.($boardpage+1).'.html"><input value="'._gettext('Next').'" type="submit"></form>';
-					}
-					
-					$page .= '</td></tr></tbody></table>';
+					$page .= pageList($boardpage, $boardstooutput, $this->board_dir);
 				}
 				
 				$page .= $this->Footer(false, (microtime_float()-$executiontime_start_regeneratepages), $hide_extra);
@@ -365,9 +496,15 @@ class Board {
 				}
 			}
 		}
+		
+		if ($this->board_locale != '') {
+			changeLocale(TC_LOCALE);
+		}
 	}
-
-	/* Regenerate each thread's corresponding html file, starting with the most recently bumped */
+	
+	/**
+	 * Regenerate each thread's corresponding html file, starting with the most recently bumped 	 
+	 */
 	function RegenerateThreads() {
 		global $tc_db;
 		
@@ -394,9 +531,19 @@ class Board {
 			}
 		}
 	}
-
+	
+	/**
+	 * Regenerate an individual thread
+	 * 
+	 * @param integer $thread_op_id Thread ID	 	 
+	 */	 	
 	function RegenerateThread($thread_op_id) {
 		global $tc_db;
+		$hide_extra = ($this->board_type == 1) ? true : false;
+		
+		if ($this->board_locale != '') {
+			changeLocale($this->board_locale);
+		}
 		
 		$this->InitializeSmarty();
 		$this->CachePageHeaderData();
@@ -416,29 +563,7 @@ class Board {
 			}
 			
 			$thread_page = $this->PageHeader($thread_op_id, '', $this->board_postboxnotice);
-			if ($this->board_type == 1) {
-				$thread_page .= '<a href="' . TC_BOARDSFOLDER . $this->board_dir . '/">'._gettext('Return').'</a>';
-				if ($modifier_last50) {
-					$thread_page .= ' <a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $thread_op_id . '.html">' . _gettext('Entire Thread') . '</a>';
-					if ($modifier_first100) {
-						$thread_page .= ' <a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $thread_op_id . '-100.html">' . _gettext('First 100 posts') . '</a>';
-					}
-					$thread_page .= ' <a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $thread_op_id . '+50.html">' . _gettext('Last 50 posts') . '</a>';
-				}
-				$thread_page .= '<br><br>';
-				$hide_extra = true;
-			} else {
-				$thread_page .= '&#91;<a href="' . TC_BOARDSFOLDER . $this->board_dir . '/">'._gettext('Return').'</a>&#93; ';
-				if ($modifier_last50) {
-					$thread_page .= '&#91;<a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $thread_op_id . '.html">' . _gettext('Entire Thread') . '</a>&#93; ';
-					if ($modifier_first100) {
-						$thread_page .= '&#91;<a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $thread_op_id . '-100.html">' . _gettext('First 100 posts') . '</a>&#93; ';
-					}
-					$thread_page .= '&#91;<a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $thread_op_id . '+50.html">' . _gettext('Last 50 posts') . '</a>&#93; ';
-				}
-				$thread_page .= '<div class="replymode">'._gettext('Posting mode: Reply').'<!tc_postmodeinfo></div>';
-				$hide_extra = false;
-			}
+			$thread_page .= threadLinks('return', $thread_op_id, $this->board_dir, $this->board_type, $modifier_last50, $modifier_first100);
 			$thread_page .= $this->Postbox($thread_op_id, '', $this->board_postboxnotice);
 			
 			if ($modifier_last50) {
@@ -476,8 +601,22 @@ class Board {
 				}
 			}
 		}
+		
+		if ($this->board_locale != '') {
+			changeLocale(TC_LOCALE);
+		}
 	}
-
+	
+	/**
+	 * Build a thread
+	 * 
+	 * @param integer $parentid Thread ID	 
+	 * @param boolean $page Is rendering for a board page
+	 * @param boolean $resurrect Is an already deleted thread
+	 * @param integer $thread_relative_id Thread's relative ID
+	 * @param string $modifier Type modifier, such as first 100, or last 50
+	 * @return string The built thread	 	 	 	 	 	 
+	 */	 
 	function BuildThread($parentid, $page = false, $resurrect = false, $thread_relative_id = 0, $modifier = '') {
 		global $tc_db;
 		$buildthread_output = '';
@@ -527,14 +666,7 @@ class Board {
 		// {{{ Javascript which adds the form for post deletion
 		
 		if (!$page) {
-			$buildthread_output .= '<script type="text/javascript">' . "\n" .
-			'if (getCookie("tcmod")=="yes") {' . "\n" .
-			'	document.write(\'<form id="delform" action="' . TC_CGIPATH . '/manage_page.php" method="post">\');' . "\n" .
-			'} else {' . "\n" .
-			'	document.write(\'<form id="delform" action="' . TC_CGIPATH. '/board.php" method="post">\');' . "\n" .
-			'}' . "\n" .
-			'</script>' . "\n" .
-			'<input type="hidden" name="board" value="' . $this->board_dir . '">' . "\n";
+			$buildthread_output .= deletionFormJavascript($this->board_dir);
 		}
 		
 		// }}}
@@ -566,41 +698,29 @@ class Board {
 				// {{{ Span displayed if a user has hidden a thread, which includes a link to the thread along with a button to un-hide it
 				
 				if ($page) {
-					$buildthread_output .= '<span id="unhidethread'.$line['id'].$this->board_dir.'" style="display: none;">' . "\n" .
-					'	Thread <a href="'.TC_BOARDSFOLDER.$this->board_dir.'/res/'.$line['id'].'.html">' . $line['id'] . '</a> hidden. ' . "\n" .
-					'	<a href="#" onclick="javascript:togglethread(\''.$line['id'].$this->board_dir.'\');return false;" title="Un-Hide Thread">' . "\n" .
-					'		<img src="' . TC_WEBPATH . '/lib/icons/zoom-in.gif" border="0" alt="zoom in">' . "\n" .
-					'	</a>' . "\n" .
-					'</span>' . "\n";
+					$buildthread_output .= unHideThreadSpan($line['id'], $this->board_dir);
 				}
 				
 				// }}}
 				// {{{ Div which will contain the entire thread, including its replies
 				
-				$buildthread_output .= '<div id="thread'.$line['id'].$this->board_dir.'">' . "\n";
+				$buildthread_output .= '<div id="thread' . $line['id'] . $this->board_dir . '">' . "\n";
 				
 				// }}}
 				// {{{ Javascript which will automatically hide the thread if it finds the ID in the hidden threads cookie
 				
 				if ($page) {
-					$buildthread_output .= '<script type="text/javascript">' . "\n" .
-						'if (hiddenthreads.toString().indexOf(\''.$line['id'].$this->board_dir.'\')!==-1) {' . "\n" .
-						'	document.getElementById(\'unhidethread'.$line['id'].$this->board_dir.'\').style.display = \'block\';' . "\n" .
-						'	document.getElementById(\'thread'.$line['id'].$this->board_dir.'\').style.display = \'none\';' . "\n" .
-						'}' . "\n" .
-						'</script>' . "\n";
+					$buildthread_output .= autoHideThreadJavascript($line['id'], $this->board_dir);
 				}
 				// }}}
-				// {{{ Thread-starting post, which is not added if the modifier of last50 is being used
+				// {{{ Thread-starting post
 				
-				if ($modifier != 'last50') {
-					$buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line, $numReplies, $thread_relative_id);
-				}
+				$buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line, $numReplies, $thread_relative_id);
 				
 				// }}}
 				// {{{ Thread replies display
 				
-				if ($numReplies>0) {
+				if ($numReplies > 0) {
 					if (!$page) {
 						// {{{ Non-page reply fetch
 						
@@ -608,6 +728,11 @@ class Board {
 						switch ($modifier) {
 						case 'last50':
 							$query .= 'DESC LIMIT 50';
+							$buildthread_output .= '<span class="omittedposts">' . "\n" .
+							'	 ' . ($numReplies - 50).' post';
+							$buildthread_output .= (($numReplies - 50) != 1) ? 's' : '';
+							$buildthread_output .= ' omitted.  Last 50 posts shown.' . "\n" .
+							'</span>' . "\n";
 							break;
 							
 						case 'first100':
@@ -658,6 +783,20 @@ class Board {
 						$buildthread_output .= '</span>' . "\n";
 					}
 					$buildthread_output .= '</div>' . "\n";
+					
+					if (!$page) {
+						if ($modifier == 'first100') {
+							$buildthread_output .= '<span class="omittedposts" style="float: left">' . "\n" .
+							'	 ' . ($numReplies - 100).' post';
+							$buildthread_output .= (($numReplies - 100) != 1) ? 's' : '';
+							$buildthread_output .= ' omitted.  First 100 posts shown.' . "\n" .
+							'</span>' . "\n";
+						}
+						
+						$buildthread_output .= '<span style="float: right;">' . "\n" .
+						'	' . threadLinks('return', $thread_id, $this->board_dir, $this->board_type, ($numReplies > 49), ($numReplies > 99), true) .
+						'</span>' . "\n";
+					}
 				}
 				
 				// }}}
@@ -668,60 +807,19 @@ class Board {
 			} elseif ($this->board_type == 3 && $page) {
 				// {{{ Upload imageboard page generation
 				
-				$buildthread_output .= '<tr';
-				/* If the thread is two hours or less from being pruned, add the style for old rows */
-				if (!$line['stickied'] && (($this->board_maxage > 0 && ($line['postedat']  + ($this->board_maxage * 3600)) < (time() + 7200)) || ($line['deletedat'] > 0 && $line['deletedat'] <= (time() + 7200)))) {
-					$buildthread_output .= ' class="replyhl"';
-				}
-				$buildthread_output .= '>' . "\n" .
-				'<td align="center">' . "\n" .
-				'	' . $thread_id . "\n" .
-				'</td>' . "\n" .
-				'<td>' . "\n" .
-				'<span class="commentpostername">';
-				if ($line['name'] == '' && $line['tripcode'] == '') {
-					$buildthread_output .= TC_ANONYMOUS;
-				} else if (!($line['name'] == '' && $line['tripcode'] != '')) {
-					$buildthread_output .= $line['name'];
-				}
-				$buildthread_output .= '</span><span class="postertrip">';
-				if ($line['tripcode'] != '') {
-					$buildthread_output .= '!'.$line['tripcode'];
-				}
-				$buildthread_output .= '</td>' . "\n" .
-				'<td align="center">[<a href="' . TC_BOARDSFOLDER . $this->board_dir . $this->archive_dir . '/src/' . $line['filename'] . '.' . $line['filetype'] . '" target="_blank">' . $line['filename'] . '.' . $line['filetype'] . '</a>]</td>';
-				if ($line['tag'] == '') $line['tag'] = '*';
-				$buildthread_output .= '<td align="center">[' . $line['tag'] . ']</td>' . "\n" .
-				'<td>' . $line['subject'] . '</td>' . "\n" .
-				'<td align="center">';
-				if ($line['filesize_formatted'] == '') {
-					$buildthread_output .= ConvertBytes($line['filesize']);
-				} else {
-					$buildthread_output .=$line['filesize_formatted'];
-				}
-				$buildthread_output .= '</td>' . "\n" .
-				'<td><nobr>' . date("y/m/d(D)H:i", $line['postedat']) . '</nobr></td>' . "\n" .
-				'<td align="center">' . $numReplies . '</td>' . "\n" .
-				'<td align="center">[<a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $line['id'] . '.html">Reply</a>]</td>' . "\n" .
-				'</tr>';
+				$buildthread_output .= uploadImageboardPageRow($line, $this->board_dir, $this->board_maxage, $numReplies);
 				
 				// }}}
 			} else {
 				// {{{ Text board page generation
 				
-				if ($modifier != 'last50') {
-					$buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line, $numReplies, $thread_relative_id, 1, $num_threads_onfrontpage);
-				}
+				$buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line, $numReplies, $thread_relative_id, 1, $num_threads_onfrontpage);
 				
 				if ($numReplies > 5 && $page) {
-					$buildthread_output .= '<p class="hidden">'._gettext('The 5 newest replies are shown below.').'<br/><a href="res/'.$line['id'].'.html">'._gettext('Read this thread from the beginning').'</a>';
-					if (TC_FIRSTLAST && $numReplies > 49) {
-						if ($numReplies > 99) {
-							$buildthread_output .= ' <a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $thread_id . '-100.html">' . _gettext('First 100 posts') . '</a>';
-						}
-						$buildthread_output .= ' <a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $thread_id . '+50.html">' . _gettext('Last 50 posts') . '</a>';
-					}
-					$buildthread_output .= '</p>';
+					$modifier_last50 = ($numReplies > 49) ? true : false;
+					$modifier_first100 = ($numReplies > 99) ? true : false;
+						
+					$buildthread_output .= threadLinks('page', $thread_id, $this->board_dir, $this->board_type, $modifier_last50, $modifier_first100);
 					
 					$reply_relative_id = $numReplies-4;
 				} else {
@@ -735,6 +833,11 @@ class Board {
 					switch ($modifier) {
 					case 'last50':
 						$query .= 'DESC LIMIT 50';
+						$buildthread_output .= '<span class="abbrev">' . "\n" .
+						'	 ' . ($numReplies - 50).' post';
+						$buildthread_output .= (($numReplies - 50) != 1) ? 's' : '';
+						$buildthread_output .= ' omitted.  Last 50 posts shown.' . "\n" .
+						'</span>' . "\n";
 						$reply_relative_id = $numReplies - 49;
 						break;
 						
@@ -759,29 +862,9 @@ class Board {
 				unset($results2);
 				
 				if (!$page) {
-					$buildthread_output .= '<table class="hborder"><tbody><tr><td>'.ucwords(_gettext('Delete Post')).': <script type="text/javascript">' . "\n" .
-					'if (getCookie("tcmod")=="yes") {' . "\n" .
-					'	document.write(\'[<input type="checkbox" name="multiban" id="multiban" value="on"><label for="multiban">and ban<\/label>]<br>Reason: <input name="reason" size="8" />\');' . "\n" .
-					'} else {' . "\n" .
-					'	document.write(\'<input type="password" name="postpassword" size="8" />\');' . "\n" .
-					'}' . "\n" .
-					'</script>&nbsp;<script type="text/javascript">' . "\n" .
-					'if (getCookie("tcmod")=="yes") {' . "\n" .
-					'	document.write(\'<input name="action" value="multidel" type="submit" />\');' . "\n" .
-					'} else {' . "\n" .
-					'	document.write(\'<input name="deletepost" value="'._gettext('Delete').'" type="submit">\');' . "\n" .
-					'}' . "\n" .
-					'</script>' . "\n";
-		
-					if ($this->board_enablereporting == 1) {
-						$buildthread_output .= '<input name="reportpost" value="'._gettext('Report').'" type="submit">' . "\n";
-					}
+					$buildthread_output .= deletePostBox($this->board_type, $this->board_enablereporting);
 					
-					$buildthread_output .= '</td></tr></tbody></table><script type="text/javascript">' . "\n" .
-					'	document.write(\'<\/form>\');' . "\n" .
-					'</script>' . "\n";
-					
-					$buildthread_output .= "\n" . '<script type="text/javascript">set_delpass("delform")</script>' . "\n";
+					$buildthread_output .= setDelPassJavascript();
 				}
 				
 				$buildthread_output .= '<form name="post'.$line['id'].'" id="post'.$line['id'].'" action="' . TC_CGIPATH . '/board.php" method="post"';
@@ -830,7 +913,9 @@ class Board {
 				'</tr>' . "\n" .
 				'</table>' . "\n" .
 				'</form>' . "\n" .
-				'<script type="text/javascript">set_inputs(\'post' . $line['id'] . '\')</script>' . "\n";
+				'<script type="text/javascript"><!--' . "\n" .
+				'	set_inputs(\'post' . $line['id'] . '\');' . "\n" .
+				'//--></script>' . "\n";
 				
 				if ($page) {
 					$buildthread_output .= '</div></div>';
@@ -846,30 +931,27 @@ class Board {
 		
 		if (!$page) {
 			if ($this->board_type != 1) {
-				$buildthread_output .= '<table class="userdelete"><tbody><tr><td>'.ucwords(_gettext('Delete Post')).' [<script type="text/javascript">' . "\n" .
-				'if (getCookie("tcmod")=="yes") {' . "\n" .
-				'	document.write(\'<input type="checkbox" name="multiban" value="on"><label for="multiban">and ban</label>]<br>Reason: <input name="reason" size="8" />\');' . "\n" .
-				'} else {' . "\n" .
-				'	document.write(\'<input type="checkbox" name="fileonly" value="on"><label for="fileonly">'._gettext('File Only').'</label>]<br>' . _gettext('Password') . ' <input type="password" name="postpassword" size="8" />\');' . "\n" .
-				'}' . "\n" .
-				'</script>&nbsp;<script type="text/javascript">' . "\n" .
-				'if (getCookie("tcmod")=="yes") {' . "\n" .
-				'	document.write(\'<input name="action" value="multidel" type="submit" />\');' . "\n" .
-				'} else {' . "\n" .
-				'	document.write(\'<input name="deletepost" value="'._gettext('Delete').'" type="submit" />\');' . "\n" .
-				'}' . "\n" .
-				'</script>' . "\n";
-				if ($this->board_enablereporting==1) {
-					$buildthread_output .= '<input name="reportpost" value="'._gettext('Report').'" type="submit">' . "\n";
-				}
-				$buildthread_output .= '</td></tr></tbody></table></form>' . "\n";
+				$buildthread_output .= deletePostBox($this->board_type, $this->board_enablereporting);
 			}
-			$buildthread_output .= '<script type="text/javascript">set_delpass("delform")</script>' . "\n";
+			
+			$buildthread_output .= setDelPassJavascript();
 		}
 		
 		return $buildthread_output;
 	}
 	
+	/**
+	 * Build an individual post
+	 * 
+	 * @param boolean $page If the post is being rendered on a board page or not
+	 * @param string $post_board Board which this post resides on	 	 
+	 * @param array $post Post data 
+	 * @param integer $thread_replies Number of replies to the thread this post is in
+	 * @param string $thread_relative_id The number this thread is relative to the other threads in the page
+	 * @param integer $reply_relative_id The number this reply is relative to the other replies in the thread
+	 * @param integer $threads_on_front_page The number of threads on the front page
+	 * @return string The built post	 	 	 	 	 	 
+	 */	 
 	function BuildPost($page, $post_board, $post_board_type, $post, $thread_replies=0, $thread_relative_id='', $reply_relative_id=0, $threads_on_front_page=0) {
 		/* If caching is enabled, and this post has already been cached, skip the process and fetch the cached version */
 		if (TC_APC && !$page) {
@@ -971,13 +1053,13 @@ class Board {
 			}
 			$info_post .= '<a name="'.$post['id'].'"></a>' . "\n" . 
 			'<label>' . "\n" . 
-			'<script type="text/javascript">' . "\n" .
+			'<script type="text/javascript"><!--' . "\n" .
 			'if (getCookie("tcmod")=="yes") {' . "\n" .
 			'	document.write(\'<input type="checkbox" name="' . $post['id'] . '" value="POST' . $post['id'] . '">\');' . "\n" .
 			'} else {' . "\n" .
 			'	document.write(\'<input type="checkbox" name="delete" value="' . $post['id'] . '">\');' . "\n" .
 			'}' . "\n" .
-			'</script>' . "\n";
+			'//--></script>' . "\n";
 			if ($post['subject']!='') {
 				$info_post .= '<span class="filetitle">' . "\n" .
 				'	' . $post['subject'] . "\n" .
@@ -1017,8 +1099,11 @@ class Board {
 			$info_post .= '>' . "\n" .
 			'		' . $post['id'] . "\n" .
 			'	</a>' . "\n" .
-			'</span>' . "\n" .
-			'<span class="extrabtns">' . "\n";
+			'</span>' . "\n";
+			if ($this->board_showid) {
+				$info_post .= ' ID: ' . substr($post['ipmd5'], 0, 6) . "\n";
+			}
+			$info_post .= '<span class="extrabtns">' . "\n";
 			if ($post['locked']==1) {
 				$info_post .= '	 <img style="border: 0;" src="'.TC_BOARDSFOLDER.'locked.gif" alt="'._gettext('Locked').'">' . "\n";
 			}
@@ -1040,15 +1125,12 @@ class Board {
 				}
 			}
 			$info_post .= '</span>' . "\n";
+			
 			if ($page && $post_is_thread) {
-				$info_post .= ' &nbsp; &#91;<a href="'.TC_BOARDSFOLDER . $post_board . '/res/' . $post_thread_start_id . '.html">' . _gettext('Reply') . '</a>&#93;';
-				if (TC_FIRSTLAST && $thread_replies > 49) {
-					if ($thread_replies > 99) {
-						$info_post .= ' &#91;<a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $post_thread_start_id . '-100.html">' . _gettext('First 100 posts') . '</a>&#93;';
-					}
-					$info_post .= ' &#91;<a href="' . TC_BOARDSFOLDER . $this->board_dir . '/res/' . $post_thread_start_id . '+50.html">' . _gettext('Last 50 posts') . '</a>&#93;';
-				}
-				$info_post .= "\n";
+				$modifier_last50 = ($thread_replies > 49) ? true : false;
+				$modifier_first100 = ($thread_replies > 99) ? true : false;
+				
+				$info_post .= ' &nbsp; ' . threadLinks('page', $post_thread_start_id, $this->board_dir, $this->board_type, $modifier_last50, $modifier_first100);
 			}
 			
 			$info_post .= $this->DeleteAndBanLinks($post['id'], $post_is_thread);
@@ -1062,42 +1144,31 @@ class Board {
 				'	<td class="reply" id="reply'.$post['id'].'">' . "\n" .
 				'		' . $info_post . "\n";
 				/* Make sure the file line is actually in use to prevent an unwanted <br> */
-				if ($info_file!='') {
+				if ($info_file != '') {
 					$buildpost_output .= '		<br>' . $info_file . "\n";
 				}
 				/* Another check for an unwanted <br> */
-				if ($info_image!='') {
+				if ($info_image != '') {
 					$buildpost_output .= '		<br>' . $info_image . "\n";
 				}
 			} else {
 				/* And another check for an unwanted <br> */
-				if ($info_file!='') {
+				if ($info_file != '') {
 					$buildpost_output .= $info_file . '		<br>' . "\n";
 				}
 				$buildpost_output .= $info_image . $info_post;
 			}
 			$buildpost_output .= '<blockquote>' . "\n";
 			if ($post['filetype'] == 'you' || $post['filetype'] == 'goo') {
-				$buildpost_output .= '<span style="float: left;">';
-				
-				if ($post['filetype'] == 'you') {
-					$buildpost_output .= '<object width="200" height="164"><param name="movie" value="http://www.youtube.com/v/'.$post['filename'].'"></param><param name="wmode" value="transparent"></param><embed src="http://www.youtube.com/v/'.$post['filename'].'" type="application/x-shockwave-flash" wmode="transparent" width="200" height="164"></embed></object>';
-				} elseif ($post['filetype'] == 'goo') {
-					$buildpost_output .= '<embed style="width:200px; height:164px;" id="VideoPlayback" type="application/x-shockwave-flash" src="http://video.google.com/googleplayer.swf?docId='.$post['filename'].'&hl=en" flashvars=""></embed>';
-				}
-				
-				$buildpost_output .= '</span>&nbsp;' . "\n";
+				$buildpost_output .= embeddedVideoBox($post);
 			}
 			
 			$buildpost_output .= formatLongMessage($post['message'], $this->board_dir, $post_thread_start_id, $page);
 			
 			$buildpost_output .= '</blockquote>' . "\n";
 			/* If the thread is two hours or less from being pruned, add the marked for deletion message */
-			if ($post_board_type != 1 && $post_is_thread && !$post['stickied'] && $this->archive_dir == '' && (($this->board_maxage > 0 && ($post['postedat']  + ($this->board_maxage * 3600)) < (time() + 7200)) || ($post['deletedat'] > 0 && $post['deletedat'] <= (time() + 7200)))) {
-				$buildpost_output .= '<span class="oldpost">' . "\n" .
-				'	Marked for deletion (old).' . "\n" .
-				'</span>' . "\n" .
-				'<br>' . "\n";
+			if ($this->board_type != 1 && $this->archive_dir == '' && checkMarkedForDeletion($post, $this->board_maxage)) {
+				$buildpost_output .= markedForDeletionMessage();
 			}
 			if (!$post_is_thread) {
 				$buildpost_output .= '	</td>' . "\n" .
@@ -1175,6 +1246,9 @@ class Board {
 			$buildpost_output .= formatNameAndTrip($post['name'], $post['email'], $post['tripcode']);
 			
 			$buildpost_output .= ' @ ' . date('Y-m-d H:i', $post['postedat']);
+			if ($this->board_showid) {
+				$buildpost_output .= ' ID: ' . substr($post['ipmd5'], 0, 6);
+			}
 			if (!$page) {
 				$buildpost_output .= ' <input type="checkbox" name="delete" value="' . $post['id'] . '">';
 			}
@@ -1190,7 +1264,17 @@ class Board {
 		
 		return $buildpost_output;
 	}
-
+	
+	/**
+	 * Build the page header
+	 * 
+	 * @param integer $replythread The ID of the thread the header is being build for.  0 if it is for a board page
+	 * @param integer $liststart The number which the thread list starts on (text boards only)	 
+	 * @param integer $liststooutput The number of list pages which will be generated (text boards only)	
+	 * @param boolean $isoekaki If this header is being generated for an oekaki posting
+	 * @param boolean $hidewatchedthreads If the watched threads box should be forced to not display on the page
+	 * @return string The built header	 	 	 	 	 	 
+	 */	
 	function PageHeader($replythread = '0', $liststart = '0', $listpage = '-1', $liststooutput = '-1', $isoekaki = false, $hidewatchedthreads = false) {
 		global $tc_db, $tc_config, $tpl;
 		
@@ -1214,7 +1298,8 @@ class Board {
 		if (TC_RSS) {
 			$tpl['head'] .= '<link rel="alternate" type="application/rss+xml" title="RSS" href="' . TC_BOARDSPATH . '/' . $this->board_dir . '/rss.xml">' . "\n";
 		}
-		$tpl['head'] .= '<script type="text/javascript">var style_cookie';
+		$tpl['head'] .= '<script type="text/javascript"><!--' . "\n" .
+		'	var style_cookie';
 		if ($this->board_type==1) {
 			$tpl['head'] .= '_txt';
 		}
@@ -1222,14 +1307,17 @@ class Board {
 		if ($this->board_type==1) {
 			$tpl['head'] .= '_txt';
 		}
-		$tpl['head'] .= '";</script>';
-		$tpl['head2'] .= '<script type="text/javascript">var ispage = ';
+		$tpl['head'] .= '";' . "\n" .
+		'//--></script>' . "\n";
+		$tpl['head2'] .= '<script type="text/javascript"><!--' . "\n" .
+		'	var ispage = ';
 		if ($replythread > 0) {
 			$tpl['head2'] .= 'false';
 		} else {
 			$tpl['head2'] .= 'true';
 		}
-		$tpl['head2'] .= ';</script>';
+		$tpl['head2'] .= ';' . "\n" .
+		'//--></script>';
 		if ($this->board_type == 1) {
 			if ($replythread == 0) {
 				$output .= '<body class="board">';
@@ -1252,7 +1340,7 @@ class Board {
 					$output .= '-&nbsp;';
 				}
 			}
-			$output .= '[<a href="'.TC_WEBPATH.'" target="_top">Home</a>]&nbsp;[<a href="' . TC_CGIPATH . '/manage.php" target="_top">Manage</a>]</div>';
+			$output .= '[<a href="'.TC_WEBPATH.'" target="_top">' . _gettext('Home') . '</a>]&nbsp;[<a href="' . TC_CGIPATH . '/manage.php" target="_top">' . _gettext('Manage') . '</a>]</div>';
 			$output .= $this->DisplayBoardList(false);
 		} else {
 			$output .= $this->DisplayBoardList(true);
@@ -1301,7 +1389,7 @@ class Board {
 			'<img src="' . TC_WEBPATH . '/lib/icons/refresh.gif" border="0" alt="refresh">' . "\n" .
 			'</a>' . "\n" .
 			'</div>' . "\n" .
-			'<script type="text/javascript">' . "\n" .
+			'<script type="text/javascript"><!--' . "\n" .
 			'watchedthreadselement = document.getElementById(\'watchedthreads\');' . "\n" .
 			'if (getCookie(\'showwatchedthreads\') == \'1\') {' . "\n" .
 			'	watchedthreadselement.style.top = getCookie(\'watchedthreadstop\');' . "\n" .
@@ -1314,7 +1402,7 @@ class Board {
 			'	watchedthreadselement.style.width = \'16px\';' . "\n" .
 			'	watchedthreadselement.style.height = \'16px\';' . "\n" .
 			'}' . "\n" .
-			'</script>' . "\n" .
+			'//--></script>' . "\n" .
 			'</div>' . "\n";
 		}
 		if ($this->board_type == 0 || $this->board_type == 2 || $this->board_type == 3) {
@@ -1346,7 +1434,7 @@ class Board {
 			'</div>' . "\n" .
 			'<div class="hborder">' . "\n" .
 			'	<div class="head midhead">' . "\n" .
-			'		<b>Style:</b> <a href="#" onclick="javascript:set_stylesheet(\'Yotsuba\',true);return false;">Yotsuba</a> <a href="#" onclick="javascript:set_stylesheet(\'Headline\',true);return false;">Headline</a> <a href="#" onclick="javascript:set_stylesheet(\'Pseud0ch\',true);return false;">Pseud0ch</a>' . "\n" .
+			'		<b>' . _gettext('Style') . ':</b> <a href="#" onclick="javascript:set_stylesheet(\'Yotsuba\',true);return false;">Yotsuba</a> <a href="#" onclick="javascript:set_stylesheet(\'Headline\',true);return false;">Headline</a> <a href="#" onclick="javascript:set_stylesheet(\'Pseud0ch\',true);return false;">Pseud0ch</a>' . "\n" .
 			'	</div>' . "\n" .
 			'</div>';
 			
@@ -1367,6 +1455,12 @@ class Board {
 		return $output;
 	}
 	
+	/**
+	 * Build the page header for an oekaki posting
+	 * 
+	 * @param integer $replyto The ID of the thread being replied to.  0 for a new thread
+	 * @param string $postoek The path to the oekaki picture being posted	 	 	 	 	 	 	 
+	 */	
 	function OekakiHeader($replyto, $postoek) {
 		$executiontime_start = microtime_float();
 		$this->InitializeSmarty();
@@ -1387,6 +1481,15 @@ class Board {
 		$this->PrintPage('', $page, true);
 	}
 	
+	/**
+	 * Build the text board thread list
+	 * 
+	 * @param string $board Board name
+	 * @param integer $liststart The number which the list starts at
+	 * @param integer $liststooutput The number of list pages which will be generated
+	 * @param boolean $ispage If the list is being generated for a board page
+	 * @return string The generated thread list	 	 	 	 	 	 	 	 	 
+	 */	
 	function TextBoardThreadList($board, $liststart, $liststooutput, $ispage = false) {
 		global $tc_db;
 		
@@ -1433,6 +1536,12 @@ class Board {
 		return $output;
 	}
 	
+	/**
+	 * Fetch the number of unique posts for a board
+	 * 
+	 * @param string $board The board to fetch for.  If blank, get the total number of unique posts [todo]
+	 * @return integer The number of unique posts	 	 	 	 	 	 	 
+	 */	
 	function UniquePosts($board = '') {
 		global $tc_db;
 		
@@ -1445,6 +1554,13 @@ class Board {
 		}
 	}
 	
+	/**
+	 * Format the postbox notice with dynamic values
+	 * 
+	 * @param string $notice The unformatted postbox notice
+	 * @param string $board The board	 
+	 * @return string The formatted postbox notice	 	 	 	 	 	 
+	 */	
 	function FormatPostbox($notice, $board) {
 		global $tc_db;
 		
@@ -1471,7 +1587,10 @@ class Board {
 		
 		return $notice;
 	}
-
+	
+	/**
+	 * Perform caching on the page header and its data	 	 	 	 	 
+	 */	
 	function CachePageHeaderData() {
 		if ($this->board_defaultstyle != '') {
 			$this->pageheader_css = printStylesheets($this->board_defaultstyle);
@@ -1488,7 +1607,15 @@ class Board {
 		//$this->pageheader_reply = $this->PageHeader('1');
 		$this->pageheader_noreply = $this->PageHeader('0');
 	}
-
+	
+	/**
+	 * Generate the postbox area
+	 * 
+	 * @param integer $replythread The ID of the thread being replied to.  0 if not replying
+	 * @param string $isoekaki The oekaki path, set to '' if it is not an oekaki post
+	 * @param string $postboxnotice The postbox notice
+	 * @return string The generated postbox 	 	 	 	 	 
+	 */	
 	function Postbox($replythread = 0, $oekaki = '', $postboxnotice = '') {
 		global $tc_db;
 		
@@ -1577,7 +1704,7 @@ class Board {
 				'	<td class="'.$label_class.'">' . "\n" .
 				'		' . _gettext('Subject').'</td>' . "\n" .
 				'	<td>' . "\n" .
-				'		<input type="text" name="subject" size="35" maxlength="75" accesskey="s">&nbsp;<input type="submit" value="Submit" accesskey="z">';
+				'		<input type="text" name="subject" size="35" maxlength="75" accesskey="s">&nbsp;<input type="submit" value="' . _gettext('Submit') . '" accesskey="z">';
 				/* Qucik reply indicator for a postbox on a board page */
 				if (TC_QUICKREPLY && $replythread == 0 && ($this->board_type == 0 || $this->board_type == 3)) {
 					$output .= '&nbsp;<small>(<span id="posttypeindicator">new thread</span>)</small>';
@@ -1672,13 +1799,20 @@ class Board {
 				}
 			}
 			$output .= '</div>' . "\n" .
-			'<script type="text/javascript">' . "\n" .
+			'<script type="text/javascript"><!--' . "\n" .
 			'	set_inputs("postform");' . "\n" .
-			'</script>' . "\n";
+			'//--></script>' . "\n";
 		}
+		
 		return $output;
 	}
 	
+	/**
+	 * Display the user-defined list of boards found in boards.html
+	 * 
+	 * @param boolean $is_textboard If the board this is being displayed for is a text board
+	 * @return string The board list
+	 */	 	 	 	 	
 	function DisplayBoardList($is_textboard = false) {
 		/*global $tc_db;
 		
@@ -1708,18 +1842,26 @@ class Board {
 		}
 	}
 
-	/* Have javascript add the [D & B] links on the page if the tcmod cookie is set to yes */
+	/**
+	 * Have javascript add the [D & B] links on the page if the tcmod cookie is set to yes
+	 * 
+	 * @param integer $post_id ID of the post the [D & B] links are being created for
+	 * @param boolean $is_thread If the post is a thread starting post	 
+	 * @return string The [D & B] javascript
+	 */	 	 
 	function DeleteAndBanLinks($post_id, $is_thread) {
 		$is_thread_jsfriendly = ($is_thread) ? 'true' : 'false';
 		
 		return '<span id="dnb'.$post_id.'">' . "\n" . 
-		'	<script type="text/javascript">' . "\n" . 
+		'	<script type="text/javascript"><!--' . "\n" . 
 		'		delandbanlinks(\'dnb'.$post_id.'\', \''.$this->board_dir.'\', '.$post_id.', '.$is_thread_jsfriendly.');' . "\n" . 
-		'	</script>' . "\n" . 
+		'	//--></script>' . "\n" . 
 		'</span>' . "\n";
 	}
 
-	/* Trim the threads to the page limit and delete posts which are older than limited */
+	/**
+	 * Trim the threads to the page limit and delete posts which are older than limited
+	 */	 
 	function TrimToPageLimit() {
 		global $tc_db;
 		
@@ -1757,6 +1899,14 @@ class Board {
 		}
 	}
 
+	/**
+	 * Display the page footer
+	 * 
+	 * @param boolean $noboardlist Force the board list to not be displayed
+	 * @param string $executiontime The time it took the page to be created
+	 * @param boolean $hide_extra Hide extra footer information, and display the manage link
+	 * @return string The generated footer
+	 */	 	 	 	 	 	 	
 	function Footer($noboardlist = false, $executiontime = '', $hide_extra = false) {
 		global $tc_db;
 		$output = '';
@@ -1780,6 +1930,14 @@ class Board {
 		return $output;
 	}
 	
+	/**
+	 * Finalize the page and print it to the specified filename
+	 * 
+	 * @param string $filename File to print the page to
+	 * @param string $contents Page contents
+	 * @param string $board Board which the file is being generated for
+	 * @return string The page contents, if requested
+	 */	 
 	function PrintPage($filename, $contents, $board) {
 		global $tpl;
 		
@@ -1797,6 +1955,9 @@ class Board {
 		}
 	}
 	
+	/**
+	 * Initialize the instance of smary which will be used for generating pages
+	 */ 	 	
 	function InitializeSmarty() {
 		global $tpl;
 		
@@ -1819,6 +1980,11 @@ class Board {
 		$this->smarty->assign('tc_cgipath', TC_CGIPATH);
 	}
 	
+	/**
+	 * Enable/disable archive mode
+	 * 
+	 * @param boolean $mode True/false for enabling/disabling archive mode	 	 	 
+	 */ 
 	function ArchiveMode($mode) {
 		if ($mode && $this->board_enablearchiving == 1) {
 			$this->archive_dir = '/arch';
@@ -1828,6 +1994,13 @@ class Board {
 	}
 }
 
+/** 
+ * Post class
+ * 
+ * Used for post insertion, deletion, and reporting.
+ * 
+ * @package Trevorchan  
+ */
 class Post extends Board {
 	/* Declare the public variables */
 	var $post_id;

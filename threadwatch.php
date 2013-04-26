@@ -14,18 +14,23 @@
  * You should have received a copy of the GNU General Public License along with
  * Trevorchan; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- * +------------------------------------------------------------------------------+
+ */
+/** 
  * AJAX thread watch handler
- * +------------------------------------------------------------------------------+
+ *
  * Returns a list of threads which are currently being watched
- * +------------------------------------------------------------------------------+
+ * 
+ * @package Trevorchan  
  */
 
+/** 
+ * Require the configuration file
+ */ 
 require('config.php');
+
 /* No need to waste effort if thread watching is disabled */
 if (!TC_WATCHTHREADS) die();
 require(TC_ROOTDIR . 'inc/functions.php');
-require_once(TC_ROOTDIR . 'inc/operations.functions.php');
 require_once(TC_ROOTDIR . 'inc/classes/board-post.class.php');
 
 $output = '';

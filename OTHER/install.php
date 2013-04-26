@@ -1,4 +1,7 @@
 <?php
+/**
+ * @ignore
+ */ 
 function mysql_table_exists($database, $tableName) {
     global $tc_db;
     $tables = array();

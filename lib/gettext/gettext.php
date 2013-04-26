@@ -94,20 +94,21 @@ class gettext_reader {
    */
   function gettext_reader($Reader, $enable_cache = true) {
     // If there isn't a StreamReader, turn on short circuit mode.
-    if (! $Reader || isset($Reader->error) ) {
-      $this->short_circuit = true;
-      return;
+    if (!$Reader || isset($Reader->error) ) {
+    	$this->short_circuit = true;
+		return;
     }
     
     // Caching can be turned off
-    $this->enable_cache = $enable_cache;
+    $this->enable_cache = $enable_cache; //$enable_cache
 
     // $MAGIC1 = (int)0x950412de; //bug in PHP 5
     $MAGIC1 = (int) - 1794895138;
     // $MAGIC2 = (int)0xde120495; //bug
     $MAGIC2 = (int) - 569244523;
-
+	
     $this->STREAM = $Reader;
+    
     $magic = $this->readint();
     if ($magic == $MAGIC1) {
       $this->BYTEORDER = 0;
@@ -117,7 +118,6 @@ class gettext_reader {
       $this->error = 1; // not MO file
       return false;
     }
-    
     // FIXME: Do we care about revision? We should.
     $revision = $this->readint();
     
@@ -241,8 +241,9 @@ class gettext_reader {
    * @return string translated string (or original, if not found)
    */
   function translate($string) {
-    if ($this->short_circuit)
+    if ($this->short_circuit) {
       return $string;
+    }
     $this->load_tables();     
     
     if ($this->enable_cache) {

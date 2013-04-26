@@ -14,18 +14,19 @@
  * You should have received a copy of the GNU General Public License along with
  * Trevorchan; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- * +------------------------------------------------------------------------------+
- * AJAX thread expansion handler
- * +------------------------------------------------------------------------------+
- * Returns replies of threads which have been requested through AJAX
- * +------------------------------------------------------------------------------+
  */
+/** 
+ * AJAX thread expansion handler
+ *
+ * Returns replies of threads which have been requested through AJAX
+ * 
+ * @package Trevorchan  
+ */ 
 
 require 'config.php';
 /* No need to waste effort if expansion is disabled */
 if (!TC_EXPAND) die();
 require TC_ROOTDIR . 'inc/functions.php';
-require TC_ROOTDIR . 'inc/operations.functions.php';
 require TC_ROOTDIR . 'inc/classes/board-post.class.php';
 
 $board_name = $tc_db->GetOne("SELECT `name` FROM `" . TC_DBPREFIX . "boards` WHERE `name` = '" . mysql_real_escape_string($_GET['board']) . "'");

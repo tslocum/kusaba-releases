@@ -1,27 +1,30 @@
 <?php
 /*
-* This file is part of Trevorchan.
-*
-* Trevorchan is free software; you can redistribute it and/or modify it under the
-* terms of the GNU General Public License as published by the Free Software
-* Foundation; either version 2 of the License, or (at your option) any later
-* version.
-*
-* Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
-* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-* A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License along with
-* Trevorchan; if not, write to the Free Software Foundation, Inc.,
-* 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-* +------------------------------------------------------------------------------+
-* Paint page for oekaki
-* +------------------------------------------------------------------------------+
-* This is the page displayed when a user clicks the "Paint" button on an oekaki
-* board.  It displays the painter app, configured to send the finished image to
-* paint_save.php, which will be processed for posting.
-* +------------------------------------------------------------------------------+
-*/
+ * This file is part of Trevorchan.
+ *
+ * Trevorchan is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+/** 
+ * Paint page for oekaki
+ *
+ * This is the page displayed when a user clicks the "Paint" button on an oekaki
+ * board.  It displays the painter app, configured to send the finished image to
+ * paint_save.php, which will be processed for posting.
+ * 
+ * @package Trevorchan  
+ */  
+
 if (!isset($_POST['width'])||!isset($_POST['height'])||!isset($_POST['board'])) {
 	die();
 }
@@ -32,6 +35,9 @@ if ($_POST['width']>750||$_POST['height']>750) {
 	die('Please enter a width/height less than or equal to 750.');
 }
 
+/** 
+ * Require the configuration file, and the oekaki applet class
+ */ 
 require 'config.php';
 require TC_ROOTDIR . 'lib/oekaki/OekakiApplet.php';
 

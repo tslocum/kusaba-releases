@@ -14,26 +14,24 @@
 * You should have received a copy of the GNU General Public License along with
 * Trevorchan; if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-* +------------------------------------------------------------------------------+
-* Save script for oekaki uploads
-* +------------------------------------------------------------------------------+
-* This will accept the image sent from the shi-painter app, and save it into the
-* drawings folder (/tcdrawings/) temporarily, until the user makes their post with
-* it.  When posted, it will be used as if the image had been uploaded by the user, 
-* and the temporary image will be deleted.
-* +------------------------------------------------------------------------------+
 */
-//error_reporting(E_ALL);
-require('config.php');
-require(TC_ROOTDIR . 'lib/oekaki/OekakiInput.php');
+/** 
+ * Save script for oekaki uploads
+ *
+ * This will accept the image sent from the shi-painter app, and save it into the
+ * drawings folder (/tcdrawings/) temporarily, until the user makes their post with
+ * it.  When posted, it will be used as if the image had been uploaded by the user, 
+ * and the temporary image will be deleted.
+ * 
+ * @package Trevorchan  
+ */
 
-if (!function_exists('file_put_contents')) {
-	function file_put_contents($filename, $data) {
-		$fp = @fopen($filename, 'w');
-		fwrite($fp, $data);
-		fclose($fp);
-	}
-}
+/** 
+ * Require the configuration file, functions file, and oekaki input class
+ */ 
+require 'config.php';
+require TC_ROOTDIR . 'inc/functions.php';
+require TC_ROOTDIR . 'lib/oekaki/OekakiInput.php';
 
 $OekakiInput = new OekakiInput;    
 

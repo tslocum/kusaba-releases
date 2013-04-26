@@ -71,6 +71,8 @@ CREATE TABLE `PREFIX_boards` (
   `trial` tinyint(1) NOT NULL default '0',
   `popular` tinyint(1) NOT NULL default '0',
   `defaultstyle` varchar(50) NOT NULL,
+  `locale` VARCHAR(30) NOT NULL,
+  `showid` TINYINT(1) NOT NULL DEFAULT '0',
   `enablereporting` tinyint(1) NOT NULL default '1',
   `enablecaptcha` tinyint(1) NOT NULL default '0',
   `enablenofile` tinyint(1) NOT NULL default '0',

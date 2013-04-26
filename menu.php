@@ -14,13 +14,16 @@
  *  You should have received a copy of the GNU General Public License along with
  * Trevorchan; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- * +------------------------------------------------------------------------------+
+ */
+/** 
  * Links to all boards for navigation
- * +------------------------------------------------------------------------------+
+ *
  * Boards will be listed, divided up by sections set in the manage panel.  IRC info
  * will also be displayed, if it is set.
- * +------------------------------------------------------------------------------+
- */
+ * 
+ * @package Trevorchan  
+ */   
+
 require 'config.php';
 require TC_ROOTDIR . 'inc/classes/menu.class.php';
 

@@ -14,20 +14,27 @@
    * You should have received a copy of the GNU General Public License along with
    * Trevorchan; if not, write to the Free Software Foundation, Inc.,
    * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-   * +------------------------------------------------------------------------------+
-   * Index page, which gives the frameset
-   * +------------------------------------------------------------------------------+
-   * This is the first file called when someone visits your *chan's index page.  It
-   * tells the browser to load the navigation (menu.php) and news page (news.php) in
-   * two frames.
-   * +------------------------------------------------------------------------------+
    */
+/** 
+ * Index page, which gives the frameset
+ *
+ * This is the first file called when someone visits the index page.  It
+ * tells the browser to load the navigation (menu.php or menu.html) and news page (news.php) in
+ * two frames.
+ * 
+ * @package Trevorchan  
+ */
+
 if (file_exists("install.php")) {
 	die('You are seeing this message because either you haven\'t ran the install file yet, and can do so <a href="install.php">here</a>, or already have, and <b>must delete it</b>.');
 }
 if (!isset($_GET['info'])) {
 	$preconfig_db_unnecessary = true;
 }
+
+/** 
+ * Require the configuration file
+ */ 
 require 'config.php';
 
 ?>
@@ -43,7 +50,7 @@ if (isset($tc_config)) {
 		</script>
 		<script type="text/javascript">
 		_uacct = "UA-71983-8";
-		urchinTracker();
+		urchinTracker(document.referrer);
 		</script>';
 	}
 }
@@ -81,7 +88,7 @@ $menufile = (TC_STATICMENU) ? 'menu.html' : 'menu.php';
 ?>
 <frameset cols="18%,*" frameborder="0" border="0">
 <frame src="<?php echo $menufile; ?>" name="menu" id="menu">
-<frame src="news.php" name="main" id="main">
+<frame src=news.php name="main" id="main">
 <noframes>
 Your browser doesn't support frames, which <?php echo TC_NAME; ?> requires.<br>
 Please upgrade to something newer.

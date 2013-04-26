@@ -14,13 +14,19 @@
  * You should have received a copy of the GNU General Public License along with
  * Trevorchan; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- * +------------------------------------------------------------------------------+
- * News display,which is the first page shown when a user visits a chan's index
- * +------------------------------------------------------------------------------+
- * Any news added by an administrator in the manage panel will show here,with the
- * newest entry on the top.
- * +------------------------------------------------------------------------------+
  */
+/** 
+ * News display, which is the first page shown when a user visits a chan's index
+ *
+ * Any news added by an administrator in the manage panel will show here, with
+ * the newest entry on the top.
+ * 
+ * @package Trevorchan  
+ */   
+
+/** 
+ * Require the configuration file
+ */ 
 require('config.php');
 
 ?>
@@ -48,6 +54,9 @@ echo '<div class="menu">';
 
 echo ($_GET['p']=='') ? 'News' : '<a href="news.php">News</a>';
 echo ' | ';
+if (isset($tc_config)) {
+	echo '<a href="download.html">Download</a> | ';
+}
 echo ($_GET['p']=='faq') ? 'FAQ' : '<a href="news.php?p=faq">FAQ</a>';
 echo ' | ';
 echo ($_GET['p']=='rules') ? 'Rules' : '<a href="news.php?p=rules">Rules</a>';
@@ -82,6 +91,9 @@ if ($_GET['p']=='faq') {
 } else if ($_GET['p']=='rules') {
 	echo file_get_contents(TC_ROOTDIR.'inc/pages/rules.html');
 } else {
+	if (isset($tc_config)) {
+		echo '<div class="content" style=""><span style="font-size: 1.5em;"><b>Current release:</b> 0.9.8 - <a href="http://rel.trevorchan.org/Releasev098.zip">Quick Download</a> - For more information, click the Download link above.</span></div>';
+	}
 	$entries = 0;
 	/* Get all of the news entries, ordered with the newest one placed on top */
 	$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."news` ORDER BY `postedat` DESC");
@@ -101,7 +113,7 @@ if ($_GET['p']=='faq') {
 		echo '</span><span class="permalink"><a href="#' . $line['id'] . '" name="' . $line['id'] . '" title="permalink">#</a></span></h2>
 		'.stripslashes($line['message']).'</div><br>';
 		if ($entries == 8) {
-			if ($tc_config['is_trevorchan']) {
+			if (isset($tc_config)) {
 				echo '<div class="content">
 				<h2><div class="newssub">Advertisement</div><div class="permalink">&nbsp;</div></h2>
 				<div style="text-align: center;">

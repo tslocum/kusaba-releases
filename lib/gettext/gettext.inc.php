@@ -55,13 +55,12 @@ function _get_reader($domain=null, $category=5, $enable_cache=true) {
 	if (!isset($domain)) $domain = $default_domain;
 	if (!isset($text_domains[$domain]->l10n)) {
 		// get the current locale
-		$locale = _setlocale(LC_ALL, TC_LOCALE);
+		$locale = TC_LOCALE;
 		$p = './';
 		$path = TC_ROOTDIR . 'inc/lang/' . $locale . '/' . $LC_CATEGORIES[$category] ."/$domain.mo";
 		if (file_exists($path)) {
 			$input = new FileReader($path);
-		}
-		else {
+		} else {
 			$input = null;
 		}
 		$text_domains[$domain]->l10n = new gettext_reader($input, $enable_cache);

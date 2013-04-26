@@ -70,6 +70,9 @@ if ($_POST['type'] == 'thumbnail' || $_POST['type'] == 'direct') {
 	die("\n" . 'finished');
 }
 
+/**
+ * @ignore
+ */ 
 function createThumbnail($name, $filename, $new_w, $new_h) {
 	$system=explode(".", $filename);
 	$system = array_reverse($system);
@@ -124,6 +127,9 @@ function createThumbnail($name, $filename, $new_w, $new_h) {
 }
 
 /* Author: Tim Eckel - Date: 12/17/04 - Project: FreeRingers.net - Freely distributable. */
+/**
+ * @ignore
+ */ 
 function fastimagecopyresampled(&$dst_image, &$src_image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h, $quality = 3) {
 	/*
 	Optional "quality" parameter (defaults is 3).  Fractional values are allowed, for example 1.5.
@@ -161,6 +167,9 @@ function fastimagecopyresampled(&$dst_image, &$src_image, $dst_x, $dst_y, $src_x
 	return true;
 }
 
+/**
+ * @ignore
+ */ 
 function mime_content_type_custom($f) {
    return trim(exec('file -bi ' . escapeshellarg ($f )));
 }
