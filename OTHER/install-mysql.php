@@ -68,11 +68,11 @@ Before running this script, make sure that:<br>
 } else {
 	require('config.php');
 	$reqiredtables = array("banlist","boards","config","iplist","loginattempts","modlog","news","passcache","reports","sections","staff","wordfilter");
-        foreach ($reqiredtables as $tablename) {
-                if (mysql_table_exists(KU_DBDATABASE,KU_DBPREFIX.$tablename)) {
-                        die("Table <b>".KU_DBPREFIX.$tablename."</b> already exists in the database!  Drop it, and re run this script.");
-                }
-        }
+    foreach ($reqiredtables as $tablename) {
+            if (mysql_table_exists(KU_DBDATABASE,KU_DBPREFIX.$tablename)) {
+                    die("Table <b>".KU_DBPREFIX.$tablename."</b> already exists in the database!  Drop it, and re run this script.");
+            }
+    }
 	// Lets open the file for reading! :)
 	echo '<h2>SQL Batch File Processing</h2>';
 	echo 'Locating \'kusaba_freshinstall.sql\'... ';
@@ -88,6 +88,8 @@ Before running this script, make sure that:<br>
 	echo '<font color=red>error.</font> ';
 	die('An error occured. kusaba_freshinstall.sql does not exist in this directory or it is 0 bytes big :( Barring that, do you have read permissions for the directory?');
 	}
+	
+	$tc_db->Execute("ALTER DATABASE `" . KU_DBDATABASE . "` CHARACTER SET utf8 COLLATE utf8_general_ci");
 	
 	// Explodes the array
 	$sqlarray = explode("\n", $readdata);
@@ -121,7 +123,7 @@ Before running this script, make sure that:<br>
 			if($tc_db->Execute($sqldata)) {
 				echo "success.<br>";
 			} else {
-				echo "<font color='red'>failed</font>. Enable debugging to see this error.<br>";
+				echo "<font color='red'>failed</font>. Enable debugging by setting KU_DEBUG to true to see this error.<br>";
 				die ("Table creation failed. Please rerun this script again or attempt to fix the problem if you know how to solve it.");
 			}
 		}

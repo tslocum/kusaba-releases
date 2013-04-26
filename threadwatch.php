@@ -26,12 +26,12 @@
 /** 
  * Require the configuration file
  */ 
-require('config.php');
+require 'config.php';
 
 /* No need to waste effort if thread watching is disabled */
 if (!KU_WATCHTHREADS) die();
-require(KU_ROOTDIR . 'inc/functions.php');
-require_once(KU_ROOTDIR . 'inc/classes/board-post.class.php');
+require KU_ROOTDIR . 'inc/functions.php';
+require KU_ROOTDIR . 'inc/classes/board-post.class.php';
 
 $output = '';
 
@@ -98,19 +98,7 @@ if (isset($_GET['do'])) {
 					$output .= '<span class="filetitle">' . $threadinfo['subject'] . '</span> - ';
 				}
 				
-				if ($threadinfo['name'] == '' && $threadinfo['tripcode'] == '') {
-					$output .= KU_ANONYMOUS;
-				} else if ($threadinfo['name'] == '' && $threadinfo['tripcode'] != '') {
-					/* Just display the tripcode, no added html */
-				} else {
-					$output .= $threadinfo['name'];
-				}
-				
-				if ($threadinfo['tripcode']!='') {
-					$output .= '<span class="postertrip">!' . $threadinfo['tripcode'] . '</span>';
-				}
-				
-				$output .= ': ';
+				$output .= formatNameAndTrip($threadinfo['name'], '', $threadinfo['tripcode'], 'Anonymous');
 		
 				$numnewreplies = $tc_db->GetOne('SELECT COUNT(*) FROM `'.KU_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `parentid` = ' . $watched_thread['threadid'] . ' AND `id` >  ' . $watched_thread['lastsawreplyid'] . ' LIMIT 1');
 				
@@ -126,7 +114,7 @@ if (isset($_GET['do'])) {
 					$output .= '<b>0</b>';
 				}
 				
-				$output .= ' <a href="#" onclick="javascript:removefromwatchedthreads(\'' . $watched_thread['threadid'] . '\', \'' . $_GET['board'] . '\');return false;" title="Un-watch"><img src="' . KU_WEBPATH . '/lib/icons/x.gif" border="0" alt="x"></a><br>';
+				$output .= ' <a href="#" onclick="javascript:removefromwatchedthreads(\'' . $watched_thread['threadid'] . '\', \'' . $_GET['board'] . '\');return false;" title="Un-watch">X</a><br>';
 			}
 		} else {
 			$output .= 'None.<br>';
@@ -141,7 +129,6 @@ if (isset($_GET['do'])) {
 		</a>';
 		
 		$output .= '</div>';*/
-	} else {
 		if (KU_APC) {
 			apc_store('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR'], $output, 600);
 		}

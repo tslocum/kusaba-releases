@@ -159,29 +159,33 @@ a:hover {
 }
 
 .hidethread {
-	background-image: url('icons/green/zoom-out.gif');
+	background: transparent url('icons/green/icons.gif') -32px -16px no-repeat;
+}
+
+.unhidethread {
+	background: transparent url('icons/green/icons.gif') -48px 0px no-repeat;
 }
 
 .watchthread {
-	background-image: url('icons/green/bookmark.gif');
+	background: transparent url('icons/green/icons.gif') -32px 0px no-repeat;
 }
 
 .expandthread {
-	background-image: url('icons/green/move.gif');
+	background: transparent url('icons/green/icons.gif') 0px -16px no-repeat;
 }
 
 .quickreply {
-	background-image: url('icons/green/eject.gif');
+	background: transparent url('icons/green/icons.gif') 0px 0px no-repeat;
 }
 
 .hidewatchedthreads {
-	background-image: url('icons/green/arrow-upleft.gif');
+	background: transparent url('icons/green/icons.gif') -48px -16px no-repeat;
 }
 
 .refreshwatchedthreads {
-	background-image: url('icons/green/refresh.gif');
+	background: transparent url('icons/green/icons.gif') -16px -16px no-repeat;
 }
 
 .restorewatchedthreads {
-	background-image: url('icons/green/grow.gif');
+	background: transparent url('icons/green/icons.gif') -16px 0px no-repeat;
 }

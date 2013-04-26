@@ -38,7 +38,6 @@ class Bans {
 	/* Perform a check for a ban record for a specified IP address */
 	function BanCheck($ip, $board = '', $force_display = false) {
 		global $tc_db;
-		require_once KU_ROOTDIR . 'inc/encryption.php';
 		
 		if (!isset($_COOKIE['tc_previousip'])) {
 			$_COOKIE['tc_previousip'] = '';
@@ -60,7 +59,7 @@ class Bans {
 		$results = $tc_db->GetAll("SELECT * FROM `".KU_DBPREFIX."banlist` WHERE `type` = '1'");
 		if (count($results)>0) {
 			foreach($results AS $line) {
-				if (eregi(md5_decrypt($line['ip'], KU_RANDOMSEED), $ip)) {
+				if (strpos($ip, md5_decrypt($line['ip'], KU_RANDOMSEED)) === 0) {
 					echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until'], $line['appealat']);
 					die();
 				}
@@ -76,10 +75,9 @@ class Bans {
 	}
 
 	/* Add a ip/ip range ban */
-	function BanUser($ip, $modname, $globalban, $duration, $boards, $reason, $appealat, $type=0, $allowread=1) {
+	function BanUser($ip, $modname, $globalban, $duration, $boards, $reason, $appealat=0, $type=0, $allowread=1) {
 		global $tc_db;
 		
-		require_once KU_ROOTDIR.'inc/encryption.php';
 		$result = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."banlist` WHERE `type` = '".$type."' AND `ipmd5` = '".md5($ip)."'");
 		if ($result[0]==0) {
 			if ($duration>0) {
@@ -151,7 +149,6 @@ class Bans {
 	function UpdateHtaccess() {
 		global $tc_db;
 		
-		require_once KU_ROOTDIR . 'inc/encryption.php';
 		$htaccess_contents = file_get_contents(KU_BOARDSDIR.'.htaccess');
 		$htaccess_contents_preserve = substr($htaccess_contents, 0, strpos($htaccess_contents, '## !KU_BANS:')+12)."\n";
 	

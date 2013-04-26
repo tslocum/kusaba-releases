@@ -2,14 +2,10 @@
 <html>
 <head>
 <title>{$title}</title>
-{$head}
-<script type="text/javascript">var ku_boardspath = '{$ku_boardspath}';var ku_cgipath = '{$ku_cgipath}';</script>
-<script type="text/javascript" src="{$ku_webpath}/lib/javascript/prototype.js"></script>
-<script type="text/javascript" src="{$ku_webpath}/lib/javascript/scriptaculous/scriptaculous.js"></script>
-<script type="text/javascript" src="{$ku_webpath}/lib/javascript/scriptaculous/resize.js"></script>
-<script type="text/javascript" src="{$ku_webpath}/lib/javascript/kusaba.js"></script>
-<script type="text/javascript">var hiddenthreads = getCookie('hiddenthreads').split('!');</script>
-{$head2}
+{$head}<script type="text/javascript" src="{$ku_webpath}/lib/javascript/kusaba.js"></script>
+<script type="text/javascript">
+	var hiddenthreads = getCookie('hiddenthreads').split('!');
+</script>
 <link rel="shortcut icon" href="{$ku_webpath}/favicon.ico">
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="pragma" content="no-cache">

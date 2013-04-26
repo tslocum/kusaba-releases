@@ -3,7 +3,7 @@ html, body {
 	 background:#EEF2FF;
 	 color:#000000;
 }
-a	   {
+a {
 	background:inherit;
 	color:#34345C;
 	text-decoration:none;
@@ -18,8 +18,13 @@ a:visited {
 a:hover {
 	color:#DD0000;
 	background:inherit;
-	text-decoration:underline;
 	font-family:sans-serif;
+}
+.filesize a {
+	text-decoration:underline;
+}
+.filesize a:visited {
+	text-decoration:underline;
 }
 .adminbar {
 	text-align:right;

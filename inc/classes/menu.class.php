@@ -33,7 +33,7 @@ class Menu {
 		
 		if (KU_MENUSTYLESWITCHER) {
 			$styles = explode(':', KU_MENUSTYLES);
-			$styleswitcher = 'Styles: ';
+			$styleswitcher = _gettext('Styles') . ': ';
 			foreach ($styles as $style) {
 				$styleswitcher .= '[<a href="#" onclick="javascript:set_stylesheet(\\\'' . ucfirst($style) . '\\\', false, true);reloadmain();" style="display: inline;">' . strtoupper(substr($style, 0, 1)) . '</a>] ';
 			}
@@ -68,6 +68,8 @@ class Menu {
 			<li><a href="http://code.google.com/p/kusaba/wiki/AdministrationGuide" target="_top">&nbsp;-&nbsp;Administration</a></li>
 			<li><a href="http://code.google.com/p/kusaba/wiki/StaffGuide" target="_top">&nbsp;-&nbsp;Staff</a></li>
 			<li><a href="http://code.google.com/p/kusaba/wiki/ModuleList" target="_top">&nbsp;-&nbsp;Modules</a></li>
+			<li><a href="http://code.google.com/p/kusaba/wiki/KusaMove" target="_top">&nbsp;-&nbsp;KusaMove</a></li>
+			<li><a href="http://code.google.com/p/kusaba/wiki/W2K" target="_top">&nbsp;-&nbsp;W2K</a></li>
 			<li><a href="http://code.google.com/p/kusaba/" target="_top">Project page</a></li>
 			<li><a href="http://kusaba.org/doc/index.html" target="main">Code Documentation</a></li>
 			</ul>
@@ -145,7 +147,7 @@ class Menu {
 			}
 			$smarty->assign('boards', $tpl_boards);
 			if (KU_MENUSTYLESWITCHER) {
-				$showhidedirs = '<li id="sitestyles"><a onclick="javascript:showstyleswitcher();" href="#">[Site Styles]</a></li>'. "\n";
+				$showhidedirs = '<li id="sitestyles"><a onclick="javascript:showstyleswitcher();" href="#">[' . _gettext('Site Styles') . ']</a></li>'. "\n";
 			} else {
 				$showhidedirs = '';
 			}

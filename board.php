@@ -40,16 +40,17 @@ session_start();
  */ 
 require 'config.php';
 require KU_ROOTDIR . 'inc/functions.php';
-require_once KU_ROOTDIR . 'inc/classes/board-post.class.php';
-require_once KU_ROOTDIR . 'inc/classes/bans.class.php';
-require_once KU_ROOTDIR . 'inc/classes/posting.class.php';
-
+require KU_ROOTDIR . 'inc/classes/board-post.class.php';
+require KU_ROOTDIR . 'inc/classes/bans.class.php';
+require KU_ROOTDIR . 'inc/classes/posting.class.php';
+require KU_ROOTDIR . 'inc/classes/parse.class.php';
+		
 $bans_class = new Bans();
+$parse_class = new Parse();
 $posting_class = new Posting();
 
-// {{{ Module inclusion and loading
+// {{{ Module loading
 
-require_once(KU_ROOTDIR . 'inc/module.php');
 modules_load_all();
 
 // }}}
@@ -57,7 +58,7 @@ modules_load_all();
 
 if (isset($_POST['email'])) {
 	if ($_POST['email']!= '') {
-		die('Spam bot detected');
+		exitWithErrorPage('Spam bot detected');
 	}
 }
 
@@ -78,11 +79,11 @@ if (isset($_POST['board'])) {
 			changeLocale($board_class->board_locale);
 		}
 	} else {
-		die('<meta http-equiv="refresh" content="0;url=' . KU_WEBPATH . '">');
+		do_redirect(KU_WEBPATH);
 	}
 } else {
 	/* A board being supplied is required for this script to function */
-	die('<meta http-equiv="refresh" content="0;url=' . KU_WEBPATH . '">');
+	do_redirect(KU_WEBPATH);
 }
 
 // {{{ Expired ban removal, and then existing ban check on the current user
@@ -101,7 +102,7 @@ if ($oekaki == '') {
 
 /* Ensure that UTF-8 is used on some of the post variables */
 $posting_class->UTF8Strings();
-//$tc_db->debug = true;
+
 /* Check if the user sent a valid post (image for thread, image/message for reply, etc) */
 if ($posting_class->CheckValidPost($is_oekaki)) {
 	$tc_db->Execute("START TRANSACTION");
@@ -117,15 +118,15 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 	if ($post_isreply) {
 		list($thread_replies, $thread_locked, $thread_replyto) = $posting_class->GetThreadInfo($_POST['replythread']);
 	} else {
-		if ($board_class->board_uploadtype == '1' || $board_class->board_uploadtype == '2') {
+		if ($board_class->board_type != 1 && ($board_class->board_uploadtype == '1' || $board_class->board_uploadtype == '2')) {
 			if (isset($_POST['embed'])) {
 				if ($_POST['embed'] == '') {
 					if (($board_class->board_uploadtype == '1' && $imagefile_name == '') || $board_class->board_uploadtype == '2') {
-						die('Please enter an embed ID.');
+						exitWithErrorPage('Please enter an embed ID.');
 					}
 				}
 			} else {
-				die('Please enter an embed ID.');
+				exitWithErrorPage('Please enter an embed ID.');
 			}
 		}
 		
@@ -137,6 +138,14 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 	list($post_name, $post_email, $post_subject) = $posting_class->GetFields();
 	$post_password = isset($_POST['postpassword']) ? $_POST['postpassword'] : '';
 	
+	if ($board_class->board_type == 1) {
+		if ($post_isreply) {
+			$post_subject = '';
+		} else {
+			$posting_class->CheckNotDuplicateSubject($post_subject);
+		}
+	}
+	
 	list($user_authority, $flags) = $posting_class->GetUserAuthority();
 	
 	$post_fileused = false;
@@ -145,16 +154,27 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 	$post_displaystaffstatus = false;
 	$file_is_special = false;
 	
+	if (isset($_POST['formatting'])) {
+		if ($_POST['formatting'] == 'aa') {
+			$_POST['message'] = '[aa]' . $_POST['message'] . '[/aa]';
+		}
+		
+		if (isset($_POST['rememberformatting'])) {
+			setcookie('kuformatting', urldecode($_POST['formatting']), time() + 31556926, '/', KU_DOMAIN);
+		}
+	}
+	
+	$results = $tc_db->GetAll("SHOW TABLE STATUS LIKE '".KU_DBPREFIX."posts_".$board_class->board_dir."'");
+	$nextid = $results[0]['Auto_increment'];
+	$parse_class->id = $nextid;
+	
 	/* If they are just a normal user, or vip... */
 	if ($user_authority == 0 || $user_authority == 3) {
 		/* If the thread is locked */
 		if ($thread_locked == 1) {
 			/* Don't let the user post */
-			die(_gettext('Sorry, this thread is locked and can not be replied to.'));
+			exitWithErrorPage(_gettext('Sorry, this thread is locked and can not be replied to.'));
 		}
-		
-		require_once(KU_ROOTDIR . 'inc/classes/parse.class.php');
-		$parse_class = new Parse();
 		
 		$post_message = $parse_class->ParsePost($_POST['message'], $board_class->board_dir, $board_class->board_type, $thread_replyto);
 	/* Or, if they are a moderator/administrator... */
@@ -169,9 +189,6 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 			$post_message = $_POST['message'];
 		/* Otherwise, parse it as usual... */
 		} else {
-			require_once(KU_ROOTDIR . 'inc/classes/parse.class.php');
-			$parse_class = new Parse();
-			
 			$post_message = $parse_class->ParsePost($_POST['message'], $board_class->board_dir, $board_class->board_type, $thread_replyto);
 		}
 		
@@ -196,24 +213,24 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 	
 	if ($post_isreply) {
 		if ($imagefile_name == '' && !$is_oekaki && $post_message == '') {
-			die(_gettext('An image, or message, is required for a reply.'));
+			exitWithErrorPage(_gettext('An image, or message, is required for a reply.'));
 		}
 	} else {
 		if ($imagefile_name == '' && !$is_oekaki && ((!isset($_POST['nofile'])&&$board_class->board_enablenofile==1) || $board_class->board_enablenofile==0) && ($board_class->board_type == 0 || $board_class->board_type == 2 || $board_class->board_type == 3)) {
 			if (!isset($_POST['embed']) && $board_class->board_uploadtype != 1) {
-				die(_gettext('An image is required for a new thread.') . '<br>Or, if supported, an embed ID.');
+				exitWithErrorPage(_gettext('A file is required for a new thread.  If embedding is allowed, either a file or embed ID is required.'));
 			}
 		}
 	}
 	
 	if (isset($_POST['nofile'])&&$board_class->board_enablenofile==1) {
 		if ($post_message == '') {
-			die('A message is required to post without a file.');
+			exitWithErrorPage('A message is required to post without a file.');
 		}
 	}
 	
 	if ($board_class->board_type == 1 && !$post_isreply && $post_subject == '') {
-		die('A subject is required to make a new thread.');
+		exitWithErrorPage('A subject is required to make a new thread.');
 	}
 	
 	if ($board_class->board_locked == 0 || ($user_authority > 0 && $user_authority != 3)) {
@@ -298,7 +315,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 			
 			if ($is_oekaki) {
 				if (file_exists(KU_BOARDSDIR . $board_class->board_dir . '/src/' . $upload_class->file_name . '.pch')) {
-					$post['message'] .= '<br><small><a href="' . KU_CGIPATH . '/animation.php?board=' . $board_class->board_dir . '&nbsp;id=' . $upload_class->file_name . '">View animation</a></small>';
+					$post['message'] .= '<br><small><a href="' . KU_CGIPATH . '/animation.php?board=' . $board_class->board_dir . '&id=' . $upload_class->file_name . '">' . _gettext('View animation') . '</a></small>';
 				}
 			}
 			
@@ -326,7 +343,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 				management_addlogentry($modpost_message, 1, md5_decrypt($_POST['modpassword'], KU_RANDOMSEED));
 			}
 			
-			if ($post['name_save']) {
+			if ($post['name_save'] && isset($_POST['name'])) {
 				setcookie('name', urldecode($_POST['name']), time() + 31556926, '/', KU_DOMAIN);
 			}
 			
@@ -336,7 +353,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 			
 			setcookie('postpassword', urldecode($_POST['postpassword']), time() + 31556926, '/');
 		} else {
-			die(_gettext('Could not copy uploaded image.'));
+			exitWithErrorPage(_gettext('Could not copy uploaded image.'));
 		}
 		
 		/* If the user replied to a thread, and they weren't sage-ing it... */
@@ -363,32 +380,17 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 		/* Trim any threads which have been pushed past the limit, or exceed the maximum age limit */
 		$board_class->TrimToPageLimit();
 		
-		if (KU_INSTANTREDIRECT && ($board_class->board_redirecttothread == 1 || $_POST['em'] == 'return' || $_POST['em'] == 'noko')) {
-			if ($thread_replyto == '0') {
-				/* If they started a new thread, regenerate it (Technically it isn't regeneration, as this is the first time it is being built) */
-				$board_class->RegenerateThread($post_id);
-				header('Location: ' . KU_BOARDSPATH . '/' . $board_class->board_dir . '/res/' . $post_id . '.html');
-			} else {
-				/* Regenerate the thread */
-				$board_class->RegenerateThread($thread_replyto);
-				header('Location: ' . KU_BOARDSPATH . '/' . $board_class->board_dir . '/res/' . $thread_replyto . '.html');
-			}
-			/* Regenerate board pages */
-			$board_class->RegeneratePages();
+		/* Regenerate board pages */
+		$board_class->RegeneratePages();
+		if ($thread_replyto == '0') {
+			/* Regenerate the thread */
+			$board_class->RegenerateThread($post_id);
 		} else {
-			/* Regenerate board pages */
-			$board_class->RegeneratePages();
-			if ($thread_replyto == '0') {
-				/* Regenerate the thread */
-				$board_class->RegenerateThread($post_id);
-			} else {
-				/* Regenerate the thread */
-				$board_class->RegenerateThread($thread_replyto);
-			}
+			/* Regenerate the thread */
+			$board_class->RegenerateThread($thread_replyto);
 		}
-		
 	} else {
-		die(_gettext('Sorry, this board is locked and can not be posted in.'));
+		exitWithErrorPage(_gettext('Sorry, this board is locked and can not be posted in.'));
 	}
 } elseif (isset($_POST['delete']) || isset($_POST['reportpost'])) {
 	/* Initialize the post class */
@@ -405,8 +407,8 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 				echo _gettext('That post is already in the report list.');
 			} else {
 				if ($post_class->Report()) {
-					echo _gettext('Post successfully reported.') .
-					'<meta http-equiv="refresh" content="1;url=' . KU_BOARDSPATH . '/' . $board_class->board_dir . '/'.KU_FIRSTPAGE.'">';
+					echo _gettext('Post successfully reported.') . '<br>';
+					do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/');
 				} else {
 					echo _gettext('Unable to report post.  Please go back and try again.');
 				}
@@ -426,8 +428,8 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 						if ($post_class->post_parentid != 0) {
 							$board_class->RegenerateThread($post_class->post_parentid);
 						}
-						echo _gettext('Image successfully deleted from your post.').'
-						<meta http-equiv="refresh" content="1;url=' . KU_BOARDSPATH . '/' . $board_class->board_dir . '/'.KU_FIRSTPAGE.'">';
+						echo _gettext('Image successfully deleted from your post.') . '<br>';
+						do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/');
 					} else {
 						echo _gettext('Your post already doesn\'t have an image!');
 					}
@@ -437,8 +439,8 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 							$board_class->RegenerateThread($post_class->post_parentid);
 						}
 						$board_class->RegeneratePages();
-						echo _gettext('Post successfully deleted.').'
-						<meta http-equiv="refresh" content="1;url=' . KU_BOARDSPATH . '/' . $board_class->board_dir . '/'.KU_FIRSTPAGE.'">';
+						echo _gettext('Post successfully deleted.') . '<br>';
+						do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/');
 					} else {
 						echo _gettext('There was an error in trying to delete your post');
 					}
@@ -447,7 +449,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 				echo _gettext('Incorrect password.');
 			}
 		} else {
-			echo '<meta http-equiv="refresh" content="0;url=' . KU_BOARDSPATH . '/' . $board_class->board_dir . '/'.KU_FIRSTPAGE.'">';
+			do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/');
 		}
 	}
 	die();
@@ -456,7 +458,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 	
 	die();
 } else {
-	die('<meta http-equiv="refresh" content="0;url=' . KU_BOARDSPATH . '/' . $board_class->board_dir . '/'.KU_FIRSTPAGE.'">');
+	do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/');
 }
 
 if (KU_RSS) {
@@ -466,21 +468,13 @@ if (KU_RSS) {
 	print_page(KU_BOARDSDIR.$_POST['board'].'/rss.xml',$rss_class->GenerateRSS($_POST['board']),$_POST['board']);
 }
 
-if (!KU_INSTANTREDIRECT) {
-	if ($thread_replyto == '0') {
-		print(_gettext('Thread successfully posted.  You are now being redirected.'));
-	} else {
-		print(_gettext('Reply successfully posted.  You are now being redirected.'));
-	}
-}
-
 if ($board_class->board_redirecttothread == 1 || $_POST['em'] == 'return' || $_POST['em'] == 'noko') {
 	if ($thread_replyto == "0") {
-		do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/res/' . $post_id . '.html');
+		do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/res/' . $post_id . '.html', true, $imagefile_name);
 	} else {
-		do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/res/' . $thread_replyto . '.html');
+		do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/res/' . $thread_replyto . '.html', true, $imagefile_name);
 	}
 } else {
-	do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/');
+	do_redirect(KU_BOARDSPATH . '/' . $board_class->board_dir . '/', true, $imagefile_name);
 }
 ?>

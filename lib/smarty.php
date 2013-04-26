@@ -18,7 +18,7 @@
  * Smarty engine initialization and configuration
  * +------------------------------------------------------------------------------+
  */
-require(KU_ROOTDIR . 'lib/smarty/Smarty.class.php');
+require_once KU_ROOTDIR . 'lib/smarty/Smarty.class.php';
 $smarty = new Smarty();
 
 $smarty->template_dir = KU_TEMPLATEDIR;

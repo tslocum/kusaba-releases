@@ -29,8 +29,6 @@ require 'config.php';
 require KU_ROOTDIR.'lib/smarty.php';
 require KU_ROOTDIR . 'inc/functions.php';
 require KU_ROOTDIR . 'inc/classes/manage.class.php';
-require KU_ROOTDIR . 'inc/encryption.php';
-require KU_ROOTDIR . 'inc/module.php';
 
 $manage_class = new Manage();
 $smarty->assign('lang_manageboards', _gettext('Manage boards'));

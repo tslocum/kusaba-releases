@@ -53,14 +53,14 @@ if (KU_SLOGAN != '') {
 
 echo '<div class="menu">';
 
-echo ($_GET['p']=='') ? 'News' : '<a href="news.php">News</a>';
+echo ($_GET['p']=='') ? _gettext('News') : '<a href="news.php">' . _gettext('News') . '</a>';
 echo ' | ';
 if (isset($kusabaorg)) {
 	echo '<a href="download.html">Download</a> | ';
 }
-echo ($_GET['p']=='faq') ? 'FAQ' : '<a href="news.php?p=faq">FAQ</a>';
+echo ($_GET['p']=='faq') ? _gettext('FAQ') : '<a href="news.php?p=faq">' . _gettext('FAQ') . '</a>';
 echo ' | ';
-echo ($_GET['p']=='rules') ? 'Rules' : '<a href="news.php?p=rules">Rules</a>';
+echo ($_GET['p']=='rules') ? _gettext('Rules') : '<a href="news.php?p=rules">' . _gettext('Rules') . '</a>';
 
 /* Don't worry about this, it only applies to my personal installation of kusaba */
 if (isset($kusabaorg)) {
@@ -93,7 +93,7 @@ if ($_GET['p']=='faq') {
 	echo file_get_contents(KU_ROOTDIR.'inc/pages/rules.html');
 } else {
 	if (isset($kusabaorg)) {
-		echo '<div class="content" style=""><span style="font-size: 1.5em;"><b>Current release:</b> 1.0.0 - <a href="http://rel.kusaba.org/kusabav100.zip">Quick Download</a> - For more information, click the Download link above.</span></div>';
+		echo '<div class="content" style=""><span style="font-size: 1.4em;"><b>Current release:</b> 1.0.1 - <a href="http://rel.kusaba.org/kusabav101.zip">Quick Download (Install)</a> - For more information/upgrading, click the Download link above.</span></div>';
 	}
 	$entries = 0;
 	/* Get all of the news entries, ordered with the newest one placed on top */

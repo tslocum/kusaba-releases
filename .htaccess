@@ -2,11 +2,14 @@ DirectoryIndex kusaba.php
 AddCharset UTF-8 .html
 AddCharset UTF-8 .php
 
+FileETag None
+
 <IfModule mod_headers.c>
 <Files *.html>
 Header add Expires "Mon, 26 Jul 1997 05:00:00 GMT"
 Header add Pragma "no-cache"
 Header add Cache-Control "max-age=0; must-revalidate; no-cache"
+Header set Expires "0"
 Header unset Vary
 </Files>
 </IfModule>

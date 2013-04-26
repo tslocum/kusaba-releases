@@ -1,5 +1,7 @@
 <?php
 header('Content-type: text/html; charset=utf-8');
+
+require 'config.php';
 if (KU_TRADITIONALREAD) {
 	$pairs = explode('/', $_SERVER['PATH_INFO']);
 	if (count($pairs) < 4) {
@@ -23,41 +25,42 @@ if ($board == '' || $thread == '' || $posts == '') {
 	die();
 }
 
-require 'config.php';
 require KU_ROOTDIR . 'inc/functions.php';
 require KU_ROOTDIR . 'inc/classes/board-post.class.php';
 
-$postids = getQuoteIds($posts);
-
-if (count($postids) == 0) {
-	die('No valid posts specified.');
-}
+$executiontime_start = microtime_float();
 
 $results = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."boards` WHERE `name` = '".mysql_real_escape_string($board)."' LIMIT 1");
 if ($results == 0) {
 	die('Invalid board.');
 }
-
-$postidquery = '';
-foreach ($postids as $postid) {
-	if ($postid == $thread) {
-		$postidquery .= "(`parentid` = 0 AND ";
-	} else {
-		$postidquery .= "(`parentid` = '" . mysql_real_escape_string($thread) . "' AND ";
-	}
-	$postidquery .= "`id` = '" . mysql_real_escape_string($postid) . "') OR ";
-}
-$postidquery = substr($postidquery, 0, -4);
-
-$executiontime_start = microtime_float();
 $board_class = new Board($board);
 
 if ($board_class->board_type == 1) {
 	$noboardlist = true;
 	$hide_extra = true;
+	$replies = $tc_db->GetOne("SELECT COUNT(*) FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `parentid` = '" . mysql_real_escape_string($thread) . "'");
 } else {
 	$noboardlist = false;
 	$hide_extra = false;
+	$replies = false;
+	
+	$postidquery = '';
+	foreach ($postids as $postid) {
+		if ($postid == $thread) {
+			$postidquery .= "(`parentid` = 0 AND ";
+		} else {
+			$postidquery .= "(`parentid` = '" . mysql_real_escape_string($thread) . "' AND ";
+		}
+		$postidquery .= "`id` = '" . mysql_real_escape_string($postid) . "') OR ";
+	}
+	$postidquery = substr($postidquery, 0, -4);
+}
+
+$postids = getQuoteIds($posts, $replies);
+
+if (count($postids) == 0) {
+	die('No valid posts specified.');
 }
 
 $board_class->InitializeSmarty();
@@ -69,20 +72,45 @@ if ($board_class->board_type == 1) {
 	$page .= '<form id="delform" action="http://cgi.kusaba.org/board.php" method="post">' . "\n";
 	
 	$relative_id = 0;
-	$results = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `id` = '" . mysql_real_escape_string($thread) . "' OR `parentid` = '" . mysql_real_escape_string($thread) . "' ORDER BY `id` ASC");
-	foreach ($results as $line) {
-		$relative_id++;
+	$ids_found = 0;
+	
+	if ($posts != '0') {
+		$relative_to_normal = array();
 		
-		if (in_array($relative_id, $postids)) {
+		$results = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE (`parentid` = 0 AND `id` = '" . mysql_real_escape_string($thread) . "') OR (`parentid` = '" . mysql_real_escape_string($thread) . "') ORDER BY `id` ASC LIMIT " . mysql_real_escape_string(max($postids)));
+		foreach ($results as $line) {
+			$relative_id++;
+			
+			$relative_to_normal = $relative_to_normal + array($relative_id => $line);
+		}
+		
+		foreach ($postids as $postid) {
+			if (isset($relative_to_normal[$postid])) {
+				$ids_found++;
+				$newpost = $relative_to_normal[$postid];
+				
+				$page .= $board_class->BuildPost(false, $board_class->board_dir, $board_class->board_type, $relative_to_normal[$postid], 0, 0, $postid);
+			}
+		}
+	} else {
+		$results = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE (`parentid` = 0 AND `id` = '" . mysql_real_escape_string($thread) . "') OR (`parentid` = '" . mysql_real_escape_string($thread) . "') ORDER BY `id` ASC");
+		foreach ($results as $line) {
+			$relative_id++;
+			$ids_found++;
+			
 			$page .= $board_class->BuildPost(false, $board_class->board_dir, $board_class->board_type, $line, 0, 0, $relative_id);
 		}
+	}
+	
+	if ($ids_found == 0) {
+		$page .= _gettext('Unable to find records of any posts matching that quote syntax.');
 	}
 	
 	$page .= '</form>';
 } else {
 	$page .= '<br>' . "\n";
 	
-	$results = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE (" . $postidquery . ")");
+	$results = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE (" . $postidquery . ") AND `IS_DELETED` = 0");
 	foreach ($results as $line) {
 		$page .= $board_class->BuildPost(false, $board_class->board_dir, $board_class->board_type, $line);
 	}

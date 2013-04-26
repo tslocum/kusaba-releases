@@ -8,6 +8,9 @@ a {
 a:hover {
 	color:#DD0000;
 }
+.reflink a:hover{
+	font-weight: bold;
+}
 .adminbar {
 	text-align:right;
 	clear:both;

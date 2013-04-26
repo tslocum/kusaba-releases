@@ -27,7 +27,7 @@
 To enable a feature, change the value to true:
 	define('KU_INSTANTREDIRECT', true);
 To disable a feature, change the value to false:
-	define('KU_INSTANTREDIRECT'] = false;
+	define('KU_INSTANTREDIRECT', false;
 
 To change the text value of a configuration, edit the text in the single quotes:
 	define('KU_NAME', 'kusaba');
@@ -86,12 +86,14 @@ if (!$cache_loaded) {
 			$cf['KU_ROOTDIR']   = dirname($_SERVER['SCRIPT_FILENAME']) . '/'; /* Full system path of the folder containing kusaba.php, with trailing slash */
 			$cf['KU_WEBFOLDER'] = dirname($_SERVER['PHP_SELF']) . '/'; /* The path from the domain of the board to the folder which kusaba is in, including the trailing slash.  Example: "http://www.yoursite.com/misc/kusaba/" would have a $cf['KU_WEBFOLDER'] of "/misc/kusaba/" */
 			$cf['KU_WEBPATH']   = 'http://' . $_SERVER['HTTP_HOST'] . $cf['KU_WEBFOLDER']; /* The path to the index folder of kusaba, without trailing slash */
+			$cf['KU_WEBCORAL']  = ''; /* Set to the coralized version of your webpath to enable.  If not set to '', URLs which can safely be cached will be coralized, and will use the Coral Content Distribution Network.  Example: http://www.kusaba.org becomes http://www.kusaba.org.nyud.net, http://www.crapchan.org/kusaba becomes http://www.crapchan.org.nyud.net/kusaba */
 			$cf['KU_DOMAIN']    = '.' . $_SERVER['HTTP_HOST']; /* Used in cookies for the domain parameter.  Should be a period and then the top level domain, which will allow the cookies to be set for all subdomains.  For http://www.randomchan.org, the domain would be .randomchan.org; http://zachchan.freehost.com would be zach.freehost.com */
 		
 		/* Board subdomain/alternate directory (optional, change to enable) */
 			$cf['KU_BOARDSDIR']    = $cf['KU_ROOTDIR'];
 			$cf['KU_BOARDSFOLDER'] = $cf['KU_WEBFOLDER'];
 			$cf['KU_BOARDSPATH']   = $cf['KU_WEBPATH'];
+			$cf['KU_BOARDSCORAL']   = '';
 		
 		/* CGI subdomain/alternate directory (optional, change to enable) */
 			$cf['KU_CGIDIR']    = $cf['KU_BOARDSDIR'];
@@ -129,26 +131,25 @@ if (!$cache_loaded) {
 		$cf['KU_CATTHUMBWIDTH']    = 50; /* Maximum thumbnail width (catalog) */
 		$cf['KU_CATTHUMBHEIGHT']   = 50; /* Maximum thumbnail height (catalog) */
 		$cf['KU_THUMBMETHOD']      = 'gd'; /* Method to use when thumbnailing images in jpg, gif, or png format.  Options available: gd, imagemagick */
-		$cf['KU_ANIMATEDTHUMBS']  = false; /* Whether or not to allow animated thumbnails */
+		$cf['KU_ANIMATEDTHUMBS']   = false; /* Whether or not to allow animated thumbnails (only applies if using imagemagick) */
 		
 	/* Post handling */
 		$cf['KU_NEWWINDOW']       = true; /* When a user clicks a thumbnail, whether to open the link in a new window or not */
 		$cf['KU_MAKELINKS']       = true; /* Whether or not to turn http:// links into clickable links */
-		$cf['KU_ANONYMOUS']       = 'Anonymous'; /* Name to display in case of the user not entering a name, or the board being set to forced-anonymous */
 		$cf['KU_NOMESSAGETHREAD'] = ''; /* Text to set a message to if a thread is made with no text */
 		$cf['KU_NOMESSAGEREPLY']  = ''; /* Text to set a message to if a reply is made with no text */
 	
 	/* Post display */
-		$cf['KU_THREADS']        = 10; /* Number of threads to display on a board page */
-		$cf['KU_THREADSTXT']     = 15; /* Number of threads to display on a text board front page */
-		$cf['KU_REPLIES']        = 3; /* Number of replies to display on a board page */
-		$cf['KU_REPLIESSTICKY']  = 1; /* Number of replies to display on a board page when a thread is stickied */
-		$cf['KU_THUMBMSG']       = false; /* Whether or not to display the "Thumbnail displayed, click image for full size." message on posts with images */
-		$cf['KU_BANMSG']         = '<br><font color="#FF0000"><b>(USER WAS BANNED FOR THIS POST)</b></font>'; /* The text to add at the end of a post if a ban is placed and "Add ban message" is checked */
-		$cf['KU_TRADITIONALREAD'] = true; /* Whether or not to use the traditional style for multi-quote urls.  Traditional: read.php/board/thread/posts, Non-traditional: read.php?b=board&t=thread&p=posts */
+		$cf['KU_THREADS']         = 10; /* Number of threads to display on a board page */
+		$cf['KU_THREADSTXT']      = 15; /* Number of threads to display on a text board front page */
+		$cf['KU_REPLIES']         = 3; /* Number of replies to display on a board page */
+		$cf['KU_REPLIESSTICKY']   = 1; /* Number of replies to display on a board page when a thread is stickied */
+		$cf['KU_THUMBMSG']        = false; /* Whether or not to display the "Thumbnail displayed, click image for full size." message on posts with images */
+		$cf['KU_BANMSG']          = '<br><font color="#FF0000"><b>(USER WAS BANNED FOR THIS POST)</b></font>'; /* The text to add at the end of a post if a ban is placed and "Add ban message" is checked */
+		$cf['KU_TRADITIONALREAD'] = false; /* Whether or not to use the traditional style for multi-quote urls.  Traditional: read.php/board/thread/posts, Non-traditional: read.php?b=board&t=thread&p=posts */
 		
 	/* Pages */
-		$cf['KU_POSTBOX'] = '<li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.<!tc_catalog /></li>'; /* Notice displayed under the post area */
+		$cf['KU_POSTBOX']   = '<li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.<!tc_catalog /></li>'; /* Notice displayed under the post area */
 		$cf['KU_FIRSTPAGE'] = 'board.html'; /* Filename of the first page of a board.  Only change this if you are willing to maintain the .htaccess files for each board directory (they are created with a DirectoryIndex board.html, change them if you change this) */
 		$cf['KU_DIRTITLE']  = false; /* Whether or not to place the board directory in the board's title and at the top of the page.  true would render as "/b/ - Random", false would render as "Random" */
 		
@@ -164,7 +165,6 @@ if (!$cache_loaded) {
 		                        '#changeme2' => 'changeme2'); /* Special tripcodes which can have a predefined output.  Do not include the initial ! in the output.  Maximum length for the output is 30 characters.  Set to array(); to disable */
 	
 	/* Extra features */
-		$cf['KU_INSTANTREDIRECT'] = true; /* Whether or not to instantly redirect the user when posting.  If set to false, the user will be redirected after seeing a notification page */
 		$cf['KU_RSS']             = true; /* Whether or not to enable the generation of rss for each board and modlog */
 		$cf['KU_EXPAND']          = true; /* Whether or not to add the expand button to threads viewed on board pages */
 		$cf['KU_QUICKREPLY']      = true; /* Whether or not to add quick reply links on posts */
@@ -181,7 +181,7 @@ if (!$cache_loaded) {
 		$cf['KU_GENERATEBOARDLIST'] = true; /* Set to true to automatically make the board list which is displayed ad the top and bottom of the board pages, or false to use the boards.html file */
 		
 	/* Language / timezone / encoding */
-		$cf['KU_LOCALE']  = 'en'; /* The locale of kusaba you would like to use.  Locales available: en, de, no, es */
+		$cf['KU_LOCALE']  = 'en'; /* The locale of kusaba you would like to use.  Locales available: en, de, es, fi, it, nl, no, pl, ru */
 		$cf['KU_CHARSET'] = 'UTF-8'; /* The character encoding to mark the pages as.  This must be the same in the .htaccess file (AddCharset charsethere .html and AddCharset charsethere .php) to function properly.  Only UTF-8 and Shift_JIS have been tested */
 		putenv('TZ=US/Pacific'); /* The time zone which the server resides in */
 		
@@ -189,7 +189,7 @@ if (!$cache_loaded) {
 		$cf['KU_DEBUG'] = false; /* When enabled, debug information will be printed (Warning: all queries will be shown publicly) */
 	
 	/* Post-configuration actions, don't modify these */
-		$cf['KU_VERSION']    = '1.0.1';
+		$cf['KU_VERSION']    = '1.0.2';
 		$cf['KU_TAGS']       = serialize($cf['KU_TAGS']);
 		$cf['KU_TRIPS']      = serialize($cf['KU_TRIPS']);
 		$cf['KU_LINELENGTH'] = $cf['KU_LINELENGTH'] * 15;
@@ -218,11 +218,10 @@ require KU_ROOTDIR . 'lib/gettext/gettext.inc.php';
 require KU_ROOTDIR . 'lib/adodb/adodb.inc.php';
 
 /* Gettext */
-$supported_locales = array('en', 'de', 'no', 'es');
 _textdomain('kusaba');
 _setlocale(LC_ALL, KU_LOCALE);
 _bindtextdomain('kusaba', KU_ROOTDIR . 'inc/lang');
-_bind_textdomain_codeset('kusaba', 'UTF-8');
+_bind_textdomain_codeset('kusaba', KU_CHARSET);
 
 /* MySQL database */
 if (!isset($tc_db) && !isset($preconfig_db_unnecessary)) {

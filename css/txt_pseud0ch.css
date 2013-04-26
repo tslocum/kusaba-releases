@@ -11,7 +11,6 @@ table.newthreadform .submit {width: 100%;}
 table.postform td textarea {width: auto;}
 table.postform td.label {text-align: right;}
 table.postform .mail {width: auto; float: right;}
-input.submit {float: right;}
 .legal {text-align: center; font-size: small;}
 .manage {text-align: center; font-size: x-small;}
 .postnum {font-weight: bold; margin-right: .1em;}

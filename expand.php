@@ -36,6 +36,17 @@ if ($board_name != '') {
 	die('<font color="red">Invalid board.</font>');
 }
 
+if (isset($_GET['preview'])) {
+	require KU_ROOTDIR . 'inc/classes/parse.class.php';
+	$parse_class = new Parse();
+	
+	if (isset($_GET['board']) && isset($_GET['parentid']) && isset($_GET['message'])) {
+		die('<b>' . _gettext('Post preview') . ':</b><br><div style="border: 1px dotted;padding: 8px;background-color: white;">' . $parse_class->ParsePost($_GET['message'], $board_class->board_dir, $board_class->board_type, $_GET['parentid']) . '</div>');
+	}
+	
+	die('Error');
+}
+
 $results = $tc_db->GetAll('SELECT * FROM `'.KU_DBPREFIX.'posts_'.$board_class->board_dir.'` WHERE `IS_DELETED` = 0 AND `parentid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` ASC');
 
 $output = '';

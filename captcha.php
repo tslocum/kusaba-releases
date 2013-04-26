@@ -125,8 +125,8 @@ $width = 90;
 $height = 30;
 $characters = 6;
 
-$font = KU_ROOTDIR.'inc/fonts/monofont.ttf';
-$font_fallback = imageloadfont(KU_ROOTDIR.'inc/fonts/captchafont.gdf');
+$font = KU_ROOTDIR . 'lib/fonts/monofont.ttf';
+$font_fallback = imageloadfont(KU_ROOTDIR . 'lib/fonts/captchafont.gdf');
 
 $captcha = new CaptchaSecurityImages($width,$height,$characters,$font);
 

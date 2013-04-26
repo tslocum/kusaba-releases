@@ -2,12 +2,12 @@
 -- Table structure for table `banlist`
 -- 
 
-CREATE TABLE IF NOT EXISTS `banlist` (
+CREATE TABLE `PREFIX_banlist` (
   `id` smallint(5) NOT NULL auto_increment,
   `type` tinyint(1) NOT NULL default '0',
   `allowread` tinyint(1) NOT NULL default '1',
-  `ip` varchar(255) NOT NULL,
-  `ipmd5` varchar(200) NOT NULL,
+  `ip` varchar(50) NOT NULL,
+  `ipmd5` char(32) NOT NULL,
   `globalban` tinyint(1) NOT NULL default '0',
   `boards` varchar(255) NOT NULL,
   `by` varchar(75) NOT NULL,
@@ -24,13 +24,13 @@ CREATE TABLE IF NOT EXISTS `banlist` (
 -- Table structure for table `bannedhashes`
 -- 
 
-CREATE TABLE IF NOT EXISTS `bannedhashes` (
+CREATE TABLE `PREFIX_bannedhashes` (
   `id` int(10) NOT NULL auto_increment,
   `md5` varchar(255) NOT NULL,
   `bantime` int(10) NOT NULL default '0',
   `description` text NOT NULL,
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM ;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `bannedhashes` (
 -- Table structure for table `blotter`
 -- 
 
-CREATE TABLE IF NOT EXISTS `blotter` (
+CREATE TABLE `PREFIX_blotter` (
   `id` int(5) NOT NULL auto_increment,
   `important` tinyint(1) NOT NULL,
   `at` int(20) NOT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `blotter` (
 -- Table structure for table `boards`
 -- 
 
-CREATE TABLE IF NOT EXISTS `boards` (
+CREATE TABLE `PREFIX_boards` (
   `id` tinyint(5) NOT NULL auto_increment,
   `order` tinyint(5) NOT NULL default '0',
   `name` varchar(75) NOT NULL,
@@ -69,8 +69,9 @@ CREATE TABLE IF NOT EXISTS `boards` (
   `messagelength` int(10) NOT NULL default '8192',
   `createdon` int(20) NOT NULL,
   `locked` tinyint(1) NOT NULL default '0',
-  `includeheader` text NOT NULL,
+  `includeheader` text character set utf8 collate utf8_unicode_ci NOT NULL,
   `redirecttothread` tinyint(1) NOT NULL default '0',
+  `anonymous` varchar(255) NOT NULL default 'Anonymous',
   `forcedanon` tinyint(1) NOT NULL default '0',
   `trial` tinyint(1) NOT NULL default '0',
   `popular` tinyint(1) NOT NULL default '0',
@@ -93,7 +94,7 @@ CREATE TABLE IF NOT EXISTS `boards` (
 -- Table structure for table `board_filetypes`
 -- 
 
-CREATE TABLE IF NOT EXISTS `board_filetypes` (
+CREATE TABLE `PREFIX_board_filetypes` (
   `boardid` tinyint(5) NOT NULL default '0',
   `typeid` mediumint(5) NOT NULL default '0'
 ) ENGINE=MyISAM;
@@ -104,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `board_filetypes` (
 -- Table structure for table `events`
 -- 
 
-CREATE TABLE IF NOT EXISTS `events` (
+CREATE TABLE `PREFIX_events` (
   `name` varchar(255) NOT NULL,
   `at` int(20) NOT NULL
 ) ENGINE=MyISAM;
@@ -115,7 +116,7 @@ CREATE TABLE IF NOT EXISTS `events` (
 -- Table structure for table `filetypes`
 -- 
 
-CREATE TABLE IF NOT EXISTS `filetypes` (
+CREATE TABLE `PREFIX_filetypes` (
   `id` mediumint(5) NOT NULL auto_increment,
   `filetype` varchar(255) NOT NULL,
   `mime` varchar(255) NOT NULL,
@@ -132,7 +133,7 @@ CREATE TABLE IF NOT EXISTS `filetypes` (
 -- Table structure for table `loginattempts`
 -- 
 
-CREATE TABLE IF NOT EXISTS `loginattempts` (
+CREATE TABLE `PREFIX_loginattempts` (
   `username` varchar(255) NOT NULL,
   `ip` varchar(20) NOT NULL,
   `timestamp` int(20) NOT NULL
@@ -144,7 +145,7 @@ CREATE TABLE IF NOT EXISTS `loginattempts` (
 -- Table structure for table `modlog`
 -- 
 
-CREATE TABLE IF NOT EXISTS `modlog` (
+CREATE TABLE `PREFIX_modlog` (
   `entry` text NOT NULL,
   `user` varchar(255) NOT NULL,
   `category` tinyint(2) NOT NULL default '0',
@@ -157,7 +158,7 @@ CREATE TABLE IF NOT EXISTS `modlog` (
 -- Table structure for table `module_settings`
 -- 
 
-CREATE TABLE IF NOT EXISTS `module_settings` (
+CREATE TABLE `PREFIX_module_settings` (
   `module` varchar(255) NOT NULL,
   `key` varchar(255) NOT NULL,
   `value` text character set utf8 collate utf8_unicode_ci NOT NULL,
@@ -170,7 +171,7 @@ CREATE TABLE IF NOT EXISTS `module_settings` (
 -- Table structure for table `news`
 -- 
 
-CREATE TABLE IF NOT EXISTS `news` (
+CREATE TABLE `PREFIX_news` (
   `id` tinyint(5) NOT NULL auto_increment,
   `subject` varchar(255) NOT NULL,
   `message` text NOT NULL,
@@ -178,7 +179,7 @@ CREATE TABLE IF NOT EXISTS `news` (
   `postedby` varchar(75) NOT NULL,
   `postedemail` varchar(75) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM ;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -186,8 +187,8 @@ CREATE TABLE IF NOT EXISTS `news` (
 -- Table structure for table `passcache`
 -- 
 
-CREATE TABLE IF NOT EXISTS `passcache` (
-  `md5` varchar(100) NOT NULL,
+CREATE TABLE `PREFIX_passcache` (
+  `md5` char(32) NOT NULL,
   `name` varchar(75) NOT NULL,
   `tripcode` varchar(30) NOT NULL
 ) ENGINE=MyISAM;
@@ -198,7 +199,7 @@ CREATE TABLE IF NOT EXISTS `passcache` (
 -- Table structure for table `reports`
 -- 
 
-CREATE TABLE IF NOT EXISTS `reports` (
+CREATE TABLE `PREFIX_reports` (
   `id` int(5) NOT NULL auto_increment,
   `cleared` tinyint(1) NOT NULL default '0',
   `board` varchar(255) NOT NULL,
@@ -214,7 +215,7 @@ CREATE TABLE IF NOT EXISTS `reports` (
 -- Table structure for table `sections`
 -- 
 
-CREATE TABLE IF NOT EXISTS `sections` (
+CREATE TABLE `PREFIX_sections` (
   `id` int(5) NOT NULL auto_increment,
   `order` tinyint(3) NOT NULL default '0',
   `hidden` tinyint(1) NOT NULL default '0',
@@ -229,7 +230,7 @@ CREATE TABLE IF NOT EXISTS `sections` (
 -- Table structure for table `staff`
 -- 
 
-CREATE TABLE IF NOT EXISTS `staff` (
+CREATE TABLE `PREFIX_staff` (
   `id` tinyint(5) NOT NULL auto_increment,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
@@ -245,14 +246,14 @@ CREATE TABLE IF NOT EXISTS `staff` (
 -- Table structure for table `watchedthreads`
 -- 
 
-CREATE TABLE IF NOT EXISTS `watchedthreads` (
+CREATE TABLE `PREFIX_watchedthreads` (
   `id` int(20) NOT NULL auto_increment,
   `threadid` int(20) NOT NULL,
   `board` varchar(255) NOT NULL,
   `ip` char(15) NOT NULL,
   `lastsawreplyid` int(20) NOT NULL,
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM ;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -260,8 +261,8 @@ CREATE TABLE IF NOT EXISTS `watchedthreads` (
 -- Table structure for table `wordfilter`
 -- 
 
-CREATE TABLE IF NOT EXISTS `wordfilter` (
-  `id` INT( 5 ) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `PREFIX_wordfilter` (
+  `id` int(5) NOT NULL auto_increment,
   `word` varchar(75) NOT NULL,
   `replacedby` varchar(75) NOT NULL,
   `boards` text NOT NULL,

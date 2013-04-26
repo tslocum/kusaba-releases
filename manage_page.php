@@ -36,7 +36,6 @@ require KU_ROOTDIR . 'inc/functions.php';
 require KU_ROOTDIR . 'inc/classes/manage.class.php';
 require KU_ROOTDIR . 'inc/classes/board-post.class.php';
 require KU_ROOTDIR . 'inc/classes/bans.class.php';
-require KU_ROOTDIR . 'inc/encryption.php';
 
 $smarty->assign('lang_manageboards', _gettext('Manage boards'));
 

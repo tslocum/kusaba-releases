@@ -76,6 +76,12 @@ class Board {
 	 */	 
 	var $board_includeheader;
 	/**	 	
+	 * Name to display when no name is entered
+	 * 	 	 	
+	 * @var string Anonymous
+	 */	 
+	var $board_anonymous;
+	/**	 	
 	 * Sets whether users are allowed to post with names or not
 	 * 	 	 	
 	 * @var integer Forced anonymous
@@ -260,6 +266,7 @@ class Board {
 				$this->board_enablereporting          = $line['enablereporting'];
 				$this->board_image                    = $line['image'];
 				$this->board_includeheader            = $line['includeheader'];
+				$this->board_anonymous                = $line['anonymous'];
 				$this->board_forcedanon               = $line['forcedanon'];
 				$this->board_maximagesize             = $line['maximagesize'];
 				$this->board_maxage                   = $line['maxage'];
@@ -367,22 +374,22 @@ class Board {
 					'		No.' . "\n" .
 					'	</td>' . "\n" .
 					'	<td class="postblock" style="text-align:center;width:25%;">' . "\n" .
-					'		Name' . "\n" .
+					'		' . _gettext('Name') . "\n" .
 					'	</td>' . "\n" .
 					'	<td class="postblock" align="center" width="1%">' . "\n" .
-					'		File' . "\n" .
+					'		' . _gettext('File') . "\n" .
 					'	</td>' . "\n" .
 					'	<td class="postblock" align="center" width="1%">' . "\n" .
-					'		Tag' . "\n" .
+					'		' . _gettext('Tag') . "\n" .
 					'	</td>' . "\n" .
 					'	<td class="postblock" style="text-align:center;width:40%;">' . "\n" .
-					'		Subject' . "\n" .
+					'		' . _gettext('Subject') . "\n" .
 					'	</td>' . "\n" .
 					'	<td class="postblock" align="center" width="1%">' . "\n" .
-					'		Size' . "\n" .
+					'		' . _gettext('Size') . "\n" .
 					'	</td>' . "\n" .
 					'	<td class="postblock" align="center" width="1%">' . "\n" .
-					'		Date' . "\n" .
+					'		' . _gettext('Date') . "\n" .
 					'	</td>' . "\n" .
 					'	<td class="postblock" style="text-align:center;width:1px;">' . "\n" .
 					'		Rep.' . "\n" .
@@ -472,28 +479,31 @@ class Board {
 					}
 					if ($row <= $maxrows) {
 						$replies = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `parentid` = " . $line['id']);
-						$catalog_page .= '<td valign="middle">' . "\n" . '<a href="' . KU_BOARDSFOLDER . $this->board_dir . '/res/' . $line['id'] . '.html"';
+						$catalog_page .= '<td valign="middle">' . "\n" . 
+						'<a href="' . KU_BOARDSFOLDER . $this->board_dir . '/res/' . $line['id'] . '.html"';
 						if ($line['subject'] != '') {
 							$catalog_page .= ' title="' . $line['subject'] . '"';
 						}
 						$catalog_page .= '>';
 						if ($line['filename'] != '' && $line['filename'] != 'removed') {
 							if ($line['filetype'] == 'jpg' || $line['filetype'] == 'png' || $line['filetype'] == 'gif') {
-								$file_path = ($this->board_loadbalanceurl == '') ? (KU_BOARDSFOLDER . $this->board_dir) : $this->board_loadbalanceurl_formatted;
+								$file_path = getCLBoardPath($this->board_dir, $this->board_loadbalanceurl_formatted, $this->archive_dir);
 								$catalog_page .= '<img src="' . $file_path . '/thumb/' . $line['filename'] . 'c.' . $line['filetype'] . '" alt="' . $line['id'] . '" border="0">';
 							} else {
-								$catalog_page .= 'File';
+								$catalog_page .= _gettext('File');
 							}
 						} elseif ($line['filename'] == 'removed') {
 							$catalog_page .= 'Rem.';
 						} else {
-							$catalog_page .= 'None';
+							$catalog_page .= _gettext('None');
 						}
 						$catalog_page .= '</a><br>' . "\n" . '<small>' . $replies . '</small>' . "\n" . '</td>' . "\n";
 					}
 				}
 			} else {
-				$catalog_page .= '<td>' . "\n" . 'No threads.' . "\n" . '</td>' . "\n";
+				$catalog_page .= '<td>' . "\n" .
+				_gettext('No threads.') . "\n" .
+				'</td>' . "\n";
 			}
 			
 			$catalog_page .= '</tr>' . "\n" . '</table><br>';
@@ -687,7 +697,7 @@ class Board {
 		$query_idsegment = substr($query_idsegment, 0, -4);
 		$results = $tc_db->GetAll('SELECT * FROM `'.KU_DBPREFIX.'posts_'.$this->board_dir.'` WHERE ('.$query_idsegment.') ' . $isdeleted_check . 'ORDER BY `stickied` DESC, `lastbumped` DESC');
 		if (count($results) == 0) {
-			die('buildthread(): error.  No posts in thread to build from.');
+			exitWithErrorPage('BuildThread(): error.  No posts in thread to build from.');
 		}
 		
 		// }}}
@@ -720,6 +730,7 @@ class Board {
 					if ($query != '') {
 						$numImageReplies = $tc_db->GetOne($query);
 					}
+					
 				}
 				
 				// }}}				
@@ -743,6 +754,9 @@ class Board {
 				// }}}
 				// {{{ Thread-starting post
 				
+				if ($this->board_type == 1 && $page) {
+					$buildthread_output .= '<hr>';
+				}
 				$buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line, $numReplies, $thread_relative_id);
 				
 				// }}}
@@ -757,9 +771,9 @@ class Board {
 						case 'last50':
 							$query .= 'DESC LIMIT 50';
 							$buildthread_output .= '<span class="omittedposts">' . "\n" .
-							'	 ' . ($numReplies - 50).' post';
-							$buildthread_output .= (($numReplies - 50) != 1) ? 's' : '';
-							$buildthread_output .= ' omitted.  Last 50 posts shown.' . "\n" .
+							'	 ' . ($numReplies - 50) . ' ';
+							$buildthread_output .= (($numReplies - 50) != 1) ? strtolower(_gettext('Posts')) : strtolower(_gettext('Post'));
+							$buildthread_output .= ' ' . _gettext('omitted') . '.  ' . _gettext('Last 50 posts shown.') . "\n" .
 							'</span>' . "\n";
 							break;
 							
@@ -789,13 +803,13 @@ class Board {
 						}
 						if ($numReplies > $numrepliesdisplayed) {
 							$buildthread_output .= '<span class="omittedposts">' . "\n" .
-							'	 ' . ($numReplies-$numrepliesdisplayed).' post';
-							$buildthread_output .= ($numReplies-$numrepliesdisplayed != 1) ? 's' : '';
+							'	 ' . ($numReplies-$numrepliesdisplayed) . ' ';
+							$buildthread_output .= ($numReplies-$numrepliesdisplayed != 1) ? strtolower(_gettext('Posts')) : strtolower(_gettext('Post'));
 							if ($numImageReplies > 0) {
-								$buildthread_output .= ' and ' . $numImageReplies . ' image';
-								$buildthread_output .= ($numImageReplies != 1) ? 's' : '';
+								$buildthread_output .= ' ' . _gettext('and') . ' ' . $numImageReplies . ' ';
+								$buildthread_output .= ($numImageReplies != 1) ? strtolower(_gettext('Images')) : strtolower(_gettext('Image'));
 							}
-							$buildthread_output .= ' omitted. '._gettext('Click Reply to view.') . "\n" .
+							$buildthread_output .= ' ' . _gettext('omitted') . '. '._gettext('Click Reply to view.') . "\n" .
 							'</span>' . "\n";
 						}
 						/* Retrieves the three newest posts from the thread in descending order, which is backwards for what we want, so we apply array_reverse on the result */
@@ -815,9 +829,9 @@ class Board {
 					if (!$page) {
 						if ($modifier == 'first100') {
 							$buildthread_output .= '<span class="omittedposts" style="float: left">' . "\n" .
-							'	 ' . ($numReplies - 100).' post';
-							$buildthread_output .= (($numReplies - 100) != 1) ? 's' : '';
-							$buildthread_output .= ' omitted.  First 100 posts shown.' . "\n" .
+							'	 ' . ($numReplies - 100) . ' ';
+							$buildthread_output .= (($numReplies - 100) != 1) ? strtolower(_gettext('Posts')) : strtolower(_gettext('Post'));
+							$buildthread_output .= ' ' . _gettext('omitted') . '.  ' . _gettext('First 100 posts shown.') . "\n" .
 							'</span>' . "\n";
 						}
 						
@@ -864,9 +878,9 @@ class Board {
 					case 'last50':
 						$query .= 'DESC LIMIT 50';
 						$buildthread_output .= '<span class="abbrev">' . "\n" .
-						'	 ' . ($numReplies - 50).' post';
-						$buildthread_output .= (($numReplies - 50) != 1) ? 's' : '';
-						$buildthread_output .= ' omitted.  Last 50 posts shown.' . "\n" .
+						'	 ' . ($numReplies - 50).' ';
+						$buildthread_output .= (($numReplies - 50) != 1) ? strtolower(_gettext('Posts')) : strtolower(_gettext('Post'));
+						$buildthread_output .= ' ' . _gettext('omitted') . '.  ' . _gettext('Last 50 posts shown.') . "\n" .
 						'</span>' . "\n";
 						$reply_relative_id = $numReplies - 49;
 						break;
@@ -896,68 +910,15 @@ class Board {
 					$buildthread_output .= setDelPassJavascript();
 				}
 				
-				$buildthread_output .= '<form name="post'.$line['id'].'" id="post'.$line['id'].'" action="' . KU_CGIPATH . '/board.php" method="post"';
+				$buildthread_output .= '<form name="post' . $line['id'] . '" id="post' . $line['id'] . '" action="' . KU_CGIPATH . '/board.php" method="post"';
 				if ($this->board_enablecaptcha == 1) {
 					$buildthread_output .= ' onsubmit="return checkcaptcha(\'post' . $line['id'] . '\');"';
 				}
 				$buildthread_output .= '>' . "\n" .
-				'<input type="hidden" name="board" value="'.$this->board_dir.'">' . "\n" .
-				'<input type="hidden" name="replythread" value="'.$thread_id.'">' . "\n" .
+				'<input type="hidden" name="board" value="' . $this->board_dir . '">' . "\n" .
+				'<input type="hidden" name="replythread" value="' . $thread_id . '">' . "\n" .
 				'<input name="email" size="25" value="" style="display: none;">' . "\n" .
-				'<table class="postform">' . "\n" .
-				'<tr>' . "\n";
-				if ($this->board_forcedanon != 1) {
-					$buildthread_output .= '	<td class="label">' . "\n" .
-					'		' . _gettext('Name').':' . "\n" .
-					'	</td>' . "\n" .
-					'	<td>' . "\n" .
-					'		<input name="name" size="25">' . "\n" .
-					'	</td>' . "\n";
-				}
-				$buildthread_output .= '	<td class="label">' . "\n" .
-				'		' . _gettext('Email') . ':' . "\n" .
-				'	</td>' . "\n" .
-				'	<td>' . "\n" .
-				'		<input name="em" size="25">' . "\n" .
-				'	</td>' . "\n";
-				if ($this->board_forcedanon == 1) {
-					$buildthread_output .= '	<td class="label" colspan="2">' . "\n" .
-					'		&nbsp;' . "\n" .
-					'	</td>' . "\n";
-				}
-				$buildthread_output .= '	<td>' . "\n" .
-				'		<input type="submit" value="Reply" class="submit">' . "\n" .
-				'	</td>' . "\n" .
-				'</tr>' . "\n" .
-				'<tr>' . "\n";
-				if ($this->board_enablecaptcha == 1) {
-					$buildthread_output .= '<td class="label">'._gettext('Captcha').':</td>' . "\n" .
-					'<td>' . "\n" .
-					'	<a href="#" onclick="javascript:document.getElementById(\'captchaimage\').src = \'' . KU_CGIPATH . '/captcha.php?\' + Math.random();return false;">' . "\n" .
-					'	<img id="captchaimage" src="' . KU_CGIPATH .'/captcha.php" border="0" width="90" height="30" alt="Captcha image">' . "\n" .
-					'	</a>&nbsp;' . "\n" .
-					'	<input type="text" id="captcha" name="captcha" size="8" maxlength="6">' . "\n" .
-					'</td>' . "\n";
-				}
-				$buildthread_output .= '<td class="label">'._gettext('Password').':</td>' . "\n" .
-				'<td>' . "\n" .
-				'	<input type="password" name="postpassword" size="8" accesskey="p">' . "\n" .
-				'</td>' . "\n" .
-				'</tr>' . "\n" .
-				'<tr>' . "\n" .
-				'	<td class="postfieldleft">' . "\n" .
-				'		<span class="postnum">' . "\n" .
-				'			' . ($numReplies + 2) . "\n" .
-				'		</span>' . "\n" .
-				'	</td>' . "\n" .
-				'	<td colspan="4">' . "\n" .
-				'		<textarea name="message" rows="8" cols="64"></textarea>' . "\n" .
-				'	</td>' . "\n" .
-				'</tr>' . "\n" .
-				'<tr>' . "\n" .
-				'	<td>&nbsp;</td>' . "\n" .
-				'</tr>' . "\n" .
-				'</table>' . "\n" .
+				textBoardReplyBox($this->board_dir, $this->board_forcedanon, $this->board_enablecaptcha, $numReplies, $line['id'], 'post' . $line['id']) .
 				'</form>' . "\n" .
 				'<script type="text/javascript"><!--' . "\n" .
 				'	set_inputs(\'post' . $line['id'] . '\');' . "\n" .
@@ -996,14 +957,6 @@ class Board {
 	 * @return string The built post	 	 	 	 	 	 
 	 */	 
 	function BuildPost($page, $post_board, $post_board_type, $post, $thread_replies=0, $thread_relative_id='', $reply_relative_id=0, $threads_on_front_page=0) {
-		/* If caching is enabled, and this post has already been cached, skip the process and fetch the cached version */
-		if (KU_APC && !$page && $post['parentid'] != 0) {
-			$cache_post = apc_fetch('post|' . $post_board . '|' . $post['id']);
-			if ($cache_post !== false) {
-				return $cache_post;
-			}
-		}
-		
 		$buildpost_output = '';
 		$post_thread_start_id = ($post['parentid']==0) ? $post['id'] : $post['parentid'];
 		$post_is_thread = ($post['parentid']==0) ? true : false;
@@ -1015,7 +968,7 @@ class Board {
 			$info_image = '';
 			$post_is_standard = true;
 			$post_is_nofile = true;
-			$file_path = ($this->board_loadbalanceurl == '') ? (KU_BOARDSFOLDER . $post_board . $this->archive_dir) : $this->board_loadbalanceurl_formatted;
+			$file_path = getCLBoardPath($this->board_dir, $this->board_loadbalanceurl_formatted, $this->archive_dir);
 			$post_thumb = $file_path . '/thumb/' . $post['filename'] . 's.' . $post['filetype'];
 			if ($post['filename'] != '' || $post['filetype'] != '' || $post_is_thread != '') {
 				$post_is_nofile = false;
@@ -1081,8 +1034,7 @@ class Board {
 			if ($post['filetype'] != 'you' && $post['filetype'] != 'goo' && $post['filename'] != '' && !$post_is_nofile) {
 				if ($post['filename'] == 'removed') {
 					$info_image .=  '<div hspace="20" style="float:left;text-align:center;padding:14px;margin:3px;border:black 3px dashed;">' . "\n" .
-					'	Image<br>' . "\n" .
-					'	removed' . "\n" .
+					'	' . _gettext('File<br>Removed') . "\n" .
 					'</div>' . "\n";
 				} else {
 					$info_image .= '<a ';
@@ -1103,7 +1055,7 @@ class Board {
 				'</span> ' . "\n";
 			}
 			
-			$info_post .= formatNameAndTrip($post['name'], $post['email'], $post['tripcode']);
+			$info_post .= formatNameAndTrip($post['name'], $post['email'], $post['tripcode'], $this->board_anonymous);
 			
 			if ($post['posterauthority'] == 1) {
 				$info_post .= ' <span class="admin">' . "\n" .
@@ -1145,23 +1097,23 @@ class Board {
 			}*/
 			$info_post .= '<span class="extrabtns">' . "\n";
 			if ($post['locked']==1) {
-				$info_post .= '	 <img style="border: 0;" src="' . KU_BOARDSPATH . '/css/locked.gif" alt="'._gettext('Locked').'">' . "\n";
+				$info_post .= '	 <img style="border: 0;" src="' . getCLBoardPath() . 'css/locked.gif" alt="'._gettext('Locked').'">' . "\n";
 			}
 			if ($post['stickied']==1) {
-				$info_post .= '	<img style="border: 0;" src="' . KU_BOARDSPATH . '/css/sticky.gif" alt="'._gettext('Stickied').'">' . "\n";
+				$info_post .= '	<img style="border: 0;" src="' . getCLBoardPath() . 'css/sticky.gif" alt="'._gettext('Stickied').'">' . "\n";
 			}
 			if ($page && $post_is_thread) {
-				$info_post .= '	 <span id="hide' . $post['id'] . '"><a href="#" onclick="javascript:togglethread(\'' . $post_thread_start_id . $this->board_dir . '\');return false;" title="Hide Thread"><img src="' . KU_BOARDSPATH . '/css/icons/blank.gif" border="0" class="hidethread" alt="hide"></a></span>' . "\n";
+				$info_post .= '	 <span id="hide' . $post['id'] . '"><a href="#" onclick="javascript:togglethread(\'' . $post_thread_start_id . $this->board_dir . '\');return false;" title="Hide Thread"><img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="hidethread" alt="hide"></a></span>' . "\n";
 			}
 			if (KU_WATCHTHREADS && $post_is_thread) {
-				$info_post .= '	 <a href="#" onclick="javascript:addtowatchedthreads(\'' . $post_thread_start_id . '\', \'' . $this->board_dir . '\');return false;" title="Watch Thread"><img src="' . KU_BOARDSPATH . '/css/icons/blank.gif" border="0" class="watchthread" alt="watch"></a>' . "\n";
+				$info_post .= '	 <a href="#" onclick="javascript:addtowatchedthreads(\'' . $post_thread_start_id . '\', \'' . $this->board_dir . '\');return false;" title="Watch Thread"><img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="watchthread" alt="watch"></a>' . "\n";
 			}
 			if ($page && $post_is_thread) {
 				if (KU_EXPAND && $thread_replies > KU_REPLIES && $thread_replies < 300) {
-					$info_post .= '	 <a href="#" onclick="javascript:expandthread(\'' . $post_thread_start_id . '\', \'' . $this->board_dir . '\');return false;" title="Expand Thread"><img src="' . KU_BOARDSPATH . '/css/icons/blank.gif" border="0" class="expandthread" alt="expand"></a>' . "\n";
+					$info_post .= '	 <a href="#" onclick="javascript:expandthread(\'' . $post_thread_start_id . '\', \'' . $this->board_dir . '\');return false;" title="Expand Thread"><img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="expandthread" alt="expand"></a>' . "\n";
 				}
 				if (KU_QUICKREPLY) {
-					$info_post .= '	 <a href="#postbox" onclick="javascript:quickreply(\'' . $post_thread_start_id . '\');" title="' . _gettext('Quick Reply') . '"><img src="' . KU_BOARDSPATH . '/css/icons/blank.gif" border="0" class="quickreply" alt="quickreply"></a>' . "\n";
+					$info_post .= '	 <a href="#postbox" onclick="javascript:quickreply(\'' . $post_thread_start_id . '\');" title="' . _gettext('Quick Reply') . '"><img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="quickreply" alt="quickreply"></a>' . "\n";
 				}
 			}
 			$info_post .= '</span>' . "\n" .
@@ -1224,14 +1176,13 @@ class Board {
 			if ($post['IS_DELETED'] == '1') {
 				$post['name'] = '';
 				$post['email'] = '';
-				$post['tripcode'] = 'Deleted';
+				$post['tripcode'] = _gettext('Deleted');
 				$post['message'] = '<font color="gray">'._gettext('This post has been deleted.').'</font>';
 			}
 			if ($post_is_thread) {
 				if ($page) {
-					$buildpost_output .= '<div class="border">' . "\n" . '<div class="thread">' . "\n";
-				} else {
-					$buildpost_output .= '<hr>' . "\n";
+					$buildpost_output .= '<div class="border">' . "\n" .
+					'<div class="thread">' . "\n";
 				}
 			}
 			$buildpost_output .= '<a name="'.$thread_relative_id.'"></a>' . "\n";
@@ -1288,16 +1239,17 @@ class Board {
 			if (!$page) {
 				$buildpost_output .= ' name="'.$reply_relative_id.'"';
 			}
-			$buildpost_output .= '>'.$reply_relative_id.'</a>' . "\n" .
-			'</span>' . "\n" .
-			'<span class="postinfo">' . "\n" .
-			'Name: ';
+			$buildpost_output .= '>'.$reply_relative_id.'</a>' .
+			'<a href="' . KU_BOARDSPATH . '/' . $this->board_dir . '/res/' . $post_thread_start_id . '.html#' . $reply_relative_id . '">.</a>' .
+			'</span>' .
+			'<span class="postinfo">' .
+			_gettext('Name') . ': ';
 			
-			$buildpost_output .= formatNameAndTrip($post['name'], $post['email'], $post['tripcode']);
+			$buildpost_output .= formatNameAndTrip($post['name'], $post['email'], $post['tripcode'], $this->board_anonymous);
 			
 			$buildpost_output .= ' @ ' . date('Y-m-d H:i', $post['postedat']);
 			if ($this->board_showid) {
-				$buildpost_output .= ' ID: ' . substr($post['ipmd5'], 0, 6);
+				$buildpost_output .= ' ' . _gettext('ID') . ': ' . substr($post['ipmd5'], 0, 6);
 			}
 			if (!$page) {
 				$buildpost_output .= ' <input type="checkbox" name="delete" value="' . $post['id'] . '">';
@@ -1310,10 +1262,6 @@ class Board {
 			formatLongMessage($post['message'], $this->board_dir, $post_thread_start_id, $page) .
 			'</blockquote>' . "\n" .
 			'</div>' . "\n";
-		}
-		
-		if (KU_APC && !$page) {
-			apc_store('post|' . $post_board . '|' . $post['id'], $buildpost_output);
 		}
 		
 		return $buildpost_output;
@@ -1337,20 +1285,22 @@ class Board {
 			$tpl['title'] .= '/' . $this->board_dir . '/ - ';
 		}
 		$tpl['title'] .= $this->board_desc;
-		$tpl['head'] = '';
-		$tpl['head2'] = '';
+		$tpl['head'] = '<script type="text/javascript" src="' . getCWebPath() . 'lib/javascript/protoaculous-compressed.js"></script>' . "\n";
 		$output = '';
 		
 		if ($this->board_type == 0 || $this->board_type == 2 || $this->board_type == 3) {
-			$tpl['head'] .= '<link rel="stylesheet" href="' . KU_BOARDSPATH . '/css/img_global.css">' . "\n" . $this->pageheader_css;
+			$tpl['head'] .= '<link rel="stylesheet" href="' . getCLBoardPath() . 'css/img_global.css">' . "\n" .
+			$this->pageheader_css;
 		} else {
-			$tpl['head'] .= '<link rel="stylesheet" href="' . KU_BOARDSPATH . '/css/txt_global.css">' . "\n" . 
+			$tpl['head'] .= '<link rel="stylesheet" href="' . getCLBoardPath() . 'css/txt_global.css">' . "\n" . 
 			printStylesheetsTXT($this->board_defaultstyle);
 		}
 		if (KU_RSS) {
 			$tpl['head'] .= '<link rel="alternate" type="application/rss+xml" title="RSS" href="' . KU_BOARDSPATH . '/' . $this->board_dir . '/rss.xml">' . "\n";
 		}
 		$tpl['head'] .= '<script type="text/javascript"><!--' . "\n" .
+		'	var ku_boardspath = \'' . KU_BOARDSPATH . '\';' . "\n" .
+		'	var ku_cgipath = \'' . KU_CGIPATH . '\'' . "\n" .
 		'	var style_cookie';
 		if ($this->board_type==1) {
 			$tpl['head'] .= '_txt';
@@ -1360,15 +1310,13 @@ class Board {
 			$tpl['head'] .= '_txt';
 		}
 		$tpl['head'] .= '";' . "\n" .
-		'//--></script>' . "\n";
-		$tpl['head2'] .= '<script type="text/javascript"><!--' . "\n" .
 		'	var ispage = ';
 		if ($replythread > 0) {
-			$tpl['head2'] .= 'false';
+			$tpl['head'] .= 'false';
 		} else {
-			$tpl['head2'] .= 'true';
+			$tpl['head'] .= 'true';
 		}
-		$tpl['head2'] .= ';' . "\n" .
+		$tpl['head'] .= ';' . "\n" .
 		'//--></script>' . "\n";
 		if ($this->board_type == 1) {
 			if ($replythread == 0) {
@@ -1410,35 +1358,35 @@ class Board {
 			$ad_top += 40;
 		}
 		if (isset($kusabaorg) && $this->board_type != 1) {
-			$output .=  '<div id="ad" style="position: absolute;top:'.$ad_top.'px;right:'.$ad_right.'px">
-			<script type="text/javascript"><!--
-			google_ad_client = "pub-6158454562572132";
-			google_ad_width = 120;
-			google_ad_height = 240;
-			google_ad_format = "120x240_as";
-			google_ad_type = "text_image";
-			google_ad_channel = "7008956366";
-			google_color_border = "FFFFEE";
-			google_color_bg = "FFFFEE";
-			google_color_link = "800000";
-			google_color_text = "CB7E46";
-			google_color_url = "800000";
-			--></script>
-			<script type="text/javascript"
-			src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-			</script>
-			</div>';
+			$output .=  '<div id="ad" style="position: absolute;top:'.$ad_top.'px;right:'.$ad_right.'px">' . "\n" .
+			'<script type="text/javascript"><!--' . "\n" .
+			'google_ad_client = "pub-6158454562572132";' . "\n" .
+			'google_ad_width = 120;' . "\n" .
+			'google_ad_height = 240;' . "\n" .
+			'google_ad_format = "120x240_as";' . "\n" .
+			'google_ad_type = "text_image";' . "\n" .
+			'google_ad_channel = "7008956366";' . "\n" .
+			'google_color_border = "FFFFEE";' . "\n" .
+			'google_color_bg = "FFFFEE";' . "\n" .
+			'google_color_link = "800000";' . "\n" .
+			'google_color_text = "CB7E46";' . "\n" .
+			'google_color_url = "800000";' . "\n" .
+			'--></script>' . "\n" .
+			'<script type="text/javascript"' . "\n" .
+			'src="http://pagead2.googlesyndication.com/pagead/show_ads.js">' . "\n" .
+			'</script>' . "\n" .
+			'</div>' . "\n";
 		}
 		if (KU_WATCHTHREADS && !$isoekaki && ($this->board_type == 0 || $this->board_type == 2 || $this->board_type == 3) && !$hidewatchedthreads) {
 			$output .= '<div id="watchedthreads" style="top: ' . $ad_top . 'px; left: 25px;" class="watchedthreads">' . "\n" .
 			'<div class="postblock" id="watchedthreadsdraghandle" style="width: 100%;">' . _gettext('Watched Threads') . '</div>' . "\n" .
 			'<span id="watchedthreadlist"></span>' . "\n" .
 			'<div id="watchedthreadsbuttons">' . "\n" .
-			'<a href="#" onclick="javascript:hidewatchedthreads();return false;" title="Hide the watched threads box">' . "\n" .
-			'<img src="' . KU_BOARDSPATH . '/css/icons/blank.gif" border="0" class="hidewatchedthreads" alt="hide">' . "\n" .
+			'<a href="#" onclick="javascript:hidewatchedthreads();return false;" title="' . _gettext('Hide the watched threads box') . '">' . "\n" .
+			'<img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="hidewatchedthreads" alt="hide">' . "\n" .
 			'</a>&nbsp;' . "\n" .
-			'<a href="#" onclick="javascript:getwatchedthreads(\'0\', \'' . $this->board_dir . '\');return false;" title="Refresh watched threads">' . "\n" .
-			'<img src="' . KU_BOARDSPATH . '/css/icons/blank.gif" border="0" class="refreshwatchedthreads" alt="refresh">' . "\n" .
+			'<a href="#" onclick="javascript:getwatchedthreads(\'0\', \'' . $this->board_dir . '\');return false;" title="' . _gettext('Refresh watched threads') . '">' . "\n" .
+			'<img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="refreshwatchedthreads" alt="refresh">' . "\n" .
 			'</a>' . "\n" .
 			'</div>' . "\n" .
 			'<script type="text/javascript"><!--' . "\n" .
@@ -1450,7 +1398,7 @@ class Board {
 			'	watchedthreadselement.style.height = Math.max(75,getCookie(\'watchedthreadsheight\')) + \'px\';' . "\n" .
 			'	getwatchedthreads(\'' . $replythread . '\', \'' . $this->board_dir . '\');' . "\n" .
 			'} else {' . "\n" .
-			'	watchedthreadselement.innerHTML = \'<a href="#" onclick="javascript:showwatchedthreads();return false"><img src="' . KU_BOARDSPATH . '/css/icons/blank.gif" border="0" class="restorewatchedthreads" title="Restore watched threads"><\/a>\';' . "\n" .
+			'	watchedthreadselement.innerHTML = \'<a href="#" onclick="javascript:showwatchedthreads();return false"><img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="restorewatchedthreads" title="' . _gettext('Restore watched threads') . '"><\/a>\';' . "\n" .
 			'	watchedthreadselement.style.width = \'16px\';' . "\n" .
 			'	watchedthreadselement.style.height = \'16px\';' . "\n" .
 			'}' . "\n" .
@@ -1461,10 +1409,10 @@ class Board {
 			$output .= '<div class="logo">';
 			if ($this->board_image=='') {
 				if (KU_HEADERURL!='') {
-					$output .= '<img src="'.KU_HEADERURL.'" alt="Logo"><br>' . "\n";
+					$output .= '<img src="'.KU_HEADERURL.'" alt="' . _gettext('Logo') . '"><br>' . "\n";
 				}
 			} else if ($this->board_image!=''&&$this->board_image!="none") {
-				$output .= '<img src="'.$this->board_image.'" alt="Logo"><br>' . "\n";
+				$output .= '<img src="'.$this->board_image.'" alt="' . _gettext('Logo') . '"><br>' . "\n";
 			}
 			if (KU_DIRTITLE) {
 				$output .= '/'.$this->board_dir.'/ - ';
@@ -1507,7 +1455,7 @@ class Board {
 			}
 			
 			if ($listpage >= 0 && $liststooutput >= 0) {
-				$output .= 'Pages:&nbsp;<a href="'.KU_BOARDSPATH . '/' . $this->board_dir . '/">Front</a>';
+				$output .= _gettext('Pages') . ':&nbsp;<a href="'.KU_BOARDSPATH . '/' . $this->board_dir . '/">' . _gettext('Front') . '</a>';
 				for ($i = 0; $i <= $liststooutput; $i++) {
 					$output .= '&nbsp;<a href="list';
 					if ($i!=0) {
@@ -1540,7 +1488,7 @@ class Board {
 		
 		$page .= $this->Postbox($replyto, $postoek) .
 		'<div style="text-align: center;">' . "\n" .
-		'	' . _gettext('Your Image:') . '<br>' . "\n" .
+		'	' . _gettext('Your image') . ':<br>' . "\n" .
 		'	<img src="' . KU_CGIFOLDER . 'kusabaoek/' . $postoek . '.png">' . "\n" .
 		'</div>';
 	
@@ -1703,7 +1651,7 @@ class Board {
 				/*if ($this->board_includeheader != '') {
 					'<div style="float: right;text-align: left;vertical-align: middle;">' . $postboxnotice . '</div>' . "\n";
 				}*/
-				$output .= '<a id="newthread"></a><h2>New Thread</h2>' . "\n";
+				$output .= '<a id="newthread"></a><h2>' . _gettext('New Thread') . '</h2>' . "\n";
 				$label_class = 'label';
 			}
 			/* Create anchor to allow links to scroll directly to the post box */
@@ -1712,30 +1660,30 @@ class Board {
 				$output .= '<form action="' . KU_CGIPATH . '/paint.php" method="post">' . "\n" .
 				'<input type="hidden" name="board" value="'.$this->board_dir.'">' . "\n" .
 				'<input type="hidden" name="replyto" value="'.$replythread.'">' . "\n" .
-				'<label for="applet">Paint with:&nbsp;</label>' . "\n" .
+				'<label for="applet">' . _gettext('Paint with') . ':&nbsp;</label>' . "\n" .
 				'<select name="applet" id="applet">' . "\n" .
 				'	<option value="shipainter">Shi-Painter</option>' . "\n" .
 				'	<option value="shipainterpro">Shi-Painter Pro</option>' . "\n" .
 				'	<option value="shipainter_selfy">Shi-Painter+Selfy</option>' . "\n" .
 				'	<option value="shipainterpro_selfy">Shi-Painter Pro+Selfy</option>' . "\n" .
 				'</select>&nbsp;' . "\n" .
-				'<label for="width">Width:&nbsp;</label><input type="text" name="width" id="width" size="3" value="300">&nbsp;' . "\n" .
-				'<label for="height">Height:&nbsp;</label><input type="text" name="height" id="height" size="3" value="300">&nbsp;' . "\n" .
-				'<label for="useanim">Use animation?&nbsp;</label><input type="checkbox" name="useanim" id="useanim" checked>&nbsp;' . "\n";
+				'<label for="width">' . _gettext('Width') . ':&nbsp;</label><input type="text" name="width" id="width" size="3" value="300">&nbsp;' . "\n" .
+				'<label for="height">' . _gettext('Height') . ':&nbsp;</label><input type="text" name="height" id="height" size="3" value="300">&nbsp;' . "\n" .
+				'<label for="useanim">' . _gettext('Use animation?') . '&nbsp;</label><input type="checkbox" name="useanim" id="useanim" checked>&nbsp;' . "\n";
 				if ($replythread != 0) {
-					$output .= '<label for="replyimage">Source:&nbsp;</label><select name="replyimage" id="replyimage">' . "\n" .
-					'<option value="0">New Image</option>' . "\n";
+					$output .= '<label for="replyimage">' . _gettext('Source') . ':&nbsp;</label><select name="replyimage" id="replyimage">' . "\n" .
+					'<option value="0">' . _gettext('New image') . '</option>' . "\n";
 					$results = $tc_db->GetAll("SELECT `id` FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `id` = $replythread AND `filename` != '' AND `filename` != 'removed' AND `filetype` != 'swf' AND `IS_DELETED` = 0");
 					foreach($results AS $line) {
-						$output .= '<option value="'.$line['id'].'">Modify No.'.$line['id'].'</option>' . "\n";
+						$output .= '<option value="'.$line['id'].'">' . _gettext('Modify') . ' No.'.$line['id'].'</option>' . "\n";
 					}
 					$results = $tc_db->GetAll("SELECT `id` FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `parentid` = $replythread AND `filename` != '' AND `filename` != 'removed' AND `filetype` != 'swf' AND `IS_DELETED` = 0");
 					foreach($results AS $line) {
-						$output .= '<option value="'.$line['id'].'">Modify No.'.$line['id'].'</option>' . "\n";
+						$output .= '<option value="'.$line['id'].'">' . _gettext('Modify') . ' No.'.$line['id'].'</option>' . "\n";
 					}
 					$output .= '</select>&nbsp;';
 				}
-				$output .= '<input type="submit" value="Paint!"></form>' . "\n" .
+				$output .= '<input type="submit" value="' . _gettext('Paint!') . '"></form>' . "\n" .
 				'<hr>' . "\n";
 			}
 			if (($this->board_type == 2 && $oekaki != '' && $replythread == 0) ||($this->board_type == 2 && $replythread != 0) || ($this->board_type == 0 || $this->board_type == 1 || $this->board_type == 3)) {
@@ -1749,149 +1697,153 @@ class Board {
 				if ($this->board_maximagesize > 0) {
 					$output .= '<input type="hidden" name="MAX_FILE_SIZE" value="' . $this->board_maximagesize . '">' . "\n";
 				}
-				$output .= '<input type="text" name="email" size="28" maxlength="75" value="" style="display: none;">' . "\n" .
-				'<p>' . "\n" .
-				'<table class="postform">' . "\n" .
-				'<tbody>' . "\n";
-				if ($this->board_forcedanon != 1) {
-					$output .= '<tr>' . "\n" .
-					'	<td class="'.$label_class.'">' . "\n" .
-					'		' . _gettext('Name').'</td>' . "\n" .
-					'	<td>' . "\n" .
-					'		<input type="text" name="name" size="28" maxlength="75" accesskey="n">' . "\n" .
-					'	</td>' . "\n" .
-					'</tr>' . "\n";
-				}
-				$output .= '<tr>' . "\n" .
-				'	<td class="'.$label_class.'">' . "\n" .
-				'		' . _gettext('Email') . "\n" .
-				'	</td>' . "\n" .
-				'	<td>' . "\n" .
-				'		<input type="text" name="em" size="28" maxlength="75" accesskey="e">' . "\n" .
-				'	</td>' . "\n" .
-				'</tr>'. "\n";
-				if ($this->board_enablecaptcha == 1) {
-					$output .= '<tr>' . "\n" .
-					'	<td class="'.$label_class.'">' . "\n" .
-					'		<a href="#" onclick="javascript:document.getElementById(\'captchaimage\').src = \'' . KU_CGIPATH . '/captcha.php?\' + Math.random();return false;"><img id="captchaimage" src="' . KU_CGIPATH . '/captcha.php" border="0" width="90" height="30" alt="Captcha image"></a>' . "\n" .
-					'	</td>' . "\n" .
-					'	<td>' . "\n" .
-					'		<input type="text" name="captcha" size="28" maxlength="6" accesskey="c">' . "\n" .
-					'	</td>' . "\n" .
-					'</tr>' . "\n";
-				}
-				$output .= '<tr>' . "\n" .
-				'	<td class="'.$label_class.'">' . "\n" .
-				'		' . _gettext('Subject').'</td>' . "\n" .
-				'	<td>' . "\n" .
-				'		<input type="text" name="subject" size="35" maxlength="75" accesskey="s">&nbsp;<input type="submit" value="' . _gettext('Submit') . '" accesskey="z">';
-				/* Qucik reply indicator for a postbox on a board page */
-				if (KU_QUICKREPLY && $replythread == 0 && ($this->board_type == 0 || $this->board_type == 3)) {
-					$output .= '&nbsp;<small>(<span id="posttypeindicator">new thread</span>)</small>';
-				/* Qucik reply indicator for a postbox on a thread page */
-				} elseif (KU_QUICKREPLY && $replythread != 0 && ($this->board_type == 0 || $this->board_type == 3)) {
-					$output .= '&nbsp;<small>(<span id="posttypeindicator">reply to ' . $replythread . '</span>)</small>';
-				}
-				$output .= "\n" . '	</td>' . "\n" .
-				'</tr>' . "\n" .
-				'<tr>' . "\n" .
-				'	<td class="'.$label_class.'">' . "\n" .
-				'		' . _gettext('Message') . "\n" .
-				'	</td>' . "\n" .
-				'	<td>' . "\n" .
-				'		<textarea name="message" cols="48" rows="4" accesskey="m"></textarea>' . "\n" .
-				'	</td>' . "\n" .
-				'</tr>' . "\n";
+				$output .= '<input type="text" name="email" size="28" maxlength="75" value="" style="display: none;">' . "\n";
 				if ($this->board_type != 1) {
-					if ($this->board_uploadtype == 0 || $this->board_uploadtype == 1) {
+					$output .= '<p>' . "\n" .
+					'<table class="postform">' . "\n" .
+					'<tbody>' . "\n";
+					if ($this->board_forcedanon != 1) {
 						$output .= '<tr>' . "\n" .
 						'	<td class="'.$label_class.'">' . "\n" .
-						'		' . _gettext('File') . '<a href="#" onclick="togglePassword(); return false;" style="text-decoration: none;" accesskey="x">&nbsp;</a>' . "\n" .
+						'		' . _gettext('Name').'</td>' . "\n" .
+						'	<td>' . "\n" .
+						'		<input type="text" name="name" size="28" maxlength="75" accesskey="n">' . "\n" .
 						'	</td>' . "\n" .
-						'	<td>' . "\n";
-						if ($oekaki=='') {
-							$output .= '		<input type="file" name="imagefile" size="35" accesskey="f">';
-							if ($replythread == 0 && $this->board_enablenofile == 1) {
-								$output .= ' [<input type="checkbox" name="nofile" id="nofile" accesskey="q"><label for="nofile"> '._gettext('No File').'</label>]';
-							}
-						} else {
-							$output .= _gettext('Shown Below').'<input type="hidden" name="oekaki" value="'.$oekaki.'">';
-						}
-						$output .= "\n" . '	</td>' . "\n" .
 						'</tr>' . "\n";
 					}
-					if ($replythread == 0 && $this->board_type == 3 && KU_TAGS != '') {
+					$output .= '<tr>' . "\n" .
+					'	<td class="'.$label_class.'">' . "\n" .
+					'		' . _gettext('Email') . "\n" .
+					'	</td>' . "\n" .
+					'	<td>' . "\n" .
+					'		<input type="text" name="em" size="28" maxlength="75" accesskey="e">' . "\n" .
+					'	</td>' . "\n" .
+					'</tr>'. "\n";
+					if ($this->board_enablecaptcha == 1) {
 						$output .= '<tr>' . "\n" .
 						'	<td class="'.$label_class.'">' . "\n" .
-						'		Tag' . "\n" .
+						'		<a href="#" onclick="javascript:document.getElementById(\'captchaimage\').src = \'' . KU_CGIPATH . '/captcha.php?\' + Math.random();return false;"><img id="captchaimage" src="' . KU_CGIPATH . '/captcha.php" border="0" width="90" height="30" alt="Captcha image"></a>' . "\n" .
 						'	</td>' . "\n" .
 						'	<td>' . "\n" .
-						'	<select name="tag">' . "\n" .
-						'		<option value="" selected>' . "\n" .
-						'			Choose one:' . "\n" .
-						'		</option>' . "\n";
-						$tags = unserialize(KU_TAGS);
-						if ($tags != '') {
-							while (list($tag, $tag_abbr) = each($tags)) {
-								$output .= '		<option value="' . $tag_abbr . '">' . "\n" .
-								'			' . $tag . ' [' . $tag_abbr . ']' . "\n" .
-								'		</option>' . "\n";
-							}
-						}
-						$output .= '	</select>' . "\n" .
+						'		<input type="text" name="captcha" size="28" maxlength="6" accesskey="c">' . "\n" .
 						'	</td>' . "\n" .
 						'</tr>' . "\n";
 					}
-					if ($oekaki == '' && ($this->board_uploadtype == 1 || $this->board_uploadtype == 2)) {
-						$output .= '<tr>' . "\n" .
-						'	<td class="'.$label_class.'">' . "\n" .
-						'		Embed' . "\n" .
-						'	</td>' . "\n" .
-						'	<td>' . "\n" .
-						'		<input type="text" name="embed" size="28" maxlength="75" accesskey="e">&nbsp;<select name="embedtype"><option value="youtube">YouTube</option></select>' . "\n" .
-						'	</td>' . "\n" .
-						'</tr>' . "\n";
+					$output .= '<tr>' . "\n" .
+					'	<td class="'.$label_class.'">' . "\n" .
+					'		' . _gettext('Subject').'</td>' . "\n" .
+					'	<td>' . "\n" .
+					'		<input type="text" name="subject" size="35" maxlength="75" accesskey="s">&nbsp;<input type="submit" value="' . _gettext('Submit') . '" accesskey="z">';
+					/* Qucik reply indicator for a postbox on a board page */
+					if (KU_QUICKREPLY && $replythread == 0 && ($this->board_type == 0 || $this->board_type == 3)) {
+						$output .= '&nbsp;<small>(<span id="posttypeindicator">new thread</span>)</small>';
+					/* Qucik reply indicator for a postbox on a thread page */
+					} elseif (KU_QUICKREPLY && $replythread != 0 && ($this->board_type == 0 || $this->board_type == 3)) {
+						$output .= '&nbsp;<small>(<span id="posttypeindicator">reply to ' . $replythread . '</span>)</small>';
 					}
-				}
-				$output .= '<tr>' . "\n" .
-				'	<td class="'.$label_class.'">' . "\n" .
-				'		' . _gettext('Password') . "\n" .
-				'	</td>' . "\n" .
-				'	<td>' . "\n" .
-				'		<input type="password" name="postpassword" size="8" accesskey="p">&nbsp;'._gettext('(for post and file deletion)') . "\n" .
-				'	</td>' . "\n" .
-				'</tr>' . "\n";
-				if ($this->board_type == 0 || $this->board_type == 2 || $this->board_type == 3) {
-					$output .= '<tr id="passwordbox"><td></td><td></td></tr>' . "\n" .
+					$output .= "\n" . '	</td>' . "\n" .
+					'</tr>' . "\n" .
 					'<tr>' . "\n" .
-					'	<td colspan="2" class="rules">' . "\n" .
-					'			' . $postboxnotice . "\n";
-					if (KU_BLOTTER) {
-						$blotter = getBlotter();
-						if ($blotter != '') {
-							$output .= '<br>' . "\n" .
-							'<li style="position: relative;">' . "\n" .
-							'	<span style="color: red;">' . "\n" .
-							'		Blotter updated: ' . date('m/d/y', getBlotterLastUpdated()) . "\n" .
-							'	</span>' . "\n" .
-							'	<span style="color: red;text-align: right;position: absolute;right: 0px;">' . "\n" .
-							'		<a href="#" onclick="javascript:toggleblotter(true);return false;">Show/Hide</a> <a href="' . KU_WEBPATH . '/blotter.php">Show All</a>' . "\n" .
-							'	</span>' . "\n" .
-							'</li>' . "\n" .
-							$blotter .
-							'<script type="text/javascript"><!--' . "\n" .
-							'if (getCookie(\'ku_showblotter\') == \'1\') {' . "\n" .
-							'	toggleblotter(false);' . "\n" .
-							'}' . "\n" .
-							'--></script>' . "\n";
+					'	<td class="'.$label_class.'">' . "\n" .
+					'		' . _gettext('Message') . "\n" .
+					'	</td>' . "\n" .
+					'	<td>' . "\n" .
+					'		<textarea name="message" cols="48" rows="4" accesskey="m"></textarea>' . "\n" .
+					'	</td>' . "\n" .
+					'</tr>' . "\n";
+					if ($this->board_type != 1) {
+						if ($this->board_uploadtype == 0 || $this->board_uploadtype == 1) {
+							$output .= '<tr>' . "\n" .
+							'	<td class="'.$label_class.'">' . "\n" .
+							'		' . _gettext('File') . '<a href="#" onclick="togglePassword(); return false;" style="text-decoration: none;" accesskey="x">&nbsp;</a>' . "\n" .
+							'	</td>' . "\n" .
+							'	<td>' . "\n";
+							if ($oekaki=='') {
+								$output .= '		<input type="file" name="imagefile" size="35" accesskey="f">';
+								if ($replythread == 0 && $this->board_enablenofile == 1) {
+									$output .= ' [<input type="checkbox" name="nofile" id="nofile" accesskey="q"><label for="nofile"> '._gettext('No File').'</label>]';
+								}
+							} else {
+								$output .= _gettext('Shown Below').'<input type="hidden" name="oekaki" value="'.$oekaki.'">';
+							}
+							$output .= "\n" . '	</td>' . "\n" .
+							'</tr>' . "\n";
+						}
+						if ($replythread == 0 && $this->board_type == 3 && KU_TAGS != '') {
+							$output .= '<tr>' . "\n" .
+							'	<td class="'.$label_class.'">' . "\n" .
+							'		' . _gettext('Tag') . "\n" .
+							'	</td>' . "\n" .
+							'	<td>' . "\n" .
+							'	<select name="tag">' . "\n" .
+							'		<option value="" selected>' . "\n" .
+							'			' . _gettext('Choose one') . ':' . "\n" .
+							'		</option>' . "\n";
+							$tags = unserialize(KU_TAGS);
+							if ($tags != '') {
+								while (list($tag, $tag_abbr) = each($tags)) {
+									$output .= '		<option value="' . $tag_abbr . '">' . "\n" .
+									'			' . $tag . ' [' . $tag_abbr . ']' . "\n" .
+									'		</option>' . "\n";
+								}
+							}
+							$output .= '	</select>' . "\n" .
+							'	</td>' . "\n" .
+							'</tr>' . "\n";
+						}
+						if ($oekaki == '' && ($this->board_uploadtype == 1 || $this->board_uploadtype == 2)) {
+							$output .= '<tr>' . "\n" .
+							'	<td class="'.$label_class.'">' . "\n" .
+							'		' . _gettext('Embed') . "\n" .
+							'	</td>' . "\n" .
+							'	<td>' . "\n" .
+							'		<input type="text" name="embed" size="28" maxlength="75" accesskey="e">&nbsp;<select name="embedtype"><option value="youtube">YouTube</option></select>' . "\n" .
+							'	</td>' . "\n" .
+							'</tr>' . "\n";
 						}
 					}
-					$output .= '	</td>' . "\n" .
+					$output .= '<tr>' . "\n" .
+					'	<td class="'.$label_class.'">' . "\n" .
+					'		' . _gettext('Password') . "\n" .
+					'	</td>' . "\n" .
+					'	<td>' . "\n" .
+					'		<input type="password" name="postpassword" size="8" accesskey="p">&nbsp;'._gettext('(for post and file deletion)') . "\n" .
+					'	</td>' . "\n" .
 					'</tr>' . "\n";
+					if ($this->board_type == 0 || $this->board_type == 2 || $this->board_type == 3) {
+						$output .= '<tr id="passwordbox"><td></td><td></td></tr>' . "\n" .
+						'<tr>' . "\n" .
+						'	<td colspan="2" class="rules">' . "\n" .
+						'		' . $postboxnotice . "\n";
+						if (KU_BLOTTER) {
+							$blotter = getBlotter();
+							if ($blotter != '') {
+								$output .= '<br>' . "\n" .
+								'<li style="position: relative;">' . "\n" .
+								'	<span style="color: red;">' . "\n" .
+								'		' . _gettext('Blotter updated') . ': ' . date('m/d/y', getBlotterLastUpdated()) . "\n" .
+								'	</span>' . "\n" .
+								'	<span style="color: red;text-align: right;position: absolute;right: 0px;">' . "\n" .
+								'		<a href="#" onclick="javascript:toggleblotter(true);return false;">' . _gettext('Show/Hide') . '</a> <a href="' . KU_WEBPATH . '/blotter.php">' . _gettext('Show All') . '</a>' . "\n" .
+								'	</span>' . "\n" .
+								'</li>' . "\n" .
+								$blotter .
+								'<script type="text/javascript"><!--' . "\n" .
+								'if (getCookie(\'ku_showblotter\') == \'1\') {' . "\n" .
+								'	toggleblotter(false);' . "\n" .
+								'}' . "\n" .
+								'--></script>' . "\n";
+							}
+						}
+						$output .= '	</td>' . "\n" .
+						'</tr>' . "\n";
+					}
+					$output .= '</tbody>' . "\n" .
+					'</table>' . "\n";
+				} else {
+					$output .= textBoardReplyBox($this->board_dir, $this->board_forcedanon, $this->board_enablecaptcha, false, false, 'postform');
 				}
-				$output .= '</tbody>' . "\n" .
-				'</table>' . "\n" .
-				'</form>' . "\n";
+				$output .= '</form>' . "\n";
 				if ($this->board_type == 0 || $this->board_type == 2 || $this->board_type == 3) {
 					$output .= '<hr>' . "\n";
 				}
@@ -2044,7 +1996,6 @@ class Board {
 		
 		$this->smarty->assign('title', $tpl['title']);
 		$this->smarty->assign('head', $tpl['head']);
-		$this->smarty->assign('head2', $tpl['head2']);
 		$this->smarty->assign('page', $contents);
 		
 		$contents = $this->smarty->fetch('board.tpl');
@@ -2117,7 +2068,7 @@ class Post extends Board {
 		
 		$results = $tc_db->GetAll("SELECT * FROM `".KU_DBPREFIX."posts_".$board."` WHERE `id` = ".mysql_real_escape_string($postid)." LIMIT 1");
 		if (count($results)==0&&!$is_inserting) {
-			die('Invalid post ID.');
+			exitWithErrorPage('Invalid post ID.');
 		} elseif ($is_inserting) {
 			$this->Board($board);
 		} else {
@@ -2239,7 +2190,6 @@ class Post extends Board {
 
 	function Insert($parentid, $name, $tripcode, $email, $subject, $message, $filename, $filename_original, $filetype, $filemd5, $image_w, $image_h, $filesize, $thumb_w, $thumb_h, $password, $postedat, $lastbumped, $ip, $posterauthority, $tag, $stickied, $locked) {
 		global $tc_db;
-		require_once KU_ROOTDIR . 'inc/encryption.php';
 		
 		$query = "INSERT INTO `".KU_DBPREFIX."posts_".$this->board_dir."` ( `parentid` , `name` , `tripcode` , `email` , `subject` , `message` , `filename` , `filename_original`, `filetype` , `filemd5` , `image_w` , `image_h` , `filesize` , `filesize_formatted` , `thumb_w` , `thumb_h` , `password` , `postedat` , `lastbumped` , `ip` , `ipmd5` , `posterauthority` , `tag` , `stickied` , `locked` ) VALUES ( '".mysql_real_escape_string($parentid)."', '".mysql_real_escape_string($name)."', '".mysql_real_escape_string($tripcode)."', '".mysql_real_escape_string($email)."', '".mysql_real_escape_string($subject)."', '".mysql_real_escape_string($message)."', '".mysql_real_escape_string($filename)."', '".mysql_real_escape_string($filename_original)."', '".mysql_real_escape_string($filetype)."', '".mysql_real_escape_string($filemd5)."', '".mysql_real_escape_string($image_w)."', '".mysql_real_escape_string($image_h)."', '".mysql_real_escape_string($filesize)."', '".mysql_real_escape_string(ConvertBytes($filesize))."', '".mysql_real_escape_string($thumb_w)."', '".mysql_real_escape_string($thumb_h)."', '".mysql_real_escape_string($password)."', '".mysql_real_escape_string($postedat)."', '".mysql_real_escape_string($lastbumped)."', '".mysql_real_escape_string(md5_encrypt($ip, KU_RANDOMSEED))."', '".md5($ip)."', '".mysql_real_escape_string($posterauthority)."', '".mysql_real_escape_string($tag)."', '".mysql_real_escape_string($stickied)."', '".mysql_real_escape_string($locked)."' )";
 		$tc_db->Execute($query);
@@ -2249,7 +2199,6 @@ class Post extends Board {
 
 	function Report() {
 		global $tc_db;
-		require_once KU_ROOTDIR . 'inc/encryption.php';
 		
 		return $tc_db->Execute("INSERT INTO `".KU_DBPREFIX."reports` ( `board` , `postid` , `when` , `ip` ) VALUES ( '" . mysql_real_escape_string($this->board_dir) . "' , " . mysql_real_escape_string($this->post_id) . " , ".time()." , '" . md5_encrypt($_SERVER['REMOTE_ADDR'], KU_RANDOMSEED) . "' )");
 	}

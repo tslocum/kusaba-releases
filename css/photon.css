@@ -192,33 +192,33 @@ table td {
 }
 
 .hidethread {
-	background-image: url('icons/beige/zoom-out.gif');
+	background: transparent url('icons/beige/icons.gif') -32px -16px no-repeat;
 }
 
 .unhidethread {
-	background-image: url('icons/beige/zoom-in.gif');
+	background: transparent url('icons/beige/icons.gif') -48px 0px no-repeat;
 }
 
 .watchthread {
-	background-image: url('icons/beige/bookmark.gif');
+	background: transparent url('icons/beige/icons.gif') -32px 0px no-repeat;
 }
 
 .expandthread {
-	background-image: url('icons/beige/move.gif');
+	background: transparent url('icons/beige/icons.gif') 0px -16px no-repeat;
 }
 
 .quickreply {
-	background-image: url('icons/beige/eject.gif');
+	background: transparent url('icons/beige/icons.gif') 0px 0px no-repeat;
 }
 
 .hidewatchedthreads {
-	background-image: url('icons/beige/arrow-upleft.gif');
+	background: transparent url('icons/beige/icons.gif') -48px -16px no-repeat;
 }
 
 .refreshwatchedthreads {
-	background-image: url('icons/beige/refresh.gif');
+	background: transparent url('icons/beige/icons.gif') -16px -16px no-repeat;
 }
 
 .restorewatchedthreads {
-	background-image: url('icons/beige/grow.gif');
+	background: transparent url('icons/beige/icons.gif') -16px 0px no-repeat;
 }

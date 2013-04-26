@@ -51,7 +51,6 @@ form .trap {
 
 .reflink a:hover{
 	color: #800000;
-	font-weight: bold;
 }
 
 .reply .filesize {
@@ -121,33 +120,33 @@ form .trap {
 }
 
 .hidethread {
-	background-image: url('icons/blue/zoom-out.gif');
+	background: transparent url('icons/blue/icons.gif') -32px -16px no-repeat;
 }
 
 .unhidethread {
-	background-image: url('icons/blue/zoom-in.gif');
+	background: transparent url('icons/blue/icons.gif') -48px 0px no-repeat;
 }
 
 .watchthread {
-	background-image: url('icons/blue/bookmark.gif');
+	background: transparent url('icons/blue/icons.gif') -32px 0px no-repeat;
 }
 
 .expandthread {
-	background-image: url('icons/blue/move.gif');
+	background: transparent url('icons/blue/icons.gif') 0px -16px no-repeat;
 }
 
 .quickreply {
-	background-image: url('icons/blue/eject.gif');
+	background: transparent url('icons/blue/icons.gif') 0px 0px no-repeat;
 }
 
 .hidewatchedthreads {
-	background-image: url('icons/blue/arrow-upleft.gif');
+	background: transparent url('icons/blue/icons.gif') -48px -16px no-repeat;
 }
 
 .refreshwatchedthreads {
-	background-image: url('icons/blue/refresh.gif');
+	background: transparent url('icons/blue/icons.gif') -16px -16px no-repeat;
 }
 
 .restorewatchedthreads {
-	background-image: url('icons/blue/grow.gif');
+	background: transparent url('icons/blue/icons.gif') -16px 0px no-repeat;
 }
