@@ -120,18 +120,7 @@ if (isset($_GET['do'])) {
 			$output .= 'None.<br>';
 		}	
 		
-		/*$output .= '<div id="watchedthreadsbuttons">
-		<a href="#" onclick="javascript:hidewatchedthreads();return false;" title="Hide the watched threads box">
-		<img src="' . KU_WEBPATH . '/lib/icons/arrow-upleft.gif" border="0" alt="hide">
-		</a>&nbsp;
-		<a href="#" onclick="javascript:getwatchedthreads(\'0\', \'' . $_GET['board'] . '\');return false;" title="Refresh watched threads">
-		<img src="' . KU_WEBPATH . '/lib/icons/refresh.gif" border="0" alt="refresh">
-		</a>';
-		
-		$output .= '</div>';*/
-		if (KU_APC) {
-			apc_store('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR'], $output, 600);
-		}
+		if (KU_APC) apc_store('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR'], $output, 600);
 	}
 }
 

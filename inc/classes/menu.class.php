@@ -29,19 +29,32 @@ class Menu {
 		
 		$smarty->assign('lang_frontpage', _gettext('Front Page'));
 		
-		$smarty->assign('styles', printStylesheetsSite(KU_DEFAULTMENUSTYLE, true));
+		if (KU_MENUTYPE == 'normal') {
+			$smarty->assign('styles', printStylesheetsSite(KU_DEFAULTMENUSTYLE, true));
+		} else {
+			$smarty->assign('styles', '<style type="text/css">body { margin: 0px; } h1 { font-size: 1.25em; } h2 { font-size: 0.8em; font-weight: bold; color: #CC3300; } ul { list-style-type: none; padding: 0px; margin: 0px; } li { font-size: 0.8em; padding: 0px; margin: 0px; }</style>');
+		}
 		
-		if (KU_MENUSTYLESWITCHER) {
+		if (KU_MENUSTYLESWITCHER && KU_MENUTYPE == 'normal') {
 			$styles = explode(':', KU_MENUSTYLES);
 			$styleswitcher = _gettext('Styles') . ': ';
 			foreach ($styles as $style) {
-				$styleswitcher .= '[<a href="#" onclick="javascript:set_stylesheet(\\\'' . ucfirst($style) . '\\\', false, true);reloadmain();" style="display: inline;">' . strtoupper(substr($style, 0, 1)) . '</a>] ';
+				$styleswitcher .= '[<a href="#" onclick="javascript:set_stylesheet(\\\'' . ucfirst($style) . '\\\', false, true);reloadmain();" style="display: inline;" target="_self">' . strtoupper(substr($style, 0, 1)) . '</a>] ';
 			}
 			$styleswitcher = substr($styleswitcher, 0, -1);
 		} else {
 			$styleswitcher = '';
 		}
+		
 		$smarty->assign('styleswitcher', $styleswitcher);
+		
+		if (KU_MENUTYPE == 'normal') {
+			$removeframes = '<li id="removeframes"><a href="#" onclick="javascript:return removeframes();" target="_self">[Remove Frames]</a></li>';
+		} else {
+			$removeframes = '';
+		}
+		
+		$smarty->assign('removeframes', $removeframes);
 		
 		if ($savetofile) {
 			$files = array('menu.html', 'menu_dirs.html');
@@ -54,7 +67,12 @@ class Menu {
 		
 		$tpl_irc = '';
 		if (KU_IRC!='') {
-			$tpl_irc .= '<h2>&nbsp;IRC</h2>' . "\n" .
+			if (KU_MENUTYPE == 'normal') {
+				$tpl_irc .= '<h2>';
+			} else {
+				$tpl_irc .= '<h2 style="display: inline;"><br>';
+			}
+			$tpl_irc .= '&nbsp;IRC</h2>' . "\n" .
 			'<ul>' . "\n" .
 			'	<li>' . KU_IRC . '</li>' . "\n" .
 			'</ul>' . "\n";
@@ -62,7 +80,7 @@ class Menu {
 		if (isset($kusabaorg)) {
 			$tpl_irc .= '<h2>&nbsp;Links</h2>
 			<ul>
-			<li><a href="chans.php" target="main">Directory</a></li>
+			<li><a href="chans.php">Directory</a></li>
 			<li><a href="http://code.google.com/p/kusaba/w/list" target="_top">Wiki (Guides and more)</a></li>
 			<li><a href="http://code.google.com/p/kusaba/wiki/InstallationGuide" target="_top">&nbsp;-&nbsp;Installing</a></li>
 			<li><a href="http://code.google.com/p/kusaba/wiki/AdministrationGuide" target="_top">&nbsp;-&nbsp;Administration</a></li>
@@ -70,8 +88,10 @@ class Menu {
 			<li><a href="http://code.google.com/p/kusaba/wiki/ModuleList" target="_top">&nbsp;-&nbsp;Modules</a></li>
 			<li><a href="http://code.google.com/p/kusaba/wiki/KusaMove" target="_top">&nbsp;-&nbsp;KusaMove</a></li>
 			<li><a href="http://code.google.com/p/kusaba/wiki/W2K" target="_top">&nbsp;-&nbsp;W2K</a></li>
+			<li><a href="http://code.google.com/p/kusaba/wiki/K2K" target="_top">&nbsp;-&nbsp;K2K</a></li>
+			<li><a href="http://code.google.com/p/kusaba/wiki/B2K" target="_top">&nbsp;-&nbsp;B2K</a></li>
 			<li><a href="http://code.google.com/p/kusaba/" target="_top">Project page</a></li>
-			<li><a href="http://kusaba.org/doc/index.html" target="main">Code Documentation</a></li>
+			<li><a href="http://kusaba.org/doc/index.html">Code Documentation</a></li>
 			</ul>
 			
 			<script type="text/javascript"><!--
@@ -106,23 +126,33 @@ class Menu {
 			} else {
 				$results = $tc_db->GetAll("SELECT * FROM `".KU_DBPREFIX."sections` ORDER BY `order` ASC");
 				foreach($results AS $line) {
-					$tpl_boards .= '<h2><span class="plus" onclick="toggle(this, \''.$line['abbreviation'].'\');" title="'._gettext('Click to show/hide').'">';
-					if ($line['hidden']==1) {
-						$tpl_boards .= '+';
+					if (KU_MENUTYPE == 'normal') {
+						$tpl_boards .= '<h2>';
 					} else {
-						$tpl_boards .= '&minus;';
+						$tpl_boards .= '<h2 style="display: inline;"><br>';
 					}
-					$tpl_boards .= '</span>&nbsp;'.$line['name'].'</h2>' . "\n" .
-					'<div id="'.$line['abbreviation'].'" style="';
-					if ($line['hidden']==1) {
-						$tpl_boards .= 'display: none;';
+					if (KU_MENUTYPE == 'normal') {
+						$tpl_boards .= '<span class="plus" onclick="toggle(this, \''.$line['abbreviation'].'\');" title="'._gettext('Click to show/hide').'">';
+						if ($line['hidden']==1) {
+							$tpl_boards .= '+';
+						} else {
+							$tpl_boards .= '&minus;';
+						}
+						$tpl_boards .= '</span>&nbsp;';
 					}
-					$tpl_boards .= '">' . "\n" .
-					'<ul>' . "\n";
+					$tpl_boards .= $line['name'].'</h2>' . "\n";
+					if (KU_MENUTYPE == 'normal') {
+						$tpl_boards .= '<div id="'.$line['abbreviation'].'" style="';
+						if ($line['hidden']==1) {
+							$tpl_boards .= 'display: none;';
+						}
+						$tpl_boards .= '">' . "\n";
+					}
+					$tpl_boards .= '<ul>' . "\n";
 					$resultsboard = $tc_db->GetAll("SELECT `name`, `desc`, `locked`, `trial`, `popular` FROM `".KU_DBPREFIX."boards` WHERE `section` = ".$line['id']." ORDER BY `order` ASC");
 					if (count($resultsboard)>0) {
 						foreach($resultsboard AS $lineboard) {
-							$tpl_boards .= '	<li><a href="'.KU_BOARDSPATH.'/'.$lineboard['name'].'/" target="main">';
+							$tpl_boards .= '	<li><a href="'.KU_BOARDSPATH.'/'.$lineboard['name'].'/" class="boardlink">';
 							if ($lineboard['trial']==1) { $tpl_boards .= '<i>'; }
 							if ($lineboard['popular']==1) { $tpl_boards .= '<b>'; }
 							if ($i == 1) {
@@ -141,13 +171,15 @@ class Menu {
 						_gettext('No visible boards') . "\n" .
 						'</li>' . "\n";
 					}
-					$tpl_boards .= '</ul>' . "\n" .
-					'</div>' . "\n";
+					$tpl_boards .= '</ul>' . "\n";
+					if (KU_MENUTYPE == 'normal') {
+						$tpl_boards .= '</div>' . "\n";
+					}
 				}
 			}
 			$smarty->assign('boards', $tpl_boards);
-			if (KU_MENUSTYLESWITCHER) {
-				$showhidedirs = '<li id="sitestyles"><a onclick="javascript:showstyleswitcher();" href="#">[' . _gettext('Site Styles') . ']</a></li>'. "\n";
+			if (KU_MENUSTYLESWITCHER && KU_MENUTYPE == 'normal') {
+				$showhidedirs = '<li id="sitestyles"><a onclick="javascript:showstyleswitcher();" href="#" target="_self">[' . _gettext('Site Styles') . ']</a></li>'. "\n";
 			} else {
 				$showhidedirs = '';
 			}
@@ -157,11 +189,11 @@ class Menu {
 					$smarty->assign('redirscript', "\n" . 'if (getCookie(\'tcshowdirs\') == \'yes\') {' . "\n" .
 					'	window.location = \'' . KU_WEBPATH . '/' . $files[1] . '\';' . "\n" .
 					'}' . "\n");
-					$smarty->assign('showhidedirs', $showhidedirs . '<li><a onclick="javascript:showdirs();" href="' . $files[1] . '">['._gettext('Show Directories').']</a></li>');
+					$smarty->assign('showhidedirs', $showhidedirs . '<li><a onclick="javascript:showdirs();" href="' . $files[1] . '" target="_self">['._gettext('Show Directories').']</a></li>');
 					file_put_contents(KU_ROOTDIR . $files[0], $smarty->fetch('menu.tpl'));
 				} else {
 					$smarty->assign('redirscript', '');
-					$smarty->assign('showhidedirs', $showhidedirs . '<li><a onclick="javascript:hidedirs();" href="' . $files[0] . '">['._gettext('Hide Directories').']</a></li>');
+					$smarty->assign('showhidedirs', $showhidedirs . '<li><a onclick="javascript:hidedirs();" href="' . $files[0] . '" target="_self">['._gettext('Hide Directories').']</a></li>');
 					file_put_contents(KU_ROOTDIR . $files[1], $smarty->fetch('menu.tpl'));
 				}
 			} else {
@@ -169,14 +201,14 @@ class Menu {
 					$smarty->assign('redirscript', "\n" . 'if (getCookie(\'tcshowdirs\') == \'yes\') {' . "\n" .
 					'	window.location = \'' . KU_WEBPATH . '/' . $files[1] . '\';' . "\n" .
 					'}' . "\n");
-					$smarty->assign('showhidedirs', $showhidedirs . '<li><a onclick="javascript:showdirs();" href="' . $files[1] . '">['._gettext('Show Directories').']</a></li>');
+					$smarty->assign('showhidedirs', $showhidedirs . '<li><a onclick="javascript:showdirs();" href="' . $files[1] . '" target="_self">['._gettext('Show Directories').']</a></li>');
 					$menu_nodirs = $smarty->fetch('menu.tpl');
 					if ($option == 'nodirs') {
 						return $menu_nodirs;
 					}
 				} else {
 					$smarty->assign('redirscript', '');
-					$smarty->assign('showhidedirs', $showhidedirs . '<li><a onclick="javascript:hidedirs();" href="' . $files[0] . '">['._gettext('Hide Directories').']</a></li>');
+					$smarty->assign('showhidedirs', $showhidedirs . '<li><a onclick="javascript:hidedirs();" href="' . $files[0] . '" target="_self">['._gettext('Hide Directories').']</a></li>');
 					$menu_dirs = $smarty->fetch('menu.tpl');
 					if ($option == 'dirs') {
 						return $menu_dirs;

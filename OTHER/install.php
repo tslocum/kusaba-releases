@@ -44,7 +44,7 @@ if (file_exists('config.php')) {
 	if (KU_RANDOMSEED!="ENTER RANDOM LETTERS/NUMBERS HERE"&&KU_RANDOMSEED!="") {
 		echo 'Configuration appears correct.';
 		echo '<h2>Checking database...</h2>';
-		$reqiredtables = array("banlist","bannedhashes","blotter","boards","board_filetypes","events","filetypes","loginattempts","modlog","module_settings","news","passcache","reports","sections","staff","watchedthreads","wordfilter");
+		$reqiredtables = array("banlist","bannedhashes","blotter","boards","board_filetypes","events","filetypes","loginattempts","modlog","module_settings","news","reports","sections","staff","watchedthreads","wordfilter");
 		foreach ($reqiredtables as $tablename) {
 			if (!mysql_table_exists(KU_DBDATABASE,KU_DBPREFIX.$tablename)) {
 				die("Couldn't find the table <b>".KU_DBPREFIX.$tablename."</b> in the database.  Please <a href=\"install-mysql.php\"><b><u>insert the mySQL dump</u></b></a>.");

@@ -39,9 +39,9 @@ class Posting {
 		global $tc_db, $board_class;
 		
 		/* Get the timestamp of the last time a reply was made by this IP address */
-		$results = $tc_db->GetAll("SELECT `postedat` FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `parentid` != 0 AND `ipmd5` = '" . md5($_SERVER['REMOTE_ADDR']) . "' ORDER BY `postedat` DESC LIMIT 1");
+		$results = $tc_db->GetAll("SELECT MAX(postedat) FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `parentid` != 0 AND `ipmd5` = '" . md5($_SERVER['REMOTE_ADDR']) . "' AND `postedat` > " . (time() - KU_REPLYDELAY));
 		/* If they have posted before and it was recorded... */
-		foreach ($results as $line) {
+		if (isset($result)) {
 		/* If the time was shorter than the minimum time distance */
 			if (time() - $line['postedat'] <= KU_REPLYDELAY) {
 				exitWithErrorPage(_gettext('Please wait a moment before posting again.'), _gettext('You are currently posting faster than the configured minimum post delay allows.'));
@@ -53,11 +53,11 @@ class Posting {
 		global $tc_db, $board_class;
 		
 		/* Get the timestamp of the last time a new thread was made by this IP address */
-		$results = $tc_db->GetAll("SELECT `postedat` FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `parentid` = 0 AND `ipmd5` = '" . md5($_SERVER['REMOTE_ADDR']) . "' ORDER BY `postedat` DESC LIMIT 1");
+		$result = $tc_db->GetOne("SELECT MAX(postedat) FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `parentid` = 0 AND `ipmd5` = '" . md5($_SERVER['REMOTE_ADDR']) . "' AND `postedat` > " . (time() - KU_NEWTHREADDELAY));
 		/* If they have posted before and it was recorded... */
-		foreach ($results as $line) {
+		if (isset($result)) {
 			/* If the time was shorter than the minimum time distance */
-			if (time() - $line['postedat'] <= KU_NEWTHREADDELAY) {
+			if (time() - $result <= KU_NEWTHREADDELAY) {
 				exitWithErrorPage(_gettext('Please wait a moment before posting again.'), _gettext('You are currently posting faster than the configured minimum post delay allows.'));
 			}
 		}
@@ -83,7 +83,30 @@ class Posting {
 	function CheckValidPost($is_oekaki) {
 		global $tc_db, $board_class;
 		
-		if ((isset($_POST['message']) || isset($_FILES['imagefile'])) || $is_oekaki || ($board_class->board_type == '1' && isset($_POST['message'])) || (($board_class->board_uploadtype == '1' || $board_class->board_uploadtype == '2') && isset($_POST['embed']))) {
+		if (
+			( /* A message is set, or an image was provided */
+				isset($_POST['message']) ||
+				isset($_FILES['imagefile'])
+			) || /* It is a validated oekaki posting */
+			$is_oekaki ||
+			( /* It is a text board, meaning only a message is required */
+				$board_class->board_type == '1' &&
+				isset($_POST['message'])
+			) || (
+				( /* It has embedding allowed */
+						$board_class->board_uploadtype == '1' ||
+						$board_class->board_uploadtype == '2'
+				) && ( /* An embed ID was provided, or no file was checked and no ID was supplied */
+						isset($_POST['embed']) ||
+						(
+							$board_class->board_uploadtype == '2' &&
+							!isset($_FILES['imagefile']) &&
+							isset($_POST['nofile']) &&
+							$board_class->board_enablenofile == true
+						)
+				)
+			)
+		) {
 			return true;
 		} else {
 			return false;
@@ -121,11 +144,9 @@ class Posting {
 			if ($_FILES['imagefile']['name'] != '') {
 				$results = $tc_db->GetAll("SELECT `bantime` , `description` FROM `" . KU_DBPREFIX . "bannedhashes` WHERE `md5` = '" . mysql_real_escape_string(md5_file($_FILES['imagefile']['tmp_name'])) . "' LIMIT 1");
 				if (count($results) > 0) {
-					foreach ($results as $line) {
-						$bans_class->BanUser($_SERVER['REMOTE_ADDR'], 'SERVER', '1', $line['bantime'], '', 'Posting a banned file.<br>' . $line['description'], 0, 0, 1);
+						$bans_class->BanUser($_SERVER['REMOTE_ADDR'], 'SERVER', '1', $results[0]['bantime'], '', 'Posting a banned file.<br>' . $results[0]['description'], 0, 0, 1);
 						$bans_class->BanCheck($_SERVER['REMOTE_ADDR'], $board_class->board_dir);
 						die();
-					}
 				}
 			}
 		}
@@ -156,8 +177,8 @@ class Posting {
 	function CheckNotDuplicateSubject($subject) {
 		global $tc_db, $board_class;
 		
-		$results = $tc_db->GetOne("SELECT COUNT(*) FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `IS_DELETED` = '0' AND `subject` = '" . mysql_real_escape_string($subject) . "' AND `parentid` = '0' LIMIT 1");
-		if ($results > 0) {
+		$result = $tc_db->GetOne("SELECT COUNT(*) FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `IS_DELETED` = '0' AND `subject` = '" . mysql_real_escape_string($subject) . "' AND `parentid` = '0'");
+		if ($result > 0) {
 			exitWithErrorPage(_gettext('Duplicate thread subject'), _gettext('Text boards may have only one thread with a unique subject.  Please pick another.'));
 		}
 	}
@@ -165,22 +186,20 @@ class Posting {
 	function GetThreadInfo($id) {
 		global $tc_db, $board_class;
 		
-		/* Check if the thread id supplied really exists */
+		/* Check if the thread id supplied really exists and if it is locked */
 		$results = $tc_db->GetAll("SELECT `id`,`locked` FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `IS_DELETED` = '0' AND `id` = '" . mysql_real_escape_string($id) . "' AND `parentid` = '0'");
 		/* If it does... */
 		if (count($results) > 0) {
 			/* Get the thread's info */
-			foreach ($results as $line) {
-				$thread_locked = $line['locked'];
-				$thread_replyto = $line['id'];
-			}
+			$thread_locked = $results[0]['locked'];
+			$thread_replyto = $results[0]['id'];
 			/* Get the number of replies */
-			$results = $tc_db->GetAll("SELECT `id` FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `IS_DELETED` = '0' AND `parentid` = '" . mysql_real_escape_string($id) . "'");
-			$thread_replies = count($results);
+			$result = $tc_db->GetOne("SELECT COUNT(id) FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `IS_DELETED` = '0' AND `parentid` = '" . mysql_real_escape_string($id) . "'");
+			$thread_replies = $result;
 			
 			return array($thread_replies, $thread_locked, $thread_replyto);
 		} else {
-			/* Kill the script, stopping the posting process */
+			/* If it doesn't, kill the script, stopping the posting process */
 			exitWithErrorPage(_gettext('Invalid thread ID.'), _gettext('That thread may have been recently deleted.'));
 		}
 	}
@@ -207,22 +226,21 @@ class Posting {
 			$results = $tc_db->GetAll("SELECT `type`, `boards` FROM `" . KU_DBPREFIX . "staff` WHERE `username` = '" . md5_decrypt($_POST['modpassword'], KU_RANDOMSEED) . "' LIMIT 1");
 			
 			if (count($results) > 0) {
-				if (isset($_POST['displaystaffstatus'])) $flags .= 'D';
-				if (isset($_POST['lockonpost'])) $flags .= 'L';
-				if (isset($_POST['stickyonpost'])) $flags .= 'S';
-				if (isset($_POST['rawhtml'])) $flags .= 'RH';
-				if (isset($_POST['usestaffname'])) $flags .= 'N';
-				
 				if ($results[0][0] == 1) {
-					$user_authority = 1;
+					$user_authority = 1; /* admin */
 				} elseif ($results[0][0] == 2 && in_array($board_class->board_dir, explode('|', $results[0][1]))) {
+					$user_authority = 2; /* mod */
+				} elseif ($results[0][0] == 2 && $results[0][1] == 'allboards') {
 					$user_authority = 2;
+				} elseif ($results[0][0] == 3) {
+					$user_authority = 3; /* VIP */
 				}
-			} else {
-				$vip_valid = $tc_db->GetOne("SELECT COUNT(*) FROM `" . KU_DBPREFIX . "staff` WHERE `username` = '" . mysql_real_escape_string($_POST['modpassword']) . "' AND `type` = '3' LIMIT 1");
-			
-				if ($vip_valid > 0) {
-					$user_authority = 3;
+				if ($user_authority < 3) { /* set posting flags for mods and admins */
+					if (isset($_POST['displaystaffstatus'])) $flags .= 'D';
+					if (isset($_POST['lockonpost'])) $flags .= 'L';
+					if (isset($_POST['stickyonpost'])) $flags .= 'S';
+					if (isset($_POST['rawhtml'])) $flags .= 'RH';
+					if (isset($_POST['usestaffname'])) $flags .= 'N';
 				}
 			}
 		}
@@ -274,15 +292,17 @@ class Posting {
 		/* Check for and parse tags if one was provided, and they are enabled */
 		$post_tag = '';
 		$tags = unserialize(KU_TAGS);
-		if ($board_class->board_type == 3 && $tags != '' && $_POST['tag'] != '') {
-			$validtag = false;
-			while (list($tag, $tag_abbr) = each($tags)) {
-				if ($tag_abbr == $_POST['tag']) {
-					$validtag = true;
+		if ($board_class->board_type == 3 && $tags != '' && isset($_POST['tag'])) {
+			if ($_POST['tag'] != '') {
+				$validtag = false;
+				while (list($tag, $tag_abbr) = each($tags)) {
+					if ($tag_abbr == $_POST['tag']) {
+						$validtag = true;
+					}
 				}
-			}
-			if ($validtag) {
-				$post_tag = $_POST['tag'];
+				if ($validtag) {
+					$post_tag = $_POST['tag'];
+				}
 			}
 		}
 		
@@ -291,13 +311,13 @@ class Posting {
 	
 	function CheckBlacklistedText() {
 		global $bans_class;
-		$badlinks = file(KU_ROOTDIR . 'spam.txt');
-		
+		$badlinks = array_map('rtrim', file(KU_ROOTDIR . 'spam.txt'));
+
 		foreach ($badlinks as $badlink) {
-			if (strpos($_POST['message'], substr($badlink, 0, -1)) !== false) {
+			if (strpos($_POST['message'], $badlink) !== false) {
 				/* They included a blacklisted link in their post.  Ban them for an hour */
-				$bans_class->BanUser($_SERVER['REMOTE_ADDR'], 'board.php', 1, 3600, '', _gettext('Posting a blacklisted link.') . ' (' . substr($badlink, 0, -1) . ')');
-				exitWithErrorPage('Blacklisted link ('.substr($badlink, 0, -1).') detected.');
+				$bans_class->BanUser($_SERVER['REMOTE_ADDR'], 'board.php', 1, 3600, '', _gettext('Posting a blacklisted link.') . ' (' . $badlink . ')');
+				exitWithErrorPage('Blacklisted link (' . $badlink . ') detected.');
 			}
 		}
 	}

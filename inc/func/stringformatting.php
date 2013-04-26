@@ -37,8 +37,61 @@ function formatNameAndTrip($name, $email, $tripcode, $anonymous = 'Anonymous') {
 	return $output;
 }
 
+function formatDate($timestamp, $type = 'post', $locale = 'en') {
+	if ($type == 'post') {
+		if ($locale == 'ja') {
+			/* Format the timestamp japanese style */
+			$fulldate = strftime("%Y年%m月%d日(DAYOFWEEK)%H時%M分", $timestamp);
+			$dayofweek = strftime("%a", $timestamp);
+			
+			/* I don't like this method, but I can't rely on PHP's locale settings to do it for me... */
+			switch ($dayofweek) {
+			case 'Sun':
+				$dayofweek = '日';
+				break;
+				
+			case 'Mon':
+				$dayofweek = '月';
+				break;
+				
+			case 'Tue':
+				$dayofweek = '火';
+				break;
+				
+			case 'Wed':
+				$dayofweek = '水';
+				break;
+				
+			case 'Thu':
+				$dayofweek = '木';
+				break;
+				
+			case 'Fri':
+				$dayofweek = '金';
+				break;
+				
+			case 'Sat':
+				$dayofweek = '土';
+				break;
+				
+			default:
+				break; /* Leave it as the english term */
+				
+			}
+			
+			$fulldate = str_replace('DAYOFWEEK', $dayofweek, $fulldate);
+			return $fulldate;
+		} else {
+			/* Format the timestamp english style */
+			return date("y/m/d(D)H:i", $timestamp);
+		}
+	}
+	
+	return date("y/m/d(D)H:i", $timestamp);
+}
+
 /**
- * Will check if there is already a cached version of the name string in the database, and if so, get it, instead of recalculating it
+ * Calculate the different name and tripcode for the name field provided
  *
  * @param string $post_name Text entered in the Name field 
  * @return array Name and tripcode
@@ -47,86 +100,81 @@ function calculateNameAndTripcode($post_name) {
 	global $tc_db;
 	
 	if(ereg("(#|!)(.*)", $post_name, $regs)){
-		$results = $tc_db->GetAll("SELECT `name`, `tripcode` FROM `".KU_DBPREFIX."passcache` WHERE `md5` = '".md5($post_name)."' LIMIT 1");
-		if (isset($results[0])) {
-			return array($results[0][0], $results[0][1]);
-		} else {
-			$cap = $regs[2];
-			$cap_full = '#' . $regs[2];
-			
-			// {{{ Special tripcode check
-			
-			$trips = unserialize(KU_TRIPS);
-			if (count($trips) > 0) {
-				if (isset($trips[$cap_full])) {
-					$forcedtrip = $trips[$cap_full];
-					return array(ereg_replace("(#)(.*)", "", $post_name), $forcedtrip);
-				}
+		$cap = $regs[2];
+		$cap_full = '#' . $regs[2];
+		
+		// {{{ Special tripcode check
+		
+		$trips = unserialize(KU_TRIPS);
+		if (count($trips) > 0) {
+			if (isset($trips[$cap_full])) {
+				$forcedtrip = $trips[$cap_full];
+				return array(ereg_replace("(#)(.*)", "", $post_name), $forcedtrip);
 			}
-			
-			// }}}
-			
-			if (function_exists('mb_convert_encoding')) {
-				$recoded_cap = mb_convert_encoding($cap, 'SJIS', 'UTF-8');
-				if ($recoded_cap != '') {
-					$cap = $recoded_cap;
-				}
-			}
-			
-			if (strpos($post_name, '#') === false) {
-				$cap_delimiter = '!';
-			} elseif (strpos($post_name, '!') === false) {
-				$cap_delimiter = '#';
-			} else {
-				$cap_delimiter = (strpos($post_name, '#') < strpos($post_name, '!')) ? '#' : '!';
-			}
-			
-			if (ereg("(.*)(" . $cap_delimiter . ")(.*)", $cap, $regs_secure)) {
-				$cap = $regs_secure[1];
-				$cap_secure = $regs_secure[3];
-				$is_secure_trip = true;
-			} else {
-				$is_secure_trip = false;
-			}
-			
-			$tripcode = '';
-			if ($cap != '') {
-				/* From Futabally */
-				$cap = strtr($cap, "&amp;", "&");
-				$cap = strtr($cap, "&#44;", ", ");
-				$salt = substr($cap."H.", 1, 2);
-				$salt = ereg_replace("[^\.-z]", ".", $salt);
-				$salt = strtr($salt, ":;<=>?@[\\]^_`", "ABCDEFGabcdef"); 
-				$tripcode = substr(crypt($cap, $salt), -10);
-			}
-			
-			if ($is_secure_trip) {
-				if ($cap != '') {
-					$tripcode .= '!';
-				}
-				
-				$secure_tripcode = md5($cap_secure . KU_RANDOMSEED);
-				if (function_exists('base64_encode')) {
-					$secure_tripcode = base64_encode($secure_tripcode);
-				}
-				if (function_exists('str_rot13')) {
-					$secure_tripcode = str_rot13($secure_tripcode);
-				}
-				
-				$secure_tripcode = substr($secure_tripcode, 2, 10);
-				
-				$tripcode .= '!' . $secure_tripcode;
-			}
-			
-			$name = ereg_replace("(" . $cap_delimiter . ")(.*)", "", $post_name);
-			
-			$tc_db->Execute("INSERT INTO `".KU_DBPREFIX."passcache` ( `md5` , `name` , `tripcode` ) VALUES ( '" . md5($post_name) . "' , '" . $name . "' , '" . $tripcode . "' )");
-			
-			return array($name, $tripcode);
 		}
-	} else {
-		return $post_name;
+		
+		// }}}
+		
+		if (function_exists('mb_convert_encoding')) {
+			$recoded_cap = mb_convert_encoding($cap, 'SJIS', 'UTF-8');
+			if ($recoded_cap != '') {
+				$cap = $recoded_cap;
+			}
+		}
+		
+		if (strpos($post_name, '#') === false) {
+			$cap_delimiter = '!';
+		} elseif (strpos($post_name, '!') === false) {
+			$cap_delimiter = '#';
+		} else {
+			$cap_delimiter = (strpos($post_name, '#') < strpos($post_name, '!')) ? '#' : '!';
+		}
+		
+		if (ereg("(.*)(" . $cap_delimiter . ")(.*)", $cap, $regs_secure)) {
+			$cap = $regs_secure[1];
+			$cap_secure = $regs_secure[3];
+			$is_secure_trip = true;
+		} else {
+			$is_secure_trip = false;
+		}
+		
+		$tripcode = '';
+		if ($cap != '') {
+			/* From Futabally */
+			$cap = strtr($cap, "&amp;", "&");
+			$cap = strtr($cap, "&#44;", ", ");
+			$salt = substr($cap."H.", 1, 2);
+			$salt = ereg_replace("[^\.-z]", ".", $salt);
+			$salt = strtr($salt, ":;<=>?@[\\]^_`", "ABCDEFGabcdef"); 
+			$tripcode = substr(crypt($cap, $salt), -10);
+		}
+		
+		if ($is_secure_trip) {
+			if ($cap != '') {
+				$tripcode .= '!';
+			}
+			
+			$secure_tripcode = md5($cap_secure . KU_RANDOMSEED);
+			if (function_exists('base64_encode')) {
+				$secure_tripcode = base64_encode($secure_tripcode);
+			}
+			if (function_exists('str_rot13')) {
+				$secure_tripcode = str_rot13($secure_tripcode);
+			}
+			
+			$secure_tripcode = substr($secure_tripcode, 2, 10);
+			
+			$tripcode .= '!' . $secure_tripcode;
+		}
+		
+		$name = ereg_replace("(" . $cap_delimiter . ")(.*)", "", $post_name);
+		
+		$tc_db->Execute("INSERT INTO `".KU_DBPREFIX."passcache` ( `md5` , `name` , `tripcode` ) VALUES ( '" . md5($post_name) . "' , '" . $name . "' , '" . $tripcode . "' )");
+		
+		return array($name, $tripcode);
 	}
+	
+	return $post_name;
 }
 
 /**
@@ -154,7 +202,7 @@ function formatLongMessage($message, $board, $threadid, $page) {
 		$message_shortened = closeOpenTags($message_shortened);
 		
 		$output = $message_shortened . '<div class="abbrev">' . "\n" .
-		'	' . sprintf(_gettext('Comment too long. Click %shere%s to view the full text.'), '<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">', '</a>') . "\n" .
+		'	' . sprintf(_gettext('Message too long. Click %shere%s to view the full text.'), '<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">', '</a>') . "\n" .
 		'</div>' . "\n";
 	} else {
 		$output .= $message . "\n";
@@ -245,5 +293,19 @@ function unistr_to_ords($str, $encoding = 'UTF-8'){
 		$ords[] = $val[1];               
 	}       
 	return($ords);
+}
+
+function processPost($id, $newthreadid, $oldthreadid) {
+	global $tc_db, $board_from, $board_to;
+	
+	$message = $tc_db->GetOne("SELECT `message` FROM " . KU_DBPREFIX . "posts_" . $board_to . " WHERE `id` = " . $id . " LIMIT 1");
+	
+	if ($message != '') {
+		$message_new = str_replace('/read.php/' . $board_from . '/' . $oldthreadid, '/read.php/' . $board_to . '/' . $newthreadid, $message);
+		
+		if ($message_new != $message) {
+			$tc_db->GetOne("UPDATE " . KU_DBPREFIX . "posts_" . $board_to . " SET `message` = '" . mysql_real_escape_string($message) . "' WHERE `id` = " . $id);
+		}
+	}
 }
 ?>

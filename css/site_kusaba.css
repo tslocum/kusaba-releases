@@ -1,20 +1,22 @@
 body {
 	font-family: sans-serif;
 	font-size: 75%;
-	background: #85d603;
-	color: #1b2b01;
+	background: #EEFFEE;
+	color: #000000;
 	margin: 0;
 	width: 90%;
 }
 
 h2 {
 	margin: 0px;
-	background: #008a00;
+	background: #DAF0D6;
+	color: #117743;
+	font-size: 100%;
 }
 
 h2 a {
 	text-decoration: none;
-	color: #1b2b01;
+	color:#345C34;
 }
 
 h1, h3, .menu {
@@ -23,14 +25,14 @@ h1, h3, .menu {
 
 h1 {
 	margin: 0;
-	color: #800;
+	/*color: #800;*/
 	text-align: center;
 	margin-top: 1em;
 }
 
 h3 {
 	margin: 0;
-	color: #800;
+	/*color: #800;*/
 	text-align: center;
 	font-weight: normal;
 	font-size: medium;

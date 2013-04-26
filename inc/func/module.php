@@ -75,9 +75,9 @@ function module_load($module) {
 		
 		/* The module was loaded, return true to show that it was a success */
 		return true;
-	} else {
-		return false;
 	}
+	
+	return false;
 }
 
 /* Call a module's function, such as module_init() */
@@ -85,12 +85,12 @@ function module_call_function($module, $function, $data = null) {
 	if (function_exists($module . '_' . $function)) {
 		if ($data == null) {
 			return call_user_func($module . '_' . $function);
-		} else {
-			return call_user_func($module . '_' . $function, $data);
 		}
-	} else {
-		return false;
+		
+		return call_user_func($module . '_' . $function, $data);
 	}
+	
+	return false;
 }
 
 function module_setting_get($module, $key) {

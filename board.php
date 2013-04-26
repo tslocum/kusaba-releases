@@ -164,7 +164,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 		}
 	}
 	
-	$results = $tc_db->GetAll("SHOW TABLE STATUS LIKE '".KU_DBPREFIX."posts_".$board_class->board_dir."'");
+	$results = $tc_db->GetAll("SHOW TABLE STATUS LIKE '" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "'");
 	$nextid = $results[0]['Auto_increment'];
 	$parse_class->id = $nextid;
 	
@@ -234,7 +234,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 	}
 	
 	if ($board_class->board_locked == 0 || ($user_authority > 0 && $user_authority != 3)) {
-		require_once(KU_ROOTDIR . 'inc/classes/upload.class.php');
+		require_once KU_ROOTDIR . 'inc/classes/upload.class.php';
 		$upload_class = new Upload();
 		if ($post_isreply) {
 			$upload_class->isreply = true;
@@ -462,7 +462,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 }
 
 if (KU_RSS) {
-	require_once(KU_ROOTDIR . 'inc/classes/rss.class.php');
+	require_once KU_ROOTDIR . 'inc/classes/rss.class.php';
 	$rss_class = new RSS();
 	
 	print_page(KU_BOARDSDIR.$_POST['board'].'/rss.xml',$rss_class->GenerateRSS($_POST['board']),$_POST['board']);

@@ -12,9 +12,9 @@ body {
 <body>
 <h1 style="font-size: 3em;">Error</h1>
 <br>
-<div style="font-size: 2em;font-weight: bold;text-align: center;background-color: #fca;">
+<h2 style="font-size: 2em;font-weight: bold;text-align: center;">
 {$errormsg}
-</div>
+</h2>
 {$errormsgext}
 <div style="text-align: center;width: 100%;position: absolute;bottom: 10px;">
 {$footer}

@@ -56,13 +56,16 @@ if ($kusabaorg) {
 </head>
 <?php
 if (isset($_GET['info'])) {
-	require_once KU_ROOTDIR . 'inc/module.php';
+	require KU_ROOTDIR . 'inc/functions.php';
 	
 	echo '<body>';
 	
 	echo '<h1>General info:</h1><ul>';
+	echo '<li>Version: kusaba ' . KU_VERSION . '</li>';
 	$bans = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."banlist`");
 	echo '<li>Active bans: ' . $bans . '</li>';
+	$wordfilters = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."wordfilter`");
+	echo '<li>Wordfilters: ' . $wordfilters . '</li>';
 	echo '<li>Modules loaded: ';
 	$modules = modules_list();
 	if (count($modules) > 0) {
@@ -83,8 +86,9 @@ if (isset($_GET['info'])) {
 }
 
 $menufile = (KU_STATICMENU) ? 'menu.html' : 'menu.php';
+$menusize = (KU_MENUTYPE == 'normal') ? '18%' : '10%';
 ?>
-<frameset cols="18%,*" frameborder="0" border="0">
+<frameset cols="<?php echo $menusize; ?>,*" frameborder="0" border="0">
 <frame src="<?php echo $menufile; ?>" name="menu" id="menu">
 <frame src=news.php name="main" id="main">
 <noframes>

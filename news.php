@@ -93,7 +93,7 @@ if ($_GET['p']=='faq') {
 	echo file_get_contents(KU_ROOTDIR.'inc/pages/rules.html');
 } else {
 	if (isset($kusabaorg)) {
-		echo '<div class="content" style=""><span style="font-size: 1.4em;"><b>Current release:</b> 1.0.1 - <a href="http://rel.kusaba.org/kusabav101.zip">Quick Download (Install)</a> - For more information/upgrading, click the Download link above.</span></div>';
+		echo '<div class="content" style=""><span style="font-size: 1.4em;"><b>Current release:</b> 1.0.2 - <a href="http://rel.kusaba.org/kusabav102.zip">Quick Download (Install)</a> - For more information/upgrading, click the Download link above.</span></div>';
 	}
 	$entries = 0;
 	/* Get all of the news entries, ordered with the newest one placed on top */

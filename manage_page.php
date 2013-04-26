@@ -54,7 +54,7 @@ if (isset($_GET['graph'])) {
 			if ($_GET['type'] == 'day') {
 				$graph->setTitle('Posts per board in past 24hrs');
 				
-				$results = $ku_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards` ORDER BY `name` ASC");
+				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards` ORDER BY `name` ASC");
 				if (count($results) > 0) {
 					$data = array();
 					foreach ($results as $line) {
@@ -150,8 +150,6 @@ if (isset($_GET['graph'])) {
 /* Do these tasks each time manage.php is loaded */
 /* Doesn't matter if this is run by a non-mod */
 $bans_class->RemoveExpiredBans();
-/* Doesn't matter if this is run by a non-mod */
-delete_accepted_reports();
 /* Does nothing if the user isn't logged in */
 $manage_class->SetModerationCookies();
   
@@ -191,18 +189,6 @@ function manage_page($action = 'posting_rates') {
     
     $manage_class->Footer();
 }
-  
-/* Deletes reports that have the reported post has been deleted */
-function delete_accepted_reports() {
-    /*    global $tc_db;
-    $results = $tc_db->GetAll("SELECT ".KU_DBPREFIX."reports.id FROM ".KU_DBPREFIX."reports JOIN ".KU_DBPREFIX."posts ON ".KU_DBPREFIX."reports.postid = ".KU_DBPREFIX."posts.id AND ".KU_DBPREFIX."reports.boardid = ".KU_DBPREFIX."posts.boardid WHERE ".KU_DBPREFIX."posts.IS_DELETED = 1");
-    if (count($results)>0) {
-    foreach($results AS $line) {
-    $tc_db->Execute("DELETE FROM ".KU_DBPREFIX."reports WHERE id = ".$line['id']."");
-    }
-    }*/
-}
-//Devnote:  Broken, needs to be fixed
 
 /* Check if a tab is currently open */
 function pagetaken_check($pagename) {

@@ -58,20 +58,26 @@ function management_addlogentry($entry, $category = 0, $forceusername = '') {
 	}
 }
 
+function sendStaffMail($subject, $message) {
+	$emails = split(':', KU_APPEAL);
+	$expires = ($line['until'] > 0) ? date("F j, Y, g:i a", $line['until']) : 'never';
+	foreach ($emails as $email) {
+		@mail($email, $subject, $message, 'From: "' . KU_NAME . '" <kusaba@noreply' . KU_DOMAIN . '>'  . "\r\n" . 'Reply-To: kusaba@noreply' . KU_DOMAIN . "\r\n" . 'X-Mailer: kusaba' . KU_VERSION . '/PHP' . phpversion());
+	}
+}
+
 /* Depending on the configuration, use either a meta refresh or a direct header */
 function do_redirect($url, $ispost = false, $file = '') {
 	global $board_class;
 	
 	if ($ispost && $file != '') {
-		echo sprintf(_gettext('%s uploaded.', $file)) . ' ' . _gettext('Upating pages.');
+		echo sprintf(_gettext('%s uploaded.'), $file) . ' ' . _gettext('Updating pages.');
 	} elseif ($ispost) {
-		echo _gettext('Post added.') . ' ' . _gettext('Upating pages.');
+		echo _gettext('Post added.') . ' ' . _gettext('Updating pages.'); # TEE COME BACK
 	} else {
 		echo '---> ---> --->';
 	}
 	
-	echo '<meta http-equiv="refresh" content="1;url=' . $url . '">';
-	
-	die();
+	die('<meta http-equiv="refresh" content="1;url=' . $url . '">');
 }
 ?>

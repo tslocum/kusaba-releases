@@ -8,7 +8,7 @@ a {
 }
 
 h1, h2 {
-	background: #008a00;
+	background: #DAF0D6;
 	text-align: left;
 }
 
@@ -29,9 +29,9 @@ h2 {
 	font-weight: normal;
 	padding: 1px 4px 2px 4px;
 	margin: 0px 0px;
-	background: #b2d203;
+	background: #88DD88;
 	color: #000;
-	border: 1px solid #008a00;
+	border: 1px solid #117743;
 	cursor: hand;
 	cursor: pointer;
 }
@@ -52,7 +52,7 @@ li {
 }
 
 li:hover {
-	background: #b2d203;
+	background: #DAF0D6;
 }
 
 li a {

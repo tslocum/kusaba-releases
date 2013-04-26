@@ -10,10 +10,10 @@
 <div style="margin: 3em;">
 	<h2>&nbsp;{$youarebanned}</h2>
 	<img src="{$ku_boardspath}/youarebanned.jpg" style="float: right;" alt=":'(">
-	You have been banned from posting on <b>{$boards}</b> for the following reason:<br><br>
+	{$youhavebeenbannedfrompostingon} <b>{$boards}</b> {$forthefollowingreason}:<br><br>
 	<b>{$reason}</b><br><br>
-	Your ban was placed on <b>{$at}</b>, and {$expires}.<br><br>
-	Your IP address is <b>{$ip}</b>.<br><br>
+	{$yourbanwasplacedon} <b>{$at}</b>, {$and} {$expires}.<br><br>
+	{$youripaddressis} <b>{$ip}</b>.<br><br>
 	{$appeal}
 </div>
 </body>

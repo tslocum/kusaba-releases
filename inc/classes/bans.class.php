@@ -108,6 +108,11 @@ class Bans {
 		
 		require_once KU_ROOTDIR . 'lib/smarty.php';
 		
+		$smarty->assign('yourbanwasplacedon', _gettext('Your ban was placed on'));
+		$smarty->assign('and', _gettext('and'));
+		$smarty->assign('youripaddressis', _gettext('Your IP address is'));
+		$smarty->assign('youhavebeenbannedfrompostingon', _gettext('You have been banned from posting on'));
+		$smarty->assign('forthefollowingreason', _gettext('for the following reason'));
 		$smarty->assign('title', _gettext('YOU ARE BANNED') . '!');
 		$smarty->assign('ku_slogan', KU_SLOGAN);
 		$smarty->assign('youarebanned', _gettext('YOU ARE BANNED') . ' :\'(');
@@ -119,24 +124,24 @@ class Bans {
 		$smarty->assign('reason', $reason);
 		$smarty->assign('at', date("F j, Y, g:i a", $at));
 		if ($until > 0) {
-			$smarty->assign('expires', 'will expire on <b>' . date("F j, Y, g:i a", $until) . '</b>');
+			$smarty->assign('expires', _gettext('will expire on') . ' <b>' . date("F j, Y, g:i a", $until) . '</b>');
 		} else {
-			$smarty->assign('expires', '<b>will not expire</b>');
+			$smarty->assign('expires', '<b>' . _gettext('will not expire') . '</b>');
 		}
 		$smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
 		
 		if (KU_APPEAL != '') {
 			if ($appealat == 0) {
-				$smarty->assign('appeal', 'You may <b>not</b> appeal this ban.');
+				$smarty->assign('appeal', _gettext('You may <b>not</b> appeal this ban.'));
 			} elseif ($appealat == -1) {
-				$smarty->assign('appeal', 'Your appeal is currently pending review.');
+				$smarty->assign('appeal', _gettext('Your appeal is currently pending review.'));
 			} elseif ($appealat == -2) {
-				$smarty->assign('appeal', 'Your appeal was reviewed and denied.  You may <b>not</b> appeal this ban again.');
+				$smarty->assign('appeal', _gettext('Your appeal was reviewed and denied.  You may <b>not</b> appeal this ban again.'));
 			} else {
 				if ($appealat < time()) {
-					$smarty->assign('appeal', 'You may now appeal this ban.<br><br><form action="' . KU_BOARDSPATH . '/banned.php" method="post"><label for="appealmessage">Appeal Message:</label><br><textarea name="appealmessage" rows="10" cols="50"></textarea><br><input type="submit" value="Send Appeal"></form>');
+					$smarty->assign('appeal', _gettext('You may now appeal this ban.') . '<br><br><form action="' . KU_BOARDSPATH . '/banned.php" method="post"><label for="appealmessage">' . _gettext('Appeal Message') . ':</label><br><textarea name="appealmessage" rows="10" cols="50"></textarea><br><input type="submit" value="' . _gettext('Send Appeal') . '"></form>');
 				} else {
-					$smarty->assign('appeal', 'You may appeal this ban in <b>' . (substr(timeDiff($appealat, true, 2), 0, -1)) . '</b>.');
+					$smarty->assign('appeal', _gettext('You may appeal this ban in') . ' <b>' . (substr(timeDiff($appealat, true, 2), 0, -1)) . '</b>.');
 				}
 			}
 		} else {

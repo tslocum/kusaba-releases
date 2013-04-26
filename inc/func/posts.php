@@ -6,12 +6,16 @@
  * @return string Embedded video
  */ 
 function embeddedVideoBox($post) {
-	$output = '<span style="float: left;">';
+	$output = '<span style="float: left;">' . "\n";
 				
 	if ($post['filetype'] == 'you') {
-		$output .= '<object width="200" height="164"><param name="movie" value="http://www.youtube.com/v/' . $post['filename'] . '"></param><param name="wmode" value="transparent"></param><embed src="http://www.youtube.com/v/' . $post['filename'] . '" type="application/x-shockwave-flash" wmode="transparent" width="200" height="164"></embed></object>';
+		$output .= '<script type="text/javascript"><!--' . "\n" .
+		'document.write(\'<object width="' . KU_YOUTUBEWIDTH . '" height="' . KU_YOUTUBEHEIGHT . '"><param name="movie" value="http://www.youtube.com/v/' . $post['filename'] . '"><\/param><param name="wmode" value="transparent"><\/param><embed src="http://www.youtube.com/v/' . $post['filename'] . '" type="application/x-shockwave-flash" wmode="transparent" width="' . KU_YOUTUBEWIDTH . '" height="' . KU_YOUTUBEHEIGHT . '"><\/embed><\/object>\');' . "\n" .
+		'--></script>' . "\n";
 	} elseif ($post['filetype'] == 'goo') {
-		$output .= '<embed style="width:200px; height:164px;" id="VideoPlayback" type="application/x-shockwave-flash" src="http://video.google.com/googleplayer.swf?docId=' . $post['filename'] . '&hl=en" flashvars=""></embed>';
+		$output .= '<script type="text/javascript"><!--' . "\n" .
+		'document.write(\'<embed style="width:200px; height:164px;" id="VideoPlayback" type="application/x-shockwave-flash" src="http://video.google.com/googleplayer.swf?docId=' . $post['filename'] . '&hl=en" flashvars=""><\/embed>\');' . "\n" .
+		'--></script>' . "\n";
 	}
 	
 	$output .= '</span>&nbsp;' . "\n";
@@ -30,9 +34,9 @@ function checkMd5($md5, $board) {
 		$real_parentid = ($matches[0][1] == 0) ? $matches[0][0] : $matches[0][1];
 		
 		return array($real_parentid, $matches[0][0]);
-	} else {
-		return false;
 	}
+	
+	return false;
 }
 
 /* Image handling */
@@ -173,9 +177,9 @@ function fastImageCopyResampled(&$dst_image, &$src_image, $dst_x, $dst_y, $src_x
 function checkMarkedForDeletion($post, $maxage) {
 	if (!$post['stickied'] && $post['parentid'] == 0 && (($maxage > 0 && ($post['postedat']  + ($maxage * 3600)) < (time() + 7200)) || ($post['deletedat'] > 0 && $post['deletedat'] <= (time() + 7200)))) {
 		return true;
-	} else {
-		return false;
 	}
+	
+	return false;
 }
 
 function textBoardReplyBox($board, $forcedanon, $enablecaptcha, $numreplies = false, $threadid = false, $formid = '') {
@@ -196,9 +200,7 @@ function textBoardReplyBox($board, $forcedanon, $enablecaptcha, $numreplies = fa
 		if ($enablecaptcha == 1) {
 			$output .= textBoardReplyBoxCaptcha();
 		}
-		$output .= textBoardReplyBoxPassword() .
-		'</tr>' . "\n" .
-		'<tr style="display: none;" id="opt' . $threadid . '">';
+		$output .= textBoardReplyBoxPassword();
 	} else {
 		$output .= textBoardReplyBoxEmail();
 		if ($enablecaptcha == 1) {
@@ -212,10 +214,9 @@ function textBoardReplyBox($board, $forcedanon, $enablecaptcha, $numreplies = fa
 			'<tr>' . "\n" .
 			textBoardReplyBoxPassword();
 		}
-		$output .= '</tr>' . "\n" .
-		'<tr style="display: none;" id="opt' . $threadid . '">';
 	}
 	$output .= '</tr>' . "\n" .
+	'<tr style="display: none;" id="opt' . $threadid . '"><td></td></tr>' . "\n" .
 	'<tr>' . "\n" .
 	'	<td class="postfieldleft">' . "\n" .
 	'		<span class="postnum">' . "\n";
@@ -239,7 +240,7 @@ function textBoardReplyBox($board, $forcedanon, $enablecaptcha, $numreplies = fa
 function textBoardReplyBoxSubject() {
 	return '<tr>' . "\n" .
 	'	<td class="label">' . "\n" .
-	'		<label for="subject">' . _gettext('Subject').':</label>' . "\n" .
+	'		<label>' . _gettext('Subject').':</label>' . "\n" .
 	'	</td>' . "\n" .
 	'	<td colspan="4">' . "\n" .//
 	'		<input name="subject" maxlength="75" size="50" style="width: 70%;">' . "\n" .
@@ -249,7 +250,7 @@ function textBoardReplyBoxSubject() {
 
 function textBoardReplyBoxName() {
 	return '	<td class="label">' . "\n" .
-	'		<label for="name">' . _gettext('Name').':</label>' . "\n" .
+	'		<label>' . _gettext('Name').':</label>' . "\n" .
 	'	</td>' . "\n" .
 	'	<td>' . "\n" .
 	'		<input name="name" size="25" maxlength="75">' . "\n" .
@@ -258,7 +259,7 @@ function textBoardReplyBoxName() {
 
 function textBoardReplyBoxEmail() {
 	return '	<td class="label">' . "\n" .
-	'		<label for="em">' . _gettext('Email') . ':</label>' . "\n" .
+	'		<label>' . _gettext('Email') . ':</label>' . "\n" .
 	'	</td>' . "\n" .
 	'	<td>' . "\n" .
 	'		<input name="em" size="25" maxlength="75">' . "\n" .
@@ -277,7 +278,7 @@ function textBoardReplyBoxCaptcha() {
 
 function textBoardReplyBoxPassword() {
 	return  '	<td class="label">' . "\n" .
-	'		<label for="postpassword">' . _gettext('Password') . ':</label>' . "\n" .
+	'		<label>' . _gettext('Password') . ':</label>' . "\n" .
 	'	</td>' . "\n" .
 	'	<td>' . "\n" .
 	'		<input type="password" name="postpassword" size="8" accesskey="p" maxlength="75">' . "\n" .

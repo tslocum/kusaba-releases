@@ -62,9 +62,9 @@ function timeDiff($timestamp,$detailed=false, $max_detail_levels=8, $precision_l
     } else {
     	if ($action != '') {
         	return $time.$action;
-        } else {
-        	return $time;
-		}
+        }
+        
+        return $time;
     }
 }
 

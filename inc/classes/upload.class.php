@@ -76,7 +76,23 @@ class Upload {
 					       exitWithErrorPage('Unknown File Error');
 					}
 					
-					if (!is_file($_FILES['imagefile']['tmp_name']) || !is_readable($_FILES['imagefile']['tmp_name']) || !@getimagesize($_FILES['imagefile']['tmp_name'])) {
+					$this->file_type = preg_replace('/.*(\..+)/','\1',$_FILES['imagefile']['name']);
+					if ($this->file_type == '.jpeg') {
+						/* Fix for the rarely used 4-char format */
+						$this->file_type = '.jpg';
+					}
+					
+					$pass = true;
+					if (!is_file($_FILES['imagefile']['tmp_name']) || !is_readable($_FILES['imagefile']['tmp_name'])) {
+						$pass = false;
+					} else {
+						if ($this->file_type == '.jpg' || $this->file_type == '.gif' || $this->file_type == '.png') {
+							if (!@getimagesize($_FILES['imagefile']['tmp_name'])) {
+								$pass = false;
+							}
+						}
+					}
+					if (!$pass) {
 						exitWithErrorPage(_gettext('File transfer failure.  Please go back and try again.'));
 					}
 					
@@ -87,12 +103,6 @@ class Upload {
 					$exists_thread = checkMd5($this->file_md5, $board_class->board_dir);
 					if (is_array($exists_thread)) {
 						exitWithErrorPage(_gettext('Duplicate file entry detected.'), sprintf(_gettext('Already posted %shere%s.'),'<a href="' . KU_BOARDSPATH . '/' . $board_class->board_dir . '/res/' . $exists_thread[0] . '.html#' . $exists_thread[1] . '">','</a>'));
-					}
-					
-					$this->file_type = preg_replace('/.*(\..+)/','\1',$_FILES['imagefile']['name']);
-					if ($this->file_type == '.jpeg') {
-						/* Fix for the rarely used 4-char format */
-						$this->file_type = '.jpg';
 					}
 					
 					if (strtolower($this->file_type) == 'svg') {
@@ -122,7 +132,7 @@ class Upload {
 								$loadbalancer->url = $board_class->board_loadbalanceurl;
 								$loadbalancer->password = $board_class->board_loadbalancepassword;
 								
-								$response = $loadbalancer->Send('thumbnail', $_FILES['imagefile']['tmp_name'], 'src/' . $this->file_name . $this->file_type, 'thumb/' . $this->file_name . 's' . $this->file_type, 'thumb/' . $this->file_name . 'c' . $this->file_type, '', $this->isreply, true);
+								$response = $loadbalancer->Send('thumbnail', base64_encode(file_get_contents($_FILES['imagefile']['tmp_name'])), 'src/' . $this->file_name . $this->file_type, 'thumb/' . $this->file_name . 's' . $this->file_type, 'thumb/' . $this->file_name . 'c' . $this->file_type, '', $this->isreply, true);
 								
 								if ($response != 'failure' && $response != '') {
 									$response_unserialized = unserialize($response);
@@ -173,10 +183,7 @@ class Upload {
 							}
 						} else {
 							/* Fetch the mime requirement for this special filetype */
-							$results = $tc_db->GetAll("SELECT `mime` FROM `" . KU_DBPREFIX . "filetypes` WHERE `filetype` = '" . mysql_real_escape_string(substr($this->file_type, 1)) . "' LIMIT 1");
-							foreach ($results as $line) {
-								$filetype_required_mime = $line['mime'];
-							}
+							$filetype_required_mime = $tc_db->GetOne("SELECT `mime` FROM `" . KU_DBPREFIX . "filetypes` WHERE `filetype` = '" . mysql_real_escape_string(substr($this->file_type, 1)) . "'");
 							
 							$this->file_name = str_replace(' ', '_', $this->file_name);
 							$this->file_name = str_replace('#', '(number)', $this->file_name);
@@ -187,7 +194,7 @@ class Upload {
 							/* If this board has a load balance url and password configured for it, attempt to use it */
 							if ($board_class->board_loadbalanceurl != '' && $board_class->board_loadbalancepassword != '') {
 								require_once KU_ROOTDIR . 'inc/classes/loadbalancer.class.php';
-								$loadbalancer = new LoadBalancer;
+								$loadbalancer = new Load_Balancer;
 								
 								$loadbalancer->url = $board_class->board_loadbalanceurl;
 								$loadbalancer->password = $board_class->board_loadbalancepassword;

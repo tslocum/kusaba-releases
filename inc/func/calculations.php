@@ -134,9 +134,9 @@ function calculateGlobalPostingRate($board) {
 	
 	if ($times_avg > 0) {
 		return $times_avg;
-	} else {
-		return 0;
 	}
+	
+	return 0;
 }
 
 function calculateThreadLifespan($id, $threadpage, $threadposition, $board, $board_maxpages, $board_maxage) {
@@ -177,8 +177,8 @@ function boardid_to_dir($boardid) {
 function calculatenumpages($boardtype, $numposts) {
 	if ($boardtype==1) {
 		return (floor($numposts/KU_THREADSTXT));
-	} else {
-		return (floor($numposts/KU_THREADS));
 	}
+	
+	return (floor($numposts/KU_THREADS));
 }
 ?>

@@ -191,7 +191,7 @@ function threadLinks($type, $threadid, $board, $boardtype, $modifier_last50, $mo
 	
 	if ($boardtype == 1 && $type == 'return') {
 		$output .= '<br><br>';
-	}elseif ($type == 'page' && $boardtype == 1) {
+	} elseif ($type == 'page' && $boardtype == 1) {
 		$output .= '</p>';
 	} elseif ($type != 'page' && $boardtype != 1 && !$forcereplymodehide) {
 		$output .= '<div class="replymode">' . _gettext('Posting mode: Reply') . '<!tc_postmodeinfo></div>';

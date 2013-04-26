@@ -192,33 +192,33 @@ table td {
 }
 
 .hidethread {
-	background: transparent url('icons/beige/icons.gif') -32px -16px no-repeat;
+	background: transparent url('./icons/beige/icons.gif') -32px -16px no-repeat;
 }
 
 .unhidethread {
-	background: transparent url('icons/beige/icons.gif') -48px 0px no-repeat;
+	background: transparent url('./icons/beige/icons.gif') -48px 0px no-repeat;
 }
 
 .watchthread {
-	background: transparent url('icons/beige/icons.gif') -32px 0px no-repeat;
+	background: transparent url('./icons/beige/icons.gif') -32px 0px no-repeat;
 }
 
 .expandthread {
-	background: transparent url('icons/beige/icons.gif') 0px -16px no-repeat;
+	background: transparent url('./icons/beige/icons.gif') 0px -16px no-repeat;
 }
 
 .quickreply {
-	background: transparent url('icons/beige/icons.gif') 0px 0px no-repeat;
+	background: transparent url('./icons/beige/icons.gif') 0px 0px no-repeat;
 }
 
 .hidewatchedthreads {
-	background: transparent url('icons/beige/icons.gif') -48px -16px no-repeat;
+	background: transparent url('./icons/beige/icons.gif') -48px -16px no-repeat;
 }
 
 .refreshwatchedthreads {
-	background: transparent url('icons/beige/icons.gif') -16px -16px no-repeat;
+	background: transparent url('./icons/beige/icons.gif') -16px -16px no-repeat;
 }
 
 .restorewatchedthreads {
-	background: transparent url('icons/beige/icons.gif') -16px 0px no-repeat;
+	background: transparent url('./icons/beige/icons.gif') -16px 0px no-repeat;
 }

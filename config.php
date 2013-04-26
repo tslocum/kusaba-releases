@@ -82,24 +82,27 @@ if (!$cache_loaded) {
 	
 	/* Paths and URLs */
 		/* Main installation directory */
-			/* NOTE!  You probably will NOT need to edit these, unless you use the BOARDS* or CGI* options below, which you probably won't! */
-			$cf['KU_ROOTDIR']   = dirname($_SERVER['SCRIPT_FILENAME']) . '/'; /* Full system path of the folder containing kusaba.php, with trailing slash */
-			$cf['KU_WEBFOLDER'] = dirname($_SERVER['PHP_SELF']) . '/'; /* The path from the domain of the board to the folder which kusaba is in, including the trailing slash.  Example: "http://www.yoursite.com/misc/kusaba/" would have a $cf['KU_WEBFOLDER'] of "/misc/kusaba/" */
-			$cf['KU_WEBPATH']   = 'http://' . $_SERVER['HTTP_HOST'] . $cf['KU_WEBFOLDER']; /* The path to the index folder of kusaba, without trailing slash */
-			$cf['KU_WEBCORAL']  = ''; /* Set to the coralized version of your webpath to enable.  If not set to '', URLs which can safely be cached will be coralized, and will use the Coral Content Distribution Network.  Example: http://www.kusaba.org becomes http://www.kusaba.org.nyud.net, http://www.crapchan.org/kusaba becomes http://www.crapchan.org.nyud.net/kusaba */
-			$cf['KU_DOMAIN']    = '.' . $_SERVER['HTTP_HOST']; /* Used in cookies for the domain parameter.  Should be a period and then the top level domain, which will allow the cookies to be set for all subdomains.  For http://www.randomchan.org, the domain would be .randomchan.org; http://zachchan.freehost.com would be zach.freehost.com */
-		
+			$cf['KU_ROOTDIR']   = 'CHANGEME'; /* Full system path of the folder containing kusaba.php, with trailing slash */
+			$cf['KU_WEBFOLDER'] = 'CHANGEME'; /* The path from the domain of the board to the folder which kusaba is in, including the trailing slash.  Example: "http://www.yoursite.com/misc/kusaba/" would have a $cf['KU_WEBFOLDER'] of "/misc/kusaba/" */
+			$cf['KU_WEBPATH']   = 'CHANGEME'; /* The path to the index folder of kusaba, without trailing slash */
+			$cf['KU_DOMAIN']    = 'CHANGEME'; /* Used in cookies for the domain parameter.  Should be a period and then the top level domain, which will allow the cookies to be set for all subdomains.  For http://www.randomchan.org, the domain would be .randomchan.org; http://zachchan.freehost.com would be zach.freehost.com */
+			
 		/* Board subdomain/alternate directory (optional, change to enable) */
+			/* DO NOT CHANGE THESE IF YOU DO NOT KNOW WHAT YOU ARE DOING!! */
 			$cf['KU_BOARDSDIR']    = $cf['KU_ROOTDIR'];
 			$cf['KU_BOARDSFOLDER'] = $cf['KU_WEBFOLDER'];
 			$cf['KU_BOARDSPATH']   = $cf['KU_WEBPATH'];
-			$cf['KU_BOARDSCORAL']   = '';
 		
 		/* CGI subdomain/alternate directory (optional, change to enable) */
+			/* DO NOT CHANGE THESE IF YOU DO NOT KNOW WHAT YOU ARE DOING!! */
 			$cf['KU_CGIDIR']    = $cf['KU_BOARDSDIR'];
 			$cf['KU_CGIFOLDER'] = $cf['KU_BOARDSFOLDER'];
 			$cf['KU_CGIPATH']   = $cf['KU_BOARDSPATH'];
-		
+			
+		/* Coralized URLs (optional, change to enable) */
+			$cf['KU_WEBCORAL']  = ''; /* Set to the coralized version of your webpath to enable.  If not set to '', URLs which can safely be cached will be coralized, and will use the Coral Content Distribution Network.  Example: http://www.kusaba.org becomes http://www.kusaba.org.nyud.net, http://www.crapchan.org/kusaba becomes http://www.crapchan.org.nyud.net/kusaba */
+			$cf['KU_BOARDSCORAL']   = '';
+			
 	/* Templates */
 		$cf['KU_TEMPLATEDIR']       = $cf['KU_ROOTDIR'] . 'smarty/templates'; /* Smarty templates directory */
 		$cf['KU_CACHEDTEMPLATEDIR'] = $cf['KU_ROOTDIR'] . 'smarty/templates_c'; /* Smarty compiled templates directory.  This folder MUST be writable (you may need to chmod it to 755).  Set to '' to disable template caching */
@@ -113,14 +116,14 @@ if (!$cache_loaded) {
 		$cf['KU_DEFAULTTXTSTYLE']  = 'futatxt'; /* If Default is selected in the style list in board options, it will use this style.  Should be lower case */
 		$cf['KU_TXTSTYLESWITCHER'] = true; /* Whether or not to display the different styles in a clickable switcher at the top of the board */
 		
-		$cf['KU_MENUSTYLES']        = 'futaba:burichan'; /* Menu styles*/
+		$cf['KU_MENUTYPE']          = 'normal'; /* Type of display for the menu.  normal will add the menu styles and such as it normally would, plain will not use the styles, and will look rather boring */
+		$cf['KU_MENUSTYLES']        = 'futaba:burichan'; /* Menu styles */
 		$cf['KU_DEFAULTMENUSTYLE']  = 'futaba'; /* Default menu style */
 		$cf['KU_MENUSTYLESWITCHER'] = true; /* Whether or not to display the different styles in a clickable switcher in the menu */
 		
 	/* Limitations */
 		$cf['KU_NEWTHREADDELAY'] = 30; /* Minimum time in seconds a user must wait before posting a new thread again */
 		$cf['KU_REPLYDELAY']     = 7; /* Minimum time in seconds a user must wait before posting a reply again */
-		$cf['KU_MAXCHAR']        = 200; /* Maximum number of characters in a row before forcing a linebreak in a post */
 		$cf['KU_LINELENGTH']     = 150; /* Used when cutting long post messages on pages and placing the message too long notification */
 	
 	/* Image handling */
@@ -147,9 +150,11 @@ if (!$cache_loaded) {
 		$cf['KU_THUMBMSG']        = false; /* Whether or not to display the "Thumbnail displayed, click image for full size." message on posts with images */
 		$cf['KU_BANMSG']          = '<br><font color="#FF0000"><b>(USER WAS BANNED FOR THIS POST)</b></font>'; /* The text to add at the end of a post if a ban is placed and "Add ban message" is checked */
 		$cf['KU_TRADITIONALREAD'] = false; /* Whether or not to use the traditional style for multi-quote urls.  Traditional: read.php/board/thread/posts, Non-traditional: read.php?b=board&t=thread&p=posts */
+		$cf['KU_YOUTUBEWIDTH']    = 200; /* Width to display embedded YouTube videos */
+		$cf['KU_YOUTUBEHEIGHT']   = 164; /* Height to display embedded YouTube videos */
 		
 	/* Pages */
-		$cf['KU_POSTBOX']   = '<li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.<!tc_catalog /></li>'; /* Notice displayed under the post area */
+		$cf['KU_POSTBOX']   = '<ul style="margin-left: 0; margin-top: 0; margin-bottom: 0; padding-left: 0;"><li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.<!tc_catalog /></li></ul>'; /* Notice displayed under the post area */
 		$cf['KU_FIRSTPAGE'] = 'board.html'; /* Filename of the first page of a board.  Only change this if you are willing to maintain the .htaccess files for each board directory (they are created with a DirectoryIndex board.html, change them if you change this) */
 		$cf['KU_DIRTITLE']  = false; /* Whether or not to place the board directory in the board's title and at the top of the page.  true would render as "/b/ - Random", false would render as "Random" */
 		
@@ -181,7 +186,7 @@ if (!$cache_loaded) {
 		$cf['KU_GENERATEBOARDLIST'] = true; /* Set to true to automatically make the board list which is displayed ad the top and bottom of the board pages, or false to use the boards.html file */
 		
 	/* Language / timezone / encoding */
-		$cf['KU_LOCALE']  = 'en'; /* The locale of kusaba you would like to use.  Locales available: en, de, es, fi, it, nl, no, pl, ru */
+		$cf['KU_LOCALE']  = 'en'; /* The locale of kusaba you would like to use.  Locales available: en, de, et, es, fi, pl, nl, nb, ru, it, ja */
 		$cf['KU_CHARSET'] = 'UTF-8'; /* The character encoding to mark the pages as.  This must be the same in the .htaccess file (AddCharset charsethere .html and AddCharset charsethere .php) to function properly.  Only UTF-8 and Shift_JIS have been tested */
 		putenv('TZ=US/Pacific'); /* The time zone which the server resides in */
 		
@@ -189,7 +194,7 @@ if (!$cache_loaded) {
 		$cf['KU_DEBUG'] = false; /* When enabled, debug information will be printed (Warning: all queries will be shown publicly) */
 	
 	/* Post-configuration actions, don't modify these */
-		$cf['KU_VERSION']    = '1.0.2';
+		$cf['KU_VERSION']    = '1.0.3';
 		$cf['KU_TAGS']       = serialize($cf['KU_TAGS']);
 		$cf['KU_TRIPS']      = serialize($cf['KU_TRIPS']);
 		$cf['KU_LINELENGTH'] = $cf['KU_LINELENGTH'] * 15;
@@ -244,7 +249,27 @@ if (!isset($tc_db) && !isset($preconfig_db_unnecessary)) {
 				if ($line['name'] == 'pingback') {
 					$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "events` SET `at` = " . (time() + 43200) . " WHERE `name` = 'pingback'");
 					if (KU_PINGBACK != '') {
-						$ch = curl_init('http://www.kusaba.org/chans.php?dopingback&name=' . urlencode(KU_NAME) . '&password=' . urlencode(KU_PINGBACK) . '&version=' . KU_VERSION . '&url=' . urlencode(KU_WEBPATH));
+						$daypostcount = 0;
+						$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards` ORDER BY `name` ASC");
+						if (count($results) > 0) {
+							foreach ($results as $line) {
+								$posts = $tc_db->GetOne("SELECT HIGH_PRIORITY COUNT(*) FROM `" . KU_DBPREFIX . "posts_" . $line['name'] . "` WHERE `postedat` > " . (time() - 86400) . "");
+								
+								$daypostcount += $posts;
+							}
+						}
+						
+						$totalpostcount = 0;
+						$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards` ORDER BY `name` ASC");
+						if (count($results) > 0) {
+							foreach ($results as $line) {
+								$posts = $tc_db->GetOne("SELECT HIGH_PRIORITY `id` FROM `" . KU_DBPREFIX . "posts_" . $line['name'] . "` ORDER BY `id` DESC LIMIT 1");
+								
+								$totalpostcount += $posts;
+							}
+						}
+						
+						$ch = curl_init('http://www.kusaba.org/chans.php?dopingback&name=' . urlencode(KU_NAME) . '&password=' . urlencode(KU_PINGBACK) . '&version=' . KU_VERSION . '&daypostcount=' . $daypostcount . '&postcount=' . $totalpostcount . '&url=' . urlencode(KU_WEBPATH));
 						curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 						curl_setopt($ch, CURLOPT_HEADER, 0);
 						curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);

@@ -397,6 +397,7 @@ class Manage {
 			apc_clear_cache();
 			apc_clear_cache('user');
 			$tpl_page .= 'APC cache cleared.';
+			management_addlogentry(_gettext('Cleared APC cache'), 0);
 		} else {
 			$tpl_page .= 'APC isn\'t enabled!';
 		}
@@ -458,6 +459,7 @@ class Manage {
 		$tpl_page .= '<tr><td>thumb/</td><td>' . number_format($files_thumb) . '</td><td>' . ConvertBytes($spaceused_thumb) . '</td></tr>';
 		$tpl_page .= '<tr><td><b>Total</b></td><td>' . number_format($files_total) . '</td><td>' . ConvertBytes($spaceused_total) . '</td></tr>';
 		$tpl_page .= '</table>';
+		management_addlogentry(_gettext('Viewed disk space used'), 0);
 	}
 	
 	/* Display moderators and administrators actions which were logged */
@@ -491,6 +493,7 @@ class Manage {
 				$tpl_page .= 'Error: ' . $tc_db->ErrorMsg();
 			}
 			$tpl_page .= '<hr>';
+			management_addlogentry(_gettext('Inserted SQL'), 0);
 		}
 		$tpl_page .= '<form method="post" action="?action=sql">
 		
@@ -510,6 +513,7 @@ class Manage {
 			if (isset($_POST['news'])) {
 				$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "news` SET `subject` = '" . mysql_real_escape_string($_POST['subject']) . "', `message` = '" . mysql_real_escape_string($_POST['news']) . "', `postedemail` = '" . mysql_real_escape_string($_POST['email']) . "' WHERE `id` = '" . mysql_real_escape_string($_GET['edit']) . "'");
 				$tpl_page .= '<h3>News post edited</h3>';
+				management_addlogentry(_gettext('Edited a news entry'), 9);
 			}
 			$tpl_page .= '<h1>Edit news post</h1>';
 			$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "news` WHERE `id` = '" . mysql_real_escape_string($_GET['edit']) . "'");
@@ -530,6 +534,7 @@ class Manage {
 		} elseif (isset($_GET['delete'])) {
 			$results = $tc_db->Execute("DELETE FROM `" . KU_DBPREFIX . "news` WHERE `id` = '" . mysql_real_escape_string($_GET['delete']) . "'");
 			$tpl_page .= '<h3>News post deleted</h3>';
+			management_addlogentry(_gettext('Deleted a news entry'), 9);
 		} else {
 			$tpl_page .= _gettext('<h2>Add News Post</h2>This message will be displayed as it is written, so make sure you add the proper HTML.') . '<br><br>';
 			if (isset($_POST['news']) && isset($_POST['subject']) && isset($_POST['email'])) {
@@ -685,11 +690,12 @@ class Manage {
 					$updateboard_popular = isset($_POST['popular']) ? '1' : '0';
 					$updateboard_enablearchiving = isset($_POST['enablearchiving']) ? '1' : '0';
 					$updateboard_showid = isset($_POST['showid']) ? '1' : '0';
+					$updateboard_compactlist = isset($_POST['compactlist']) ? '1' : '0';
 					$updateboard_locked = isset($_POST['locked']) ? '1' : '0';
 					
 					if (($_POST['type'] == '0' || $_POST['type'] == '1' || $_POST['type'] == '2' || $_POST['type'] == '3') && ($_POST['uploadtype'] == '0' || $_POST['uploadtype'] == '1' || $_POST['uploadtype'] == '2')) {
 						if (!($_POST['uploadtype'] != '0' && $_POST['type'] == '3')) {
-							$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "boards` SET `type` = '" . mysql_real_escape_string($_POST['type']) . "' , `uploadtype` = '" . mysql_real_escape_string($_POST['uploadtype']) . "' , `order` = '" . mysql_real_escape_string($_POST['order']) . "' , `section` = '" . mysql_real_escape_string($_POST['section']) . "' , `desc` = '" . mysql_real_escape_string($_POST['desc']) . "' , `locale` = '" . mysql_real_escape_string($_POST['locale']) . "' , `showid` = '" . $updateboard_showid . "' , `locked` = '" . $updateboard_locked . "' , `maximagesize` = '" . mysql_real_escape_string($_POST['maximagesize']) . "' , `messagelength` = '" . mysql_real_escape_string($_POST['messagelength']) . "' , `maxpages` = '" . mysql_real_escape_string($_POST['maxpages']) . "' , `maxage` = '" . mysql_real_escape_string($_POST['maxage']) . "' , `markpage` = '" . mysql_real_escape_string($_POST['markpage']) . "' , `maxreplies` = '" . mysql_real_escape_string($_POST['maxreplies']) . "' , `image` = '" . mysql_real_escape_string($_POST['image']) . "' , `includeheader` = '" . mysql_real_escape_string($_POST['includeheader']) . "' , `redirecttothread` = '" . $updateboard_redirecttothread . "' , `anonymous` = '" . mysql_real_escape_string($_POST['anonymous']) . "' , `forcedanon` = '" . $updateboard_forcedanon . "' , `trial` = '" . $updateboard_trial . "' , `popular` = '" . $updateboard_popular . "' , `defaultstyle` = '" . mysql_real_escape_string($_POST['defaultstyle']) . "' , `enablereporting` = '" . $updateboard_enablereporting . "' , `enablecaptcha` = '" . $updateboard_enablecaptcha . "' , `enablenofile` = '" . $updateboard_enablenofile . "' , `enablearchiving` = '" . $updateboard_enablearchiving . "', `enablecatalog` = '" . $updateboard_enablecatalog . "' , `loadbalanceurl` = '" . mysql_real_escape_string($_POST['loadbalanceurl']) . "' , `loadbalancepassword` = '" . mysql_real_escape_string($_POST['loadbalancepassword']) . "' WHERE `name` = '" . mysql_real_escape_string($_GET['updateboard']) . "'");
+							$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "boards` SET `type` = '" . mysql_real_escape_string($_POST['type']) . "' , `uploadtype` = '" . mysql_real_escape_string($_POST['uploadtype']) . "' , `order` = '" . mysql_real_escape_string($_POST['order']) . "' , `section` = '" . mysql_real_escape_string($_POST['section']) . "' , `desc` = '" . mysql_real_escape_string($_POST['desc']) . "' , `locale` = '" . mysql_real_escape_string($_POST['locale']) . "' , `showid` = '" . $updateboard_showid . "' , `compactlist` = '" . $updateboard_compactlist . "' , `locked` = '" . $updateboard_locked . "' , `maximagesize` = '" . mysql_real_escape_string($_POST['maximagesize']) . "' , `messagelength` = '" . mysql_real_escape_string($_POST['messagelength']) . "' , `maxpages` = '" . mysql_real_escape_string($_POST['maxpages']) . "' , `maxage` = '" . mysql_real_escape_string($_POST['maxage']) . "' , `markpage` = '" . mysql_real_escape_string($_POST['markpage']) . "' , `maxreplies` = '" . mysql_real_escape_string($_POST['maxreplies']) . "' , `image` = '" . mysql_real_escape_string($_POST['image']) . "' , `includeheader` = '" . mysql_real_escape_string($_POST['includeheader']) . "' , `redirecttothread` = '" . $updateboard_redirecttothread . "' , `anonymous` = '" . mysql_real_escape_string($_POST['anonymous']) . "' , `forcedanon` = '" . $updateboard_forcedanon . "' , `trial` = '" . $updateboard_trial . "' , `popular` = '" . $updateboard_popular . "' , `defaultstyle` = '" . mysql_real_escape_string($_POST['defaultstyle']) . "' , `enablereporting` = '" . $updateboard_enablereporting . "' , `enablecaptcha` = '" . $updateboard_enablecaptcha . "' , `enablenofile` = '" . $updateboard_enablenofile . "' , `enablearchiving` = '" . $updateboard_enablearchiving . "', `enablecatalog` = '" . $updateboard_enablecatalog . "' , `loadbalanceurl` = '" . mysql_real_escape_string($_POST['loadbalanceurl']) . "' , `loadbalancepassword` = '" . mysql_real_escape_string($_POST['loadbalancepassword']) . "' WHERE `name` = '" . mysql_real_escape_string($_GET['updateboard']) . "'");
 							$tc_db->Execute("DELETE FROM `" . KU_DBPREFIX . "board_filetypes` WHERE `boardid` = '" . $boardid . "'");
 							foreach ($filetypes as $filetype) {
 								$tc_db->Execute("INSERT INTO `" . KU_DBPREFIX . "board_filetypes` ( `boardid`, `typeid` ) VALUES ( '" . $boardid . "', '" . mysql_real_escape_string($filetype) . "' )");
@@ -856,7 +862,7 @@ class Manage {
 					<div class="desc">'._gettext('Name to display when a name is not attached to a post.') . ' ' . _gettext('Default').': <b>Anonymous</b></div><br>';
 					
 					/* Locked */
-					$tpl_page .= '<label for="locked">'._gettext('Locked').': (<img src="'.KU_BOARDSPATH.'/locked.gif" alt="Lock">)</label>
+					$tpl_page .= '<label for="locked">'._gettext('Locked').':</label>
 					<input type="checkbox" name="locked" ';
 					if ($lineboard['locked'] == '1') {
 						$tpl_page .= 'checked ';
@@ -872,7 +878,16 @@ class Manage {
 					}
 					$tpl_page .= '>
 					<div class="desc">If enabled, each post will display the poster\'s ID, which is a representation of their IP address.</div><br>';
-	
+					
+					/* Show ID */
+					$tpl_page .= '<label for="compactlist">Compact list:</label>
+					<input type="checkbox" name="compactlist" ';
+					if ($lineboard['compactlist'] == '1') {
+						$tpl_page .= 'checked ';
+					}
+					$tpl_page .= '>
+					<div class="desc">' . _gettext('Text boards only.  If enabled, the list of threads displayed on the front page will be formatted differently to be compact.') . '</div><br>';
+					
 					/* Enable reporting */
 					$tpl_page .= '<label for="enablereporting">'._gettext('Enable reporting:').'</label>
 					<input type="checkbox" name="enablereporting"';
@@ -1176,7 +1191,7 @@ class Manage {
 					$output .= '<a href="?action=unstickypost&board=' . $line_board['name'] . '&postid=' . $line['id'] . '">#' . $line['id'] . '</a><br>';
 				}
 			} else {
-				$output .= 'No locked threads.<br>';
+				$output .= 'No stickied threads.<br>';
 			}
 		}
 		$output .= '</td></tr></table>';
@@ -1453,6 +1468,10 @@ class Manage {
 					$bans_class->UpdateHtaccess();
 					$tpl_page .= _gettext('Ban successfully removed.');
 					management_addlogentry(_gettext('Unbanned') . ' ' . $unban_ip, 8);
+					if (isset($_GET['sm'])) {
+						sendStaffMail('Ban appeal at ' . KU_NAME . ' for ' . $unban_ip, wordwrap('The following action has taken place on this appeal:' . "\n" .
+							'Ban removed.', 70));
+					}
 				} else {
 					$tpl_page .= _gettext('Invalid ban ID');
 				}
@@ -1463,6 +1482,26 @@ class Manage {
 			if (count($results) > 0) {
 				$tc_db->Execute("DELETE FROM `" . KU_DBPREFIX . "bannedhashes` WHERE `id` = '" . mysql_real_escape_string($_GET['delhashid']) . "'");
 				$tpl_page .= 'Hash removed from ban list.<hr>';
+			}
+		} elseif (isset($_GET['denyappeal'])) {
+			if ($_GET['denyappeal'] > 0) {
+				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "banlist` WHERE `id` = '" . mysql_real_escape_string($_GET['denyappeal']) . "'");
+				if (count($results) > 0) {
+					foreach ($results as $line) {
+						$unban_ip = md5_decrypt($line['ip'], KU_RANDOMSEED);
+					}
+					$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "banlist` SET `appealat` = -2 WHERE `id` = '" . mysql_real_escape_string($_GET['denyappeal']) . "'");
+					$bans_class->UpdateHtaccess();
+					$tpl_page .= _gettext('Appeal successfully denied.');
+					management_addlogentry(_gettext('Denied the ban appeal for') . ' ' . $unban_ip, 8);
+					if (isset($_GET['sm'])) {
+						sendStaffMail('Ban appeal at ' . KU_NAME . ' for ' . $unban_ip, wordwrap('The following action has taken place on this appeal:' . "\n" .
+							'Appeal denied.', 70));
+					}
+				} else {
+					$tpl_page .= _gettext('Invalid ban ID');
+				}
+				$tpl_page .= '<hr>';
 			}
 		}
 		if (isset($_GET['banboard']) && isset($_GET['banpost'])) {
@@ -1746,24 +1785,26 @@ class Manage {
 		
 		$tpl_page .= '<h2>' . ucwords(_gettext('Ban proxy list')) . '</h2><br>';
 		if (isset($_FILES['imagefile'])) {
-		$bans_class = new Bans;
-		$ips = 0;
-		$successful = 0;
-		$proxies = file($_FILES['imagefile']['tmp_name']);
-		foreach($proxies as $proxy) {
-			if (preg_match('/.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+.*/',$proxy)) {
-				$ips++;
-				if ($bans_class->BanUser(preg_replace("/:.*/","",$proxy),"SERVER",1,0,"","IP from proxylist automatically banned",0)) {
-					$successful++;
+			$bans_class = new Bans;
+			$ips = 0;
+			$successful = 0;
+			$proxies = file($_FILES['imagefile']['tmp_name']);
+			foreach($proxies as $proxy) {
+				if (preg_match('/.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+.*/', $proxy)) {
+					$proxy = trim($proxy);
+					$ips++;
+					if ($bans_class->BanUser(preg_replace('/:.*/', '', $proxy), 'SERVER', 1, 0, '', 'IP from proxylist automatically banned', 0)) {
+						$successful++;
+					}
 				}
 			}
-		}
-		management_addlogentry("banned ".$successful." proxies automatically.",8);
-		$tpl_page .= $successful." of ".$ips." proxies banned.";
+			management_addlogentry(sprintf(_gettext('Banned %d IP addresses using an IP address list.'), $successful), 8);
+			$tpl_page .= $successful . ' of ' . $ips . ' IP addresses banned.';
 		} else {
-			$tpl_page .= '<form id="postform" action="' . KU_CGIPATH . 'manage_page.php?action=proxyban" method="post" enctype="multipart/form-data">'._gettext('Proxy list').'<input type="file" name="imagefile" size="35" accesskey="f"><br>
+			$tpl_page .= '<form id="postform" action="' . KU_CGIPATH . '/manage_page.php?action=proxyban" method="post" enctype="multipart/form-data">'._gettext('Proxy list').'<input type="file" name="imagefile" size="35" accesskey="f"><br>
 			<input type="submit" value="Submit">
-			<br>The proxy list is assumed to be in plaintext *.*.*.*:port or *.*.*.* format, one IP per line.';
+			<br>The proxy list is assumed to be in plaintext *.*.*.*:port or *.*.*.* format, one IP per line.<br><br><hr>
+			<a href="http://spam.kusaba.org/?list" target="_top">Downloadable often-updated list of spammers (right-click -> save as)</a> - <a href="http://spam.kusaba.org/" target="_top">Explanation</a>';
 		}
 	}
 	
@@ -2071,16 +2112,16 @@ class Manage {
 		}
 		$tpl_page .= '<form action="manage_page.php?action=addboard" method="post">
 	
-		<label for="directory">Directory:</label>
+		<label for="directory">' . _gettext('Directory') . ':</label>
 		<input type="text" name="directory">
-		<div class="desc">The directory of the board.  <b>Only put in the letter(s) of the board directory, no slashes!</b></div><br>
+		<div class="desc">' . _gettext('The directory of the board.') . '  <b>' . _gettext('Only put in the letter(s) of the board directory, no slashes!') . '</b></div><br>
 		
-		<label for="desc">Description:</label>
-		<input type="text" name="desc"><div class="desc">The name of the board.</div><br>
+		<label for="desc">' . _gettext('Description') . ':</label>
+		<input type="text" name="desc"><div class="desc">' . _gettext('The name of the board.') . '</div><br>
 		
-		<label for="firstpostid">First Post ID:</label>
+		<label for="firstpostid">' . _gettext('First Post ID') . ':</label>
 		<input type="text" name="firstpostid" value="1">
-		<div class="desc">The first post of this board will recieve this ID.</div><br>
+		<div class="desc">' . _gettext('The first post of this board will recieve this ID.') . '</div><br>
 		
 		<input type="submit" value="Add Board">
 		
@@ -2233,7 +2274,7 @@ class Manage {
 					if ($staff_type != 3) {
 						management_addlogentry(_gettext('Deleted staff member') . ': ' . $staff_username, 6);
 					} else {
-						management_addlogentry('Deleted a VIP code', 6);
+						management_addlogentry(_gettext('Deleted a VIP code'), 6);
 					}
 				} else {
 					$tpl_page .= _gettext('Invalid staff ID.');
@@ -2287,13 +2328,13 @@ class Manage {
 							if ($_POST['type'] != '1') {
 								$logentry .= ' - ' . _gettext('Moderates') . ': ';
 								if (isset($_POST['moderatesallboards'])) {
-									$logentry .= 'all boards';
+									$logentry .= strtolower(_gettext('All boards'));
 								} else {
 									$logentry .= '/' . implode('/, /', $staff_new_boards) . '/';
 								}
 							}
 						} else {
-							$logentry = 'Edited a VIP code';
+							$logentry = _gettext('Edited a VIP code');
 						}
 						management_addlogentry($logentry, 6);
 					}
@@ -2339,7 +2380,7 @@ class Manage {
 					if ($staff_boards == array('allboards')) {
 						$tpl_page .= ' checked';
 					}
-					$tpl_page .= '><br>or<br>';
+					$tpl_page .= '><br>' . _gettext('or') . '<br>';
 					$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards`");
 					foreach ($results as $line) {
 						$tpl_page .= '<label for="moderate' . $line['name'] . '">' . $line['name'] . '</label><input type="checkbox" name="moderate' . $line['name'] . '" ';
@@ -2482,7 +2523,7 @@ class Manage {
 			$tpl_page .= '<form action="?" method="get">
 	
 			<input type="hidden" name="action" value="viewdeletedthread">
-			<label for="board"><'._gettext('Board').':</label>' .
+			<label for="board">' . _gettext('Board') . ':</label>' .
 			$this->MakeBoardListDropdown('board', $this->BoardList($_SESSION['manageusername'])) .
 			'<br>
 			
@@ -2495,13 +2536,70 @@ class Manage {
 		}
 	}
 	
+	function movethread() {
+		global $tc_db, $smarty, $tpl_page;
+		$this->AdministratorsOnly();
+		
+		$tpl_page .= '<h2>' . ucwords(_gettext('Move thread')) . '</h2><br><b>Warning:  Move thread currently is only designed to work across text boards, and does not move images with threads if they come from a non text board thread.</b><br><br>';
+		
+		if (isset($_POST['id']) && isset($_POST['board_from']) && isset($_POST['board_to'])) {
+			$board_from = mysql_real_escape_string($_POST['board_from']);
+			$board_to = mysql_real_escape_string($_POST['board_to']);
+			$id = mysql_real_escape_string($_POST['id']);
+			$temp_id = 0;
+			
+			$tc_db->Execute("START TRANSACTION");
+			
+			$tc_db->Execute("UPDATE " . KU_DBPREFIX . "posts_" . $board_from . " SET `id` = " . $temp_id . " WHERE `id` = '" . $id . "'");
+			
+			$tc_db->Execute("INSERT INTO " . KU_DBPREFIX . "posts_" . $board_to . " SELECT * FROM " . KU_DBPREFIX . "posts_" . $board_from . " WHERE `id` = " . $temp_id);
+			$new_id = $tc_db->Insert_Id();
+			
+			processPost($new_id, $new_id, $id);
+			
+			$tc_db->Execute("DELETE FROM " . KU_DBPREFIX . "posts_" . $board_from . " WHERE `id` = " . $temp_id);
+			
+			$results = $tc_db->GetAll("SELECT `id` FROM " . KU_DBPREFIX . "posts_" . $board_from . " WHERE `parentid` = '" . $id . "' ORDER BY `id` ASC");
+			foreach ($results as $line) {
+				$tc_db->Execute("UPDATE " . KU_DBPREFIX . "posts_" . $board_from . " SET `id` = " . $temp_id. " WHERE `id` = " . $line['id']);
+				
+				$tc_db->Execute("INSERT INTO " . KU_DBPREFIX . "posts_" . $board_to . " SELECT * FROM " . KU_DBPREFIX . "posts_" . $board_from . " WHERE `id` = " . $temp_id);
+				$insert_id = $tc_db->Insert_Id();
+				
+				processPost($insert_id, $new_id, $id);
+				
+				$tc_db->Execute("UPDATE " . KU_DBPREFIX . "posts_" . $board_to . " SET `parentid` = " . $new_id . " WHERE `id` = " . $insert_id);
+				
+				$tc_db->Execute("DELETE FROM " . KU_DBPREFIX . "posts_" . $board_from . " WHERE `id` = " . $temp_id);
+			}
+			
+			$tc_db->Execute("COMMIT");
+			
+			$tpl_page .= _gettext('Move complete.') . '  ' . _gettext('The change will not be apparent until the html files are rebuilt.') . '<br><hr>';
+		}
+		
+		$tpl_page .= '<form action="?action=movethread" method="post">
+		
+		<label for="id">' . _gettext('ID') . ':</label>
+		<input type="text" name="id">
+		<br>
+		
+		<label for="board_from">' . _gettext('From') . ':</label>' .
+		$this->MakeBoardListDropdown('board_from', $this->BoardList($_SESSION['manageusername'])) .
+		'<br>
+		
+		<label for="board_to">'  ._gettext('To') . ':</label>' .
+		$this->MakeBoardListDropdown('board_to', $this->BoardList($_SESSION['manageusername'])) .
+		'<br>
+		
+		<input type="submit" value="' . _gettext('Move thread') . '">';
+	}
+	
 	/* Search for text in posts */
 	function search() {
 		global $tc_db, $smarty, $tpl_page;
 		$this->AdministratorsOnly();
 		
-		//Devnote: fix searching
-		exitWithErrorPage("Broken for now due to the new table system.");
 		if (isset($_GET['query'])) {
 			$search_query = $_GET['query'];
 			if (isset($_GET['s'])) {
@@ -2509,70 +2607,123 @@ class Manage {
 			} else {
 				$s = 0;
 			}
+			$search_query_array = explode('KUSABA_AND', $search_query);
 			$trimmed = trim($search_query);
 			$limit = 10;
 			if ($trimmed == '') {
 				$tpl_page .= _gettext('Please enter a search query.');
 				exit;
 			}
-			$query = "SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "posts` WHERE `IS_DELETED` = '0' AND `message` LIKE '%" . $trimmed . "%' ORDER BY `postedat` DESC";
+			$boardlist = $this->BoardList($_SESSION['manageusername']);
+			$likequery = '';
+			foreach ($search_query_array as $search_split) {
+				$likequery .= "`message` LIKE '" . mysql_real_escape_string(str_replace('_', '\_', $search_split)) . "' AND ";
+			}
+			$likequery = substr($likequery, 0, -4);
+			$query = '';
+			foreach ($boardlist as $board) {
+				$query .= "SELECT *, '" . $board . "' as board FROM `posts_" . $board . "` WHERE `IS_DELETED` = 0 AND " . $likequery . " UNION ";
+			}
+			$query = substr($query, 0, -6) . 'ORDER BY `postedat` DESC';
 			$numresults = $tc_db->GetAll($query);
 			$numrows = count($numresults);
 			if ($numrows == 0) {
 				$tpl_page .= '<h4>' . _gettext('Results') . '</h4>';
 				$tpl_page .= '<p>' . _gettext('Sorry, your search returned zero results.') . '</p>';
-				die();
-			}
-			$query .= " LIMIT $s, $limit";
-			$results = $tc_db->GetAll($query);
-			$tpl_page .= '<p>' . _gettext('You searched for') . ': &quot;' . $search_query . '&quot;</p>';
-			$tpl_page .= _gettext('Results') . ':<br><br>';
-			$count = 1 + $s;
-			foreach ($results as $line) {
-				$board = boardid_to_dir($line['boardid']);
-				$tpl_page .= $count . '. Board: /' . $board . '/, Thread #<a href="'.KU_BOARDSPATH . '/' . $board . '/res/';
-				if ($line['parentid'] == 0) {
-					$tpl_page .= $line['id'] . '.html">' . $line['id'] . '</a>';
-				} else {
-					$tpl_page .= $line['parentid'] . '.html#' . $line['id'] . '">' . $line['parentid'] . '</a>, Post #' . $line['id'];
+			} else {
+				$query .= " LIMIT $s, $limit";
+				$results = $tc_db->GetAll($query);
+				$tpl_page .= '<p style="font-size: 1.5em;">Results for: <b>' . $search_query . '</b></p>';
+				$count = 1 + $s;
+				foreach ($results as $line) {
+					$tpl_page .= '<span style="font-size: 1.5em;">' . $count . '.</span> <span style="font-size: 1.3em;">Board: /' . $line['board'] . '/, <a href="'.KU_BOARDSPATH . '/' . $line['board'] . '/res/';
+					if ($line['parentid'] == 0) {
+						$tpl_page .= $line['id'] . '.html">';
+					} else {
+						$tpl_page .= $line['parentid'] . '.html#' . $line['id'] . '">';
+					}
+					
+					if ($line['parentid'] == 0) {
+						$tpl_page .= 'Thread #' . $line['id'];
+					} else {
+						$tpl_page .= 'Thread #' . $line['parentid'] . ', Post #' . $line['id'];
+					}
+					$tpl_page .= '</a></span>';
+					
+					$regexp = '/(';
+					foreach ($search_query_array as $search_word) {
+						$regexp .= preg_quote($search_word) . '|';
+					}
+					$regexp = substr($regexp, 0, -1) . ')/';
+					//$line['message'] = preg_replace_callback($regexp, array(&$this, 'search_callback'), stripslashes($line['message']));
+					$line['message'] = stripslashes($line['message']);
+					$tpl_page .= '<fieldset>' . $line['message'] . '</fieldset><br>';
+					$count++;
 				}
-				$tpl_page .= '<fieldset>' . $line['message'] . '</fieldset><br>';
-				$count++;
+				$currPage = (($s / $limit) + 1);
+				$tpl_page .= '<br>';
+				if ($s >= 1) {
+					$prevs = ($s - $limit);
+					$tpl_page .= "&nbsp;<a href=\"?action=search&s=$prevs&query=" . urlencode($search_query) . "\">&lt;&lt; Prev 10</a>&nbsp&nbsp;";
+				}
+				$pages = intval($numrows / $limit);
+				if ($numrows % $limit) {
+					$pages++;
+				}
+				if (!((($s + $limit) / $limit) == $pages) && $pages != 1) {
+					$news = $s + $limit;
+					$tpl_page .= "&nbsp;<a href=\"?action=search&s=$news&query=" . urlencode($search_query) . "\">Next 10 &gt;&gt;</a>";
+				}
+				
+				$a = $s + ($limit);
+				if ($a > $numrows) {
+					$a = $numrows;
+				}
+				$b = $s + 1;
+				
+				$tpl_page .= $this->search_results_display($a, $b, $numrows);
 			}
-			$currPage = (($s / $limit) + 1);
-			$tpl_page .= '<br>';
-			if ($s >= 1) {
-				$prevs = ($s - $limit);
-				print "&nbsp;<a href=\"?action=search&s=$prevs&query=$search_query\">&lt;&lt; Prev 10</a>&nbsp&nbsp;";
-			}
-			$pages = intval($numrows / $limit);
-			if ($numrows % $limit) {
-				$pages++;
-			}
-			if (!((($s + $limit) / $limit) == $pages) && $pages != 1) {
-				$news = $s + $limit;
-				$tpl_page .= "&nbsp;<a href=\"?action=search&s=$news&query=$search_query\">Next 10 &gt;&gt;</a>";
-			}
-		
-			$a = $s + ($limit);
-			if ($a > $numrows) {
-				$a = $numrows;
-			}
-			$b = $s + 1;
-			$tpl_page .= '<p>' . _gettext('Results') . ' ' . $b . ' &gt;&gt; ' . $a . ' of ' . $numrows . '</p>';
-			$tpl_page .= '<hr>';
 		}
 		
 		$tpl_page .= '<form action="?" method="get">
 		<input type="hidden" name="action" value="search">
 		<input type="hidden" name="s" value="0">
 		
-		<label for="query">'._gettext('Query').':</label>
-		<input type="text" name="query" value="'.$_GET['query'].'"><br>
+		<b>'._gettext('Query').'</b>:<br><input type="text" name="query" ';
+		if (isset($_GET['query'])) {
+			$tpl_page .= 'value="' . $_GET['query'] . '" ';
+		}
+		$tpl_page .= 'size="52"><br>
 		
-		<input type="submit" value="'._gettext('Search').'">
+		<input type="submit" value="'._gettext('Search').'"><br><br>
+		
+		<h1>Search Help</h1>
+		
+		Separate search terms with the word <b>KUSABA_AND</b><br><br>
+		
+		To find a single phrase anywhere in a post\'s message, use:<br>
+		%some phrase here%<br><br>
+		
+		To find a phrase at the beginning of a post\'s message:<br>
+		some phrase here%<br><br>
+		
+		To find a phrase at the end of a post\'s message:<br>
+		%some phrase here<br><br>
+		
+		To find two phrases anywhere in a post\'s message, use:<br>
+		%first phrase here%KUSABA_AND%second phrase here%<br><br>
 		
 		</form>';
+	}
+	
+	function search_callback($matches) {
+		print_r($matches);
+		return '<b>' . $matches[0] . '</b>';
+	}
+	
+	function search_results_display($a, $b, $numrows) {
+		return '<p>' . _gettext('Results') . ' <b>' . $b . '</b> to <b>' . $a . '</b> of <b>' . $numrows . '</b></p>' . "\n" .
+		'<hr>';
 	}
 	
 	/* View and delete reports */

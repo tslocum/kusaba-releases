@@ -151,6 +151,12 @@ class Board {
 	 */	 
 	var $board_showid;
 	/**	 	
+	 * Whether to show a smaller version of the thread list on text boards
+	 * 	 	 	
+	 * @var integer Compact list
+	 */	 
+	var $board_compactlist;
+	/**	 	
 	 * Sets if after making a post, the user will be redirected to the thread they just posted in
 	 * 	 	 	
 	 * @var integer Redirect to thread
@@ -278,6 +284,7 @@ class Board {
 				$this->board_defaultstyle             = $line['defaultstyle'];
 				$this->board_locale                   = $line['locale'];
 				$this->board_showid                   = $line['showid'];
+				$this->board_compactlist              = $line['compactlist'];
 				$this->board_redirecttothread         = $line['redirecttothread'];
 				$this->board_enablecaptcha            = $line['enablecaptcha'];
 				$this->board_enablenofile             = $line['enablenofile'];
@@ -319,11 +326,6 @@ class Board {
 			changeLocale($this->board_locale);
 		}
 		
-		$this->InitializeSmarty();
-		
-		$numpostsleft = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `parentid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC");
-		$boardpage = 0;
-		
 		$hide_extra = false;
 		switch ($this->board_type) {
 		case 1:
@@ -339,111 +341,134 @@ class Board {
 			$numthreadsdisplayed = KU_THREADS;
 		}
 		
+		$results = $tc_db->GetAll("SELECT `id`, `deletedat` FROM `" . KU_DBPREFIX . "posts_" . $this->board_dir . "` WHERE `IS_DELETED` = 0 AND `parentid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC");
+		$numpostsleft = count($results);
+		
+		$this->InitializeSmarty();
 		$boardstooutput = calculatenumpages($this->board_type, ($numpostsleft-1));
 		$this->CachePageHeaderData();
 		
+		$boardpage = 0;
 		if ($numpostsleft>0) {
 			$cached_postbox = $this->Postbox(0, '', $this->board_postboxnotice);
-			while ($numpostsleft>0) {
+			
+			// {{{ Fetch all of the thread IDs for each page of the board and save them in an array
+			$master_thread_ids = array();
+			$threadcount = 1;
+			$threadpage = 0;
+			foreach($results AS $line) {
+				/* If the thread is on the page set to mark, and hasn't been marked yet, mark it */
+				if ($line['deletedat'] == 0 && $this->board_markpage > 0 && $threadpage >= $this->board_markpage) {
+					$tc_db->Execute("UPDATE `".KU_DBPREFIX."posts_".$this->board_dir."` SET `deletedat` = '" . (time() + 7200) . "' WHERE `id` = '" . $line['id'] . "' LIMIT 1");
+					$this->RegenerateThread($line['id']);
+				}
+				$master_thread_ids[$threadpage][] = $line[0];
+				
+				if ($threadcount == $numthreadsdisplayed) {
+					$threadcount = 1;
+					$threadpage++;
+				} else {
+					$threadcount++;
+				}
+			}
+			// }}}
+			
+			while ($numpostsleft > 0) {
 				$executiontime_start_regeneratepages = microtime_float();
 				
-				$page = $this->pageheader_noreply . $cached_postbox;
+				if (isset($master_thread_ids[$boardpage])) {
+					$thread_ids = $master_thread_ids[$boardpage];
+					$page = $this->pageheader_noreply . $cached_postbox;
 				
-				if ($this->board_type != 1) {
-					$page .= deletionForm($this->board_dir);
-				}
-				
-				$results = $tc_db->GetAll("SELECT `id` , `deletedat` FROM `" . KU_DBPREFIX . "posts_" . $this->board_dir . "` WHERE `IS_DELETED` = 0 AND `parentid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC LIMIT " . ($boardpage * $numthreadsdisplayed) . ', ' . $numthreadsdisplayed);
-				
-				$thread_relative_id = 0;
-				$thread_ids = array();
-				foreach($results AS $line) {
-					/* If the thread is on the page set to mark, and hasn't been marked yet, mark it */
-					if ($line['deletedat'] == 0 && $this->board_markpage > 0 && $boardpage >= $this->board_markpage) {
-						$tc_db->Execute("UPDATE `".KU_DBPREFIX."posts_".$this->board_dir."` SET `deletedat` = '" . (time() + 7200) . "' WHERE `id` = '" . $line['id'] . "' LIMIT 1");
-						$this->RegenerateThread($line['id']);
+					if ($this->board_type != 1) {
+						$page .= deletionForm($this->board_dir);
 					}
-					$thread_ids[] = $line[0];
-				}
-				
-				if ($this->board_type == 3) {
-					$page .= '<center>' . "\n" .
-					'<table width="98%">' . "\n" .
-					'<tr>' . "\n" .
-					'	<td class="postblock" align="center" width="1%">' . "\n" .
-					'		No.' . "\n" .
-					'	</td>' . "\n" .
-					'	<td class="postblock" style="text-align:center;width:25%;">' . "\n" .
-					'		' . _gettext('Name') . "\n" .
-					'	</td>' . "\n" .
-					'	<td class="postblock" align="center" width="1%">' . "\n" .
-					'		' . _gettext('File') . "\n" .
-					'	</td>' . "\n" .
-					'	<td class="postblock" align="center" width="1%">' . "\n" .
-					'		' . _gettext('Tag') . "\n" .
-					'	</td>' . "\n" .
-					'	<td class="postblock" style="text-align:center;width:40%;">' . "\n" .
-					'		' . _gettext('Subject') . "\n" .
-					'	</td>' . "\n" .
-					'	<td class="postblock" align="center" width="1%">' . "\n" .
-					'		' . _gettext('Size') . "\n" .
-					'	</td>' . "\n" .
-					'	<td class="postblock" align="center" width="1%">' . "\n" .
-					'		' . _gettext('Date') . "\n" .
-					'	</td>' . "\n" .
-					'	<td class="postblock" style="text-align:center;width:1px;">' . "\n" .
-					'		Rep.' . "\n" .
-					'	</td>' . "\n" .
-					'	<td class="postblock" style="width:1px;">' . "\n" .
-					'		&nbsp;' . "\n" .
-					'	</td>' . "\n" .
-					'</tr>' . "\n";
-				}
-				$page .= $this->BuildThread($thread_ids, ($boardpage + 1), false, $thread_relative_id);
-				if ($this->board_type == 3) {
-					$page .= '</table></center><br>';
-				}
-				
-				if ($this->board_type != 1) {
-					$page .= deletePostBox($this->board_type, $this->board_enablereporting);
-					$page .= setDelPassJavascript();
-					$page .= pageList($boardpage, $boardstooutput, $this->board_dir);
-				}
-				
-				$page .= $this->Footer(false, (microtime_float()-$executiontime_start_regeneratepages), $hide_extra);
-				
-				if ($boardpage == 0) {
-					$this->PrintPage(KU_BOARDSDIR.$this->board_dir.'/'.KU_FIRSTPAGE, $page, $this->board_dir);
+					
+					$thread_relative_id = 0;
+					
+					
+					if ($this->board_type == 3) {
+						$page .= '<center>' . "\n" .
+						'<table width="98%">' . "\n" .
+						'<tr>' . "\n" .
+						'	<td class="postblock" align="center" width="1%">' . "\n" .
+						'		No.' . "\n" .
+						'	</td>' . "\n" .
+						'	<td class="postblock" style="text-align:center;width:25%;">' . "\n" .
+						'		' . _gettext('Name') . "\n" .
+						'	</td>' . "\n" .
+						'	<td class="postblock" align="center" width="1%">' . "\n" .
+						'		' . _gettext('File') . "\n" .
+						'	</td>' . "\n" .
+						'	<td class="postblock" align="center" width="1%">' . "\n" .
+						'		' . _gettext('Tag') . "\n" .
+						'	</td>' . "\n" .
+						'	<td class="postblock" style="text-align:center;width:40%;">' . "\n" .
+						'		' . _gettext('Subject') . "\n" .
+						'	</td>' . "\n" .
+						'	<td class="postblock" align="center" width="1%">' . "\n" .
+						'		' . _gettext('Size') . "\n" .
+						'	</td>' . "\n" .
+						'	<td class="postblock" align="center" width="1%">' . "\n" .
+						'		' . _gettext('Date') . "\n" .
+						'	</td>' . "\n" .
+						'	<td class="postblock" style="text-align:center;width:1px;">' . "\n" .
+						'		Rep.' . "\n" .
+						'	</td>' . "\n" .
+						'	<td class="postblock" style="width:1px;">' . "\n" .
+						'		&nbsp;' . "\n" .
+						'	</td>' . "\n" .
+						'</tr>' . "\n";
+					}
+					$page .= $this->BuildThread($thread_ids, ($boardpage + 1), false, $thread_relative_id);
+					if ($this->board_type == 3) {
+						$page .= '</table></center><br>';
+					}
+					
+					if ($this->board_type != 1) {
+						$page .= deletePostBox($this->board_type, $this->board_enablereporting) .
+						setDelPassJavascript() .
+						pageList($boardpage, $boardstooutput, $this->board_dir);
+					}
+					
+					$page .= $this->Footer(false, (microtime_float()-$executiontime_start_regeneratepages), $hide_extra);
+					
+					if ($boardpage == 0) {
+						$this->PrintPage(KU_BOARDSDIR.$this->board_dir.'/'.KU_FIRSTPAGE, $page, $this->board_dir);
+					} else {
+						$this->PrintPage(KU_BOARDSDIR.$this->board_dir.'/'.$boardpage.'.html', $page, $this->board_dir);
+					}
+					
+					$page = '';
+					$boardpage++;
+					if ($this->board_type==1) {
+						$numpostsleft = 0;
+					} else {
+						$numpostsleft -= $numthreadsdisplayed;
+					}
 				} else {
-					$this->PrintPage(KU_BOARDSDIR.$this->board_dir.'/'.$boardpage.'.html', $page, $this->board_dir);
-				}
-				
-				$page = '';
-				$boardpage++;
-				if ($this->board_type==1) {
 					$numpostsleft = 0;
-				} else {
-					$numpostsleft -= $numthreadsdisplayed;
 				}
+				
 			}
 		} else {
 			/* Make a blank index page */
 			$executiontime_start_blankindex = microtime_float();
-			$page = $this->pageheader_noreply;
-			$page .= $this->Postbox(0, '', $this->board_postboxnotice);
-			$page .= $this->Footer(false, (microtime_float()-$executiontime_start_blankindex), $hide_extra);
+			$page = $this->pageheader_noreply .
+			$this->Postbox(0, '', $this->board_postboxnotice) .
+			$this->Footer(false, (microtime_float()-$executiontime_start_blankindex), $hide_extra);
 			$this->PrintPage(KU_BOARDSDIR.$this->board_dir.'/'.KU_FIRSTPAGE, $page, $this->board_dir);
 		}
 		/* If text board, rebuild thread list html files */
-		if ($this->board_type==1) {
+		if ($this->board_type == 1) {
 			$numpostsleft = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `parentid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC");
 			$liststooutput = floor(($numpostsleft-1) / 40);
 			$listpage = 0;
 			$currentpostwave = 0;
 			while ($numpostsleft>0) {
 				$executiontime_start_list = microtime_float();
-				$page = $this->PageHeader(0, $currentpostwave, $listpage, $liststooutput);
-				$page .= $this->Footer(false, (microtime_float()-$executiontime_start_list), $hide_extra);
+				$page = $this->PageHeader(0, $currentpostwave, $listpage, $liststooutput) .
+				$this->Footer(false, (microtime_float()-$executiontime_start_list), $hide_extra);
 				if ($listpage==0) {
 					$this->PrintPage(KU_BOARDSDIR.$this->board_dir.'/list.html', $page, $this->board_dir);
 				} else {
@@ -457,9 +482,9 @@ class Board {
 		/* If the board has catalog mode enabled, build it */
 		if ($this->board_enablecatalog == 1 && ($this->board_type == 0 || $this->board_type == 2)) {
 			$executiontime_start_catalog = microtime_float();
-			$catalog_page = $this->PageHeader(0, 0, -1, -1, false, true);
-			$catalog_page .= '&#91;<a href="' . KU_BOARDSFOLDER . $this->board_dir . '/">'._gettext('Return').'</a>&#93; <div class="catalogmode">'._gettext('Catalog Mode').'</div>' . "\n";
-			$catalog_page .= '<table border="1" align="center">' . "\n" . '<tr>' . "\n";
+			$catalog_page = $this->PageHeader(0, 0, -1, -1, false, true) .
+			'&#91;<a href="' . KU_BOARDSFOLDER . $this->board_dir . '/">'._gettext('Return').'</a>&#93; <div class="catalogmode">'._gettext('Catalog Mode').'</div>' . "\n" .
+			'<table border="1" align="center">' . "\n" . '<tr>' . "\n";
 			
 			$results = $tc_db->GetAll("SELECT `id` , `subject` , `filename` , `filetype` FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `parentid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC");
 			$numresults = count($results);
@@ -506,9 +531,8 @@ class Board {
 				'</td>' . "\n";
 			}
 			
-			$catalog_page .= '</tr>' . "\n" . '</table><br>';
-			
-			$catalog_page .= $this->Footer(false, (microtime_float()-$executiontime_start_catalog));
+			$catalog_page .= '</tr>' . "\n" . '</table><br>' .
+			$this->Footer(false, (microtime_float()-$executiontime_start_catalog));
 			
 			$this->PrintPage(KU_BOARDSDIR . $this->board_dir . '/catalog.html', $catalog_page, $this->board_dir);
 		}
@@ -576,7 +600,7 @@ class Board {
 	 * @param integer $thread_op_id Thread ID	 	 
 	 */	 	
 	function RegenerateThread($thread_op_id) {
-		global $tc_db;
+		global $tc_db, $tpl;
 		$hide_extra = ($this->board_type == 1) ? true : false;
 		
 		if ($this->board_locale != '') {
@@ -585,12 +609,12 @@ class Board {
 		
 		$this->InitializeSmarty();
 		$this->CachePageHeaderData();
-
-		$thread_exists = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `id` = ".mysql_real_escape_string($thread_op_id)." AND `IS_DELETED` = 0 AND `parentid` = 0 LIMIT 1");
-		if ($thread_exists == 1) {
+		
+		$numreplies = $tc_db->GetOne("SELECT COUNT(*) FROM `" . KU_DBPREFIX . "posts_" . $this->board_dir . "` WHERE (`id` = " . mysql_real_escape_string($thread_op_id) . " OR `parentid` = " . mysql_real_escape_string($thread_op_id) . ") AND `IS_DELETED` = 0");
+		if (count($numreplies) > 0) {
 			$executiontime_start_regeneratethread = microtime_float();
+			$numreplies--;
 			
-			$numreplies = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `parentid` = ".mysql_real_escape_string($thread_op_id)." AND `IS_DELETED` = 0");
 			$modifier_last50 = false;
 			$modifier_first100 = false;
 			if (KU_FIRSTLAST && $numreplies > 49) {
@@ -600,9 +624,9 @@ class Board {
 				}
 			}
 			
-			$thread_page = $this->PageHeader($thread_op_id, '', $this->board_postboxnotice);
-			$thread_page .= threadLinks('return', $thread_op_id, $this->board_dir, $this->board_type, $modifier_last50, $modifier_first100);
-			$thread_page .= $this->Postbox($thread_op_id, '', $this->board_postboxnotice);
+			$thread_page = $this->PageHeader($thread_op_id, '', $this->board_postboxnotice) .
+			threadLinks('return', $thread_op_id, $this->board_dir, $this->board_type, $modifier_last50, $modifier_first100) .
+			$this->Postbox($thread_op_id, '', $this->board_postboxnotice);
 			
 			if ($modifier_last50) {
 				$thread_page_last50 = $thread_page;
@@ -656,7 +680,7 @@ class Board {
 	 * @return string The built thread	 	 	 	 	 	 
 	 */	 
 	function BuildThread($parentid, $page = false, $resurrect = false, $thread_relative_id = 0, $modifier = '') {
-		global $tc_db;
+		global $tc_db, $expandjavascript;
 		$buildthread_output = '';
 		
 		// {{{ Check if an array of ID's were supplied, and if not, make it an array anyways
@@ -664,6 +688,7 @@ class Board {
 		if (!is_array($parentid)) {
 			$parentid = array($parentid);
 		}
+		$parentid_strfriendly = implode('|', $parentid);
 		
 		// }}}
 		// {{{ Validate each ID being a number greater than zero
@@ -683,7 +708,7 @@ class Board {
 		if ($this->board_type == 1) {
 			// {{{ Calculate the number of threads which will be displayed on the front page
 			
-			$num_threads_onfrontpage = min(KU_THREADSTXT, $tc_db->GetOne('SELECT COUNT(*) FROM `'.KU_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = 0 AND `parentid` = 0'));
+			$num_threads_onfrontpage = $tc_db->GetOne('SELECT COUNT(*) FROM `'.KU_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = 0 AND `parentid` = 0 LIMIT 15');
 			$isdeleted_check = '';
 			
 			// }}}
@@ -695,7 +720,7 @@ class Board {
 			$query_idsegment .= '`id` = ' . mysql_real_escape_string($this_parentid) . ' OR ';
 		}
 		$query_idsegment = substr($query_idsegment, 0, -4);
-		$results = $tc_db->GetAll('SELECT * FROM `'.KU_DBPREFIX.'posts_'.$this->board_dir.'` WHERE ('.$query_idsegment.') ' . $isdeleted_check . 'ORDER BY `stickied` DESC, `lastbumped` DESC');
+		$results = $tc_db->GetAll('SELECT * FROM `' . KU_DBPREFIX . 'posts_' . $this->board_dir . '` WHERE (' . $query_idsegment . ') ' . $isdeleted_check . 'ORDER BY `stickied` DESC, `lastbumped` DESC');
 		if (count($results) == 0) {
 			exitWithErrorPage('BuildThread(): error.  No posts in thread to build from.');
 		}
@@ -711,24 +736,30 @@ class Board {
 		
 		foreach($results AS $line) {
 			$thread_id = $line['id'];
+			$expandjavascript = '';
 			
 			$numReplies = $tc_db->GetOne('SELECT COUNT(*) FROM `'.KU_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `parentid` = '.mysql_real_escape_string($thread_id) . ' ' . $isdeleted_check);
 			if (($this->board_type == 0 ||$this->board_type == 2) || ($this->board_type == 3 && !$page)) {
-				$numImageReplies = 0;
-				
+				$buildthread_gotcache = false;
 				// {{{ Calculate the number of image replies to the thread being generated
 				
+				$numImageReplies = 0;
 				if ($page) {
-					$query = 'SELECT COUNT(*) FROM `'.KU_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `parentid` = '.mysql_real_escape_string($thread_id).' ' . $isdeleted_check . 'AND `filename` != \'\' AND `filename` != \'removed\' ORDER BY `id` DESC LIMIT 0, ';
+					$query = 'SELECT `filename` FROM `'.KU_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `parentid` = '.mysql_real_escape_string($thread_id).' ' . $isdeleted_check . 'ORDER BY `id` ASC';
 					if ($line['stickied'] == 0 && $numReplies > KU_REPLIES) {
-						$query .= ($numReplies - KU_REPLIES);
+						$query .= ' LIMIT ' . ($numReplies - KU_REPLIES);
 					} elseif ($numReplies > KU_REPLIESSTICKY) {
-						$query .= ($numReplies - KU_REPLIESSTICKY);
+						$query .= ' LIMIT ' . ($numReplies - KU_REPLIESSTICKY);
 					} else {
 						$query = '';
 					}
 					if ($query != '') {
-						$numImageReplies = $tc_db->GetOne($query);
+						$numImageReplies_result = $tc_db->GetAll($query);
+						foreach ($numImageReplies_result as $numImageReplies_line) {
+							if ($numImageReplies_line['filename'] != '' && $numImageReplies_line['filename'] != 'removed') {
+								$numImageReplies++;
+							}
+						}
 					}
 					
 				}
@@ -786,12 +817,27 @@ class Board {
 							break;
 							
 						}
-						$results = $tc_db->GetAll($query);
+						$results_replies = $tc_db->GetAll($query);
 						if ($modifier == 'last50') {
-							$results = array_reverse($results);
+							$results_replies = array_reverse($results_replies);
 						}
 						
 						// }}}
+						
+						/*if (KU_APC) {
+							if (apc_fetch('buildthread|' . $this->board_dir . '|' . $thread_id . '|nonpage|sql|op') == serialize($results)) {
+								if (apc_fetch('buildthread|' . $this->board_dir . '|' . $thread_id . '|nonpage|sql|replies') == serialize($results_replies)) {
+									$buildthread_cached = apc_fetch('buildthread|' . $this->board_dir . '|' . $thread_id . '|nonpage|thread');
+									if ($buildthread_cached != false) {
+										if (function_exists('gzcompress')) {
+											$buildthread_cached = gzuncompress($buildthread_cached);
+										}
+										$buildthread_output .= $buildthread_cached;
+										$buildthread_gotcache = true;
+									}
+								}
+							}
+						}*/
 					} else {
 						// {{{ Page reply fetch
 						
@@ -814,38 +860,88 @@ class Board {
 						}
 						/* Retrieves the three newest posts from the thread in descending order, which is backwards for what we want, so we apply array_reverse on the result */
 						$query = 'SELECT * FROM `'.KU_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `parentid` = '.mysql_real_escape_string($thread_id).' ' . $isdeleted_check . 'ORDER BY `id` DESC LIMIT '.$numrepliesdisplayed;
-						$results = array_reverse($tc_db->GetAll($query));
+						$results_replies = array_reverse($tc_db->GetAll($query));
 						
 						// }}}
+						
+						/*if (KU_APC) {
+							if (apc_fetch('buildthread|' . $this->board_dir . '|' . $thread_id . '|page|sql|op') == serialize($results)) {
+								if (apc_fetch('buildthread|' . $this->board_dir . '|' . $thread_id . '|page|sql|replies') == serialize($results_replies)) {
+									$buildthread_cached = apc_fetch('buildthread|' . $this->board_dir . '|' . $thread_id . '|page|thread');
+									if ($buildthread_cached != false) {
+										if (function_exists('gzcompress')) {
+											$buildthread_cached = gzuncompress($buildthread_cached);
+										}
+										$buildthread_output .= $buildthread_cached;
+										$buildthread_gotcache = true;
+									}
+								}
+							}
+						}*/
 					}
-					foreach($results AS $line_reply) {
-						$buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line_reply);
-					}
-					if (!$page) {
-						$buildthread_output .= '</span>' . "\n";
-					}
-					$buildthread_output .= '</div>' . "\n";
 					
-					if (!$page) {
-						if ($modifier == 'first100') {
-							$buildthread_output .= '<span class="omittedposts" style="float: left">' . "\n" .
-							'	 ' . ($numReplies - 100) . ' ';
-							$buildthread_output .= (($numReplies - 100) != 1) ? strtolower(_gettext('Posts')) : strtolower(_gettext('Post'));
-							$buildthread_output .= ' ' . _gettext('omitted') . '.  ' . _gettext('First 100 posts shown.') . "\n" .
-							'</span>' . "\n";
+					if (!$buildthread_gotcache) {
+						$buildthread_replies = '';
+						foreach($results_replies AS $line_reply) {
+							$buildthread_replies .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line_reply);
+						}
+						if (!$page && $expandjavascript != '') {
+							$expandjavascript = '<a href="#" onclick="javascript:' . $expandjavascript . 'return false;">' . _gettext('Expand all images') . '</a>';
+						} else {
+							$expandjavascript = '';
+						}
+						$buildthread_output .= $expandjavascript . $buildthread_replies;
+						unset($buildthread_replies);
+						
+						if ($page) {
+							$buildthread_output .= '</div>' . "\n";
+						} /*else {
+							$buildthread_output .= '</span>' . "\n";
+						}*/
+						
+						if (!$page) {
+							if ($modifier == 'first100') {
+								$buildthread_output .= '<span class="omittedposts" style="float: left">' . "\n" .
+								'	 ' . ($numReplies - 100) . ' ';
+								$buildthread_output .= (($numReplies - 100) != 1) ? strtolower(_gettext('Posts')) : strtolower(_gettext('Post'));
+								$buildthread_output .= ' ' . _gettext('omitted') . '.  ' . _gettext('First 100 posts shown.') . "\n" .
+								'</span>' . "\n";
+							}
+							
+							if ($numReplies > 2) {
+								$buildthread_output .= '<span style="float: right;">' . "\n" .
+								'	' . threadLinks('return', $thread_id, $this->board_dir, $this->board_type, ($numReplies > 49), ($numReplies > 99), true) .
+								'</span>' . "\n";
+							}
 						}
 						
-						if ($numReplies > 2) {
-							$buildthread_output .= '<span style="float: right;">' . "\n" .
-							'	' . threadLinks('return', $thread_id, $this->board_dir, $this->board_type, ($numReplies > 49), ($numReplies > 99), true) .
-							'</span>' . "\n";
-						}
+						/*if (KU_APC) {
+							if (($page && $page < 5) || !$page) {
+								$results_apc = serialize($results);
+								$results_replies_apc = serialize($results_replies);
+								$buildthread_output_apc = $buildthread_output;
+								
+								if (function_exists('gzcompress')) {
+									$buildthread_output_apc = gzcompress($buildthread_output_apc, 9);
+								}
+								
+								if ($page) {
+									apc_store('buildthread|' . $this->board_dir . '|' . $thread_id . '|page|sql|op', $results_apc, 600);
+									apc_store('buildthread|' . $this->board_dir . '|' . $thread_id . '|page|sql|replies', $results_replies_apc, 600);
+									apc_store('buildthread|' . $this->board_dir . '|' . $thread_id . '|page|thread', $buildthread_output_apc, 600);
+								} else {
+									apc_store('buildthread|' . $this->board_dir . '|' . $thread_id . '|nonpage|sql|op', $results_apc, 600);
+									apc_store('buildthread|' . $this->board_dir . '|' . $thread_id . '|nonpage|sql|replies', $results_replies_apc, 600);
+									apc_store('buildthread|' . $this->board_dir . '|' . $thread_id . '|nonpage|thread', $buildthread_output_apc, 600);
+								}
+							}
+						}*/
 					}
 				}
 				
 				// }}}
 				
-				$buildthread_output .= '</div>' . "\n" .
+				$buildthread_output .= '</div>' . "\n" . 
 				'<br clear="left">' . "\n" . 
 				'<hr>' . "\n";
 			} elseif ($this->board_type == 3 && $page) {
@@ -862,8 +958,6 @@ class Board {
 				if ($numReplies > 5 && $page) {
 					$modifier_last50 = ($numReplies > 49) ? true : false;
 					$modifier_first100 = ($numReplies > 99) ? true : false;
-						
-					$buildthread_output .= threadLinks('page', $thread_id, $this->board_dir, $this->board_type, $modifier_last50, $modifier_first100);
 					
 					$reply_relative_id = $numReplies-4;
 				} else {
@@ -957,6 +1051,7 @@ class Board {
 	 * @return string The built post	 	 	 	 	 	 
 	 */	 
 	function BuildPost($page, $post_board, $post_board_type, $post, $thread_replies=0, $thread_relative_id='', $reply_relative_id=0, $threads_on_front_page=0) {
+		global $expandjavascript, $CURRENTLOCALE;
 		$buildpost_output = '';
 		$post_thread_start_id = ($post['parentid']==0) ? $post['id'] : $post['parentid'];
 		$post_is_thread = ($post['parentid']==0) ? true : false;
@@ -993,9 +1088,12 @@ class Board {
 				if ($post['parentid'] == 0 && $thread_relative_id !== '') {
 					$info_file .= '<a name="s' . $thread_relative_id . '"></a>';
 				}
-				$info_file .= '<span class="filesize">'._gettext('File:').' ';
+				$info_file .= '<span class="filesize">'._gettext('File').': ';
 				if ($post_is_standard) {
 					$info_file .= '<a href="' . $post_file_url . '" onclick="javascript:expandimg(\'' . $post['id'] . '\', \'' . $post_file_url . '\', \'' . $post_thumb . '\', \'' . $post['image_w'] . '\', \'' . $post['image_h'] . '\', \'' . $post['thumb_w'] . '\', \'' . $post['thumb_h'] . '\');return false;">';
+					if (!$post_is_thread) {
+						$expandjavascript .= 'expandimg(\'' . $post['id'] . '\', \'' . $post_file_url . '\', \'' . $post_thumb . '\', \'' . $post['image_w'] . '\', \'' . $post['image_h'] . '\', \'' . $post['thumb_w'] . '\', \'' . $post['thumb_h'] . '\');';
+					}
 				} else {
 					$info_file .= '<a ';
 					if (KU_NEWWINDOW) {
@@ -1047,12 +1145,12 @@ class Board {
 				}
 			}
 			$info_post .= '<a name="'.$post['id'].'"></a>' . "\n" . 
-			'<label>' . "\n" . 
-			'<input type="checkbox" name="delete" value="' . $post['id'] . '">' . "\n";
+			'		<label>' . "\n" . 
+			'			<input type="checkbox" name="delete" value="' . $post['id'] . '">' . "\n";
 			if ($post['subject']!='') {
-				$info_post .= '<span class="filetitle">' . "\n" .
-				'	' . $post['subject'] . "\n" .
-				'</span> ' . "\n";
+				$info_post .= '			<span class="filetitle">' . "\n" .
+				'						' . $post['subject'] . "\n" .
+				'				</span> ' . "\n";
 			}
 			
 			$info_post .= formatNameAndTrip($post['name'], $post['email'], $post['tripcode'], $this->board_anonymous);
@@ -1071,8 +1169,8 @@ class Board {
 				'</span>' . "\n";
 			}
 			
-			$info_post .= ' '.date("y/m/d(D)H:i", $post['postedat']) . "\n" .
-			'</label>' . "\n" .
+			$info_post .= ' ' . formatDate($post['postedat'], 'post', $CURRENTLOCALE) . "\n" .
+			'		</label>' . "\n" .
 			' <span class="reflink">' . "\n" .
 			'	<a href="'.KU_BOARDSFOLDER.$post_board.'/res/'.$post_thread_start_id.'.html#'.$post['id'].'"';
 			if (!$page) {
@@ -1134,7 +1232,7 @@ class Board {
 				'		&gt;&gt;' . "\n" .
 				'	</td>' . "\n" .
 				'	<td class="reply" id="reply'.$post['id'].'">' . "\n" .
-				'		' . $info_post . "\n";
+				'		' . $info_post;
 				/* Make sure the file line is actually in use to prevent an unwanted <br> */
 				if ($info_file != '') {
 					$buildpost_output .= '		<br>' . $info_file . "\n";
@@ -1159,7 +1257,7 @@ class Board {
 			
 			$buildpost_output .= '</blockquote>' . "\n";
 			/* If the thread is two hours or less from being pruned, add the marked for deletion message */
-			if ($this->board_type != 1 && $this->archive_dir == '' && checkMarkedForDeletion($post, $this->board_maxage)) {
+			if ($this->archive_dir == '' && checkMarkedForDeletion($post, $this->board_maxage)) {
 				$buildpost_output .= markedForDeletionMessage();
 			}
 			if (!$post_is_thread) {
@@ -1223,7 +1321,7 @@ class Board {
 					}
 				} else {
 					$buildpost_output .= '<span class="replies">&nbsp;('.$thread_replies.')</span>' . "\n" .
-					'</h3>' . "\n";
+					'</h2>' . "\n";
 					$buildpost_output .= '<div class="post even">' . "\n";
 				}
 			} else {
@@ -1286,6 +1384,60 @@ class Board {
 		}
 		$tpl['title'] .= $this->board_desc;
 		$tpl['head'] = '<script type="text/javascript" src="' . getCWebPath() . 'lib/javascript/protoaculous-compressed.js"></script>' . "\n";
+		/* Wii-specific features?
+			$tpl['head'] .= '<script type="text/javascript" src="' . getCWebPath() . 'lib/javascript/wii.js"></script>' . "\n" .
+			'<script type="text/javascript">' . "\n" .
+			'var wiimote = new wii.Wiimote();
+			var horizontalController = new wii.HorizontalController();
+			var keyboardController = new wii.KeyboardController();
+			
+			function changeController(code) {
+			  if (code == 0) {
+			    wii.addController(wiimote);
+			    wii.removeController(horizontalController);
+			    wii.removeController(keyboardController);
+			  } else if (code == 1) {
+			    wii.removeController(wiimote);
+			    wii.addController(horizontalController);
+			    wii.removeController(keyboardController);
+			  } else if (code == 2) {
+			    wii.removeController(wiimote);
+			    wii.removeController(horizontalController);
+			    wii.addController(keyboardController);
+			  }
+			}
+
+			function setupControllers() {
+			  var controllers = [ wiimote, horizontalController, keyboardController ];
+			  for (var i = 0; i < controllers.length; ++i) {
+			    var controller = controllers[i];
+			    /*controller.handleUp = createLoggerFunction(\'&uarr; button pressed\');
+			    controller.handleDown = createLoggerFunction(\'&darr; button pressed\');
+			    controller.handleLeft = createLoggerFunction(\'&larr; button pressed\');
+			    controller.handleRight = createLoggerFunction(\'&rarr; button pressed\');
+			    controller.handleMinus = createLoggerFunction(\'&ndash; button pressed\');
+			    controller.handlePlus = createLoggerFunction(\'+ button pressed\');
+			    controller.handle1 = createLoggerFunction(\'1 button pressed\');
+			    controller.handle2 = createLoggerFunction(\'2 button pressed\');
+			    controller.handleA = createLoggerFunction(\'A button pressed\', true);
+			    controller.handleB = createLoggerFunction(\'B button pressed\');
+			  }
+			}
+			
+			wii.setupHandlers();
+			setupControllers();
+			
+			var controller;
+			if (wii.isWiiOperaBrowser()) {
+				changeController(0);
+				//controller = $(\'wiimote\');
+			} else {
+				changeController(2);
+				//controller = $(\'keyboardController\');
+			}
+			//controller.checked = \'yes\';' . "\n" .
+			'</script>' . "\n";
+		}*/
 		$output = '';
 		
 		if ($this->board_type == 0 || $this->board_type == 2 || $this->board_type == 3) {
@@ -1340,8 +1492,11 @@ class Board {
 					$output .= '-&nbsp;';
 				}
 			}
-			$output .= '[<a href="'.KU_WEBPATH.'" target="_top">' . _gettext('Home') . '</a>]&nbsp;[<a href="' . KU_CGIPATH . '/manage.php" target="_top">' . _gettext('Manage') . '</a>]</div>';
-			$output .= $this->DisplayBoardList(false);
+			if (KU_WATCHTHREADS) {
+				$output .= '[<a href="#" onclick="javascript:showwatchedthreads();return false" title="' . _gettext('Watched Threads') . '">WT</a>]&nbsp;';
+			}
+			$output .= '[<a href="'.KU_WEBPATH.'" target="_top">' . _gettext('Home') . '</a>]&nbsp;[<a href="' . KU_CGIPATH . '/manage.php" target="_top">' . _gettext('Manage') . '</a>]</div>' . "\n" .
+			$this->DisplayBoardList(false);
 		} else {
 			$output .= $this->DisplayBoardList(true);
 		}
@@ -1378,32 +1533,29 @@ class Board {
 			'</div>' . "\n";
 		}
 		if (KU_WATCHTHREADS && !$isoekaki && ($this->board_type == 0 || $this->board_type == 2 || $this->board_type == 3) && !$hidewatchedthreads) {
-			$output .= '<div id="watchedthreads" style="top: ' . $ad_top . 'px; left: 25px;" class="watchedthreads">' . "\n" .
-			'<div class="postblock" id="watchedthreadsdraghandle" style="width: 100%;">' . _gettext('Watched Threads') . '</div>' . "\n" .
-			'<span id="watchedthreadlist"></span>' . "\n" .
-			'<div id="watchedthreadsbuttons">' . "\n" .
-			'<a href="#" onclick="javascript:hidewatchedthreads();return false;" title="' . _gettext('Hide the watched threads box') . '">' . "\n" .
-			'<img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="hidewatchedthreads" alt="hide">' . "\n" .
-			'</a>&nbsp;' . "\n" .
-			'<a href="#" onclick="javascript:getwatchedthreads(\'0\', \'' . $this->board_dir . '\');return false;" title="' . _gettext('Refresh watched threads') . '">' . "\n" .
-			'<img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="refreshwatchedthreads" alt="refresh">' . "\n" .
-			'</a>' . "\n" .
-			'</div>' . "\n" .
+			$output .= 
 			'<script type="text/javascript"><!--' . "\n" .
-			'watchedthreadselement = document.getElementById(\'watchedthreads\');' . "\n" .
 			'if (getCookie(\'showwatchedthreads\') == \'1\') {' . "\n" .
+			'	document.write(\'<div id="watchedthreads" style="top: ' . $ad_top . 'px; left: 25px;" class="watchedthreads">' .
+			'	<div class="postblock" id="watchedthreadsdraghandle" style="width: 100%;">' . _gettext('Watched Threads') . '<\/div>' .
+			'	<span id="watchedthreadlist"><\/span>' .
+			'	<div id="watchedthreadsbuttons">' .
+			'	<a href="#" onclick="javascript:hidewatchedthreads();return false;" title="' . _gettext('Hide the watched threads box') . '">' .
+			'	<img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="hidewatchedthreads" alt="hide">' .
+			'	<\/a>&nbsp;' .
+			'	<a href="#" onclick="javascript:getwatchedthreads(\\\'0\\\', \\\'' . $this->board_dir . '\\\');return false;" title="' . _gettext('Refresh watched threads') . '">' .
+			'	<img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="refreshwatchedthreads" alt="refresh">' .
+			'	<\/a>' .
+			'	<\/div>' .
+			'	<\/div>\');' . "\n" .
+			'	watchedthreadselement = document.getElementById(\'watchedthreads\');' . "\n" .
 			'	watchedthreadselement.style.top = getCookie(\'watchedthreadstop\');' . "\n" .
 			'	watchedthreadselement.style.left = getCookie(\'watchedthreadsleft\');' . "\n" .
 			'	watchedthreadselement.style.width = Math.max(250,getCookie(\'watchedthreadswidth\')) + \'px\';' . "\n" .
 			'	watchedthreadselement.style.height = Math.max(75,getCookie(\'watchedthreadsheight\')) + \'px\';' . "\n" .
 			'	getwatchedthreads(\'' . $replythread . '\', \'' . $this->board_dir . '\');' . "\n" .
-			'} else {' . "\n" .
-			'	watchedthreadselement.innerHTML = \'<a href="#" onclick="javascript:showwatchedthreads();return false"><img src="' . getCLBoardPath() . 'css/icons/blank.gif" border="0" class="restorewatchedthreads" title="' . _gettext('Restore watched threads') . '"><\/a>\';' . "\n" .
-			'	watchedthreadselement.style.width = \'16px\';' . "\n" .
-			'	watchedthreadselement.style.height = \'16px\';' . "\n" .
 			'}' . "\n" .
-			'//--></script>' . "\n" .
-			'</div>' . "\n";
+			'//--></script>' . "\n";
 		}
 		if ($this->board_type == 0 || $this->board_type == 2 || $this->board_type == 3) {
 			$output .= '<div class="logo">';
@@ -1457,11 +1609,18 @@ class Board {
 			if ($listpage >= 0 && $liststooutput >= 0) {
 				$output .= _gettext('Pages') . ':&nbsp;<a href="'.KU_BOARDSPATH . '/' . $this->board_dir . '/">' . _gettext('Front') . '</a>';
 				for ($i = 0; $i <= $liststooutput; $i++) {
-					$output .= '&nbsp;<a href="list';
-					if ($i!=0) {
-						$output .= $i;
+					$output .= '&nbsp;';
+					if ($listpage != $i) {
+						$output .= '<a href="list';
+						if ($i != 0) {
+							$output .= $i;
+						}
+						$output .= '.html">';
 					}
-					$output .= '.html">'.($i+1).'</a>';
+					$output .= ($i + 1);
+					if ($listpage != $i) {
+						$output .= '</a>';
+					}
 				}
 				$output .= '<br>' . "\n";
 			}
@@ -1511,47 +1670,95 @@ class Board {
 		global $tc_db;
 		
 		$output = '<div class="hborder">' . "\n" . 
-		'<div class="head threadldiv">' . "\n" . 
-		'<a name="menu"></a>' . "\n" . 
-		'<table class="threads">' . "\n" .
-		'<thead>' . "\n" .
-		'	<tr>' . "\n" .
-		'		<th width="10%">#</th>' . "\n" .
-		'		<th nowrap="nowrap" width="100%">' . _gettext('Subject') . '</th>' . "\n" .
-		'		<th>' . _gettext('Posts') . '</th>' . "\n" .
-		'		<th>' . _gettext('Last Post') . '</th>' . "\n" .
-		'	</tr>' . "\n" .
-		'</thead>' . "\n" .
-		'<tbody>';
-		if ($liststooutput >= 0) {
+		'<div class="head threadldiv"';
+		if ($this->board_compactlist) {
+			$output .= ' style="padding: 4px;"';
+		}
+		$output .= '>' . "\n" . 
+		'<a name="menu"></a>' . "\n";
+		if (!$this->board_compactlist || $liststooutput >= 0) {
+			$output .= '<table class="threads">' . "\n" .
+			'<thead>' . "\n" .
+			'	<tr>' . "\n" .
+			'		<th width="10%">#</th>' . "\n" .
+			'		<th nowrap="nowrap" width="100%">' . _gettext('Subject') . '</th>' . "\n" .
+			'		<th>' . _gettext('Posts') . '</th>' . "\n" .
+			'		<th>' . _gettext('Last Post') . '</th>' . "\n" .
+			'	</tr>' . "\n" .
+			'</thead>' . "\n" .
+			'<tbody>' . "\n";
+		}
+		if ($liststooutput >= 0 || $this->board_compactlist) {
 			$startrecord = 40;
 		} else {
 			$startrecord = KU_THREADSTXT;
 		}
-		$query = "SELECT * FROM `".KU_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `parentid` = '0' AND `IS_DELETED` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC LIMIT $liststart,$startrecord";
-		$results = $tc_db->GetAll($query);
+		
+		$results = $tc_db->GetAll("SELECT * FROM `".KU_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `parentid` = 0 AND `IS_DELETED` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC LIMIT $liststart, $startrecord");
 		if (count($results)>0) {
 			$relative_id = $liststart;
 			foreach($results AS $line) {
-				$results2 = $tc_db->GetAll("SELECT COUNT(*) FROM `".KU_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `parentid` = '".$line['id']."' AND `IS_DELETED` = 0");
+				$results2 = $tc_db->GetAll("SELECT COUNT(*) FROM `".KU_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `parentid` = " . $line['id']);
 				$replies = $results2[0][0];
-				$output .= '<tr><td><a href="res/'.$line['id'].'.html">'.($relative_id+1).'</a></td><td><a href="';
-				if ($relative_id<KU_THREADSTXT&&!$ispage) {
-					$output .= '#'.$relative_id;
+				
+				if ($this->board_compactlist && $liststooutput < 0) {
+					$output .= '<a href="';
+					if ($relative_id < KU_THREADSTXT&&!$ispage) {
+						$output .= '#'.$relative_id . '">' . ($relative_id+1) . ': </a><a href="res/' . $line['id'] . '.html">';
+					} else {
+						$output .= 'res/'.$line['id'].'.html">' . ($relative_id+1) . ': ';
+					}
+					$output .= $line['subject'] . ' (' . $replies . ')</a> &nbsp;';
 				} else {
-					$output .= 'res/'.$line['id'].'.html';
+					$output .= '<tr><td><a href="res/' . $line['id'] . '.html">' . ($relative_id +1 ) . '</a></td><td><a href="';
+					if ($relative_id < KU_THREADSTXT && !$ispage) {
+						$output .= '#' . $relative_id;
+					} else {
+						$output .= 'res/' . $line['id'] . '.html';
+					}
+					$output .= '">' . $line['subject'] . '</a></td><td>' . ($replies + 1) . '</td><td nowrap><small>' . date('j F Y H:i', $line['lastbumped']) . '</small></td></tr>';
 				}
-				$output .= '">'.$line['subject'].'</a></td><td>'.($replies+1).'</td><td nowrap><small>'.date('j F Y H:i', $line['lastbumped']).'</small></td></tr>';
+				$output .= "\n";
+				
 				$relative_id++;
 			}
+			
+			if ($this->board_compactlist && $liststooutput < 0) {
+				/* Remove the space and &nbsp; at the end */
+				$output = substr($output, 0, -8);
+			}
 		} else {
-			$output .= '<tr><td>N/A</td><td>'._gettext('There are currently no threads to display.').'</td><td>N/A</td><td>N/A</td></td>';
+			if ($this->board_compactlist && $liststooutput < 0) {
+				$output .= _gettext('There are currently no threads to display.') . "\n";
+			} else {
+				$output .= '<tr><td>N/A</td><td>'._gettext('There are currently no threads to display.').'</td><td>N/A</td><td>N/A</td></td>' . "\n";
+			}
 		}
 		if ($liststooutput < 0) {
-			$output .= '<tr><td colspan="4" class="threadlinks"><a href="#newthread" style="display: inline;">'._gettext('New Thread').'</a> | <a href="list.html" style="display: inline;">'._gettext('All Threads').'</a></td></tr>' . "\n";
+			if ($this->board_compactlist && $liststooutput < 0) {
+				$output .= '<br><div class="threadlinks">';
+			} else {
+				$output .= '<tr><td colspan="4" class="threadlinks">';
+			}
+			
+			$output .= '<a href="#newthread" style="display: inline;">' . _gettext('New Thread').'</a> | <a href="list.html" style="display: inline;">'._gettext('All Threads').'</a>';
+			
+			if ($this->board_compactlist && $liststooutput < 0) {
+				$output .= '</div>';
+			} else {
+				$output .= '</td></tr>';
+			}
+			
+			$output .= "\n";
+			
 		}
-		$output .= '</tbody></table>' . "\n" .
-		'</div>' . "\n" .
+		
+		if (!$this->board_compactlist || $liststooutput >= 0) {
+			$output .= '</tbody>' . "\n" .
+			'</table>' . "\n";
+		}
+		
+		$output .= '</div>' . "\n" .
 		'</div>' . "\n" .
 		'</div>';
 		
@@ -1589,7 +1796,7 @@ class Board {
 		$results = $tc_db->GetAll("SELECT `maximagesize` FROM `".KU_DBPREFIX."boards` WHERE `name` = '" . mysql_real_escape_string($board) . "' LIMIT 1");
 		foreach($results AS $line) {
 			$filetypes = '';
-			$filetypes_allowed = $tc_db->GetAll("SELECT ".KU_DBPREFIX."filetypes.filetype FROM ".KU_DBPREFIX."boards, ".KU_DBPREFIX."filetypes, ".KU_DBPREFIX."board_filetypes WHERE ".KU_DBPREFIX."boards.id = '" . $this->board_id . "' AND ".KU_DBPREFIX."board_filetypes.boardid = ".KU_DBPREFIX."boards.id AND ".KU_DBPREFIX."board_filetypes.typeid = ".KU_DBPREFIX."filetypes.id ORDER BY ".KU_DBPREFIX."filetypes.filetype ASC;");
+			$filetypes_allowed = $tc_db->GetAll("SELECT ".KU_DBPREFIX."filetypes.filetype FROM ".KU_DBPREFIX."boards, ".KU_DBPREFIX."filetypes, ".KU_DBPREFIX."board_filetypes WHERE ".KU_DBPREFIX."boards.id = " . $this->board_id . " AND ".KU_DBPREFIX."board_filetypes.boardid = " . $this->board_id . " AND ".KU_DBPREFIX."board_filetypes.typeid = ".KU_DBPREFIX."filetypes.id ORDER BY ".KU_DBPREFIX."filetypes.filetype ASC;");
 			if ($filetypes_allowed == '') {
 				$filetypes = _gettext('None');
 			} else {
@@ -1819,6 +2026,7 @@ class Board {
 							$blotter = getBlotter();
 							if ($blotter != '') {
 								$output .= '<br>' . "\n" .
+								'<ul style="margin-left: 0; margin-top: 0; margin-bottom: 0; padding-left: 0;">' . "\n" .
 								'<li style="position: relative;">' . "\n" .
 								'	<span style="color: red;">' . "\n" .
 								'		' . _gettext('Blotter updated') . ': ' . date('m/d/y', getBlotterLastUpdated()) . "\n" .
@@ -1828,6 +2036,7 @@ class Board {
 								'	</span>' . "\n" .
 								'</li>' . "\n" .
 								$blotter .
+								'</ul>' . "\n" .
 								'<script type="text/javascript"><!--' . "\n" .
 								'if (getCookie(\'ku_showblotter\') == \'1\') {' . "\n" .
 								'	toggleblotter(false);' . "\n" .
@@ -1935,7 +2144,7 @@ class Board {
 				$this->board_maxthreads = ($this->board_maxpages * KU_THREADS);
 				$numthreadsover = ($results_count - $this->board_maxthreads);
 				if ($numthreadsover > 0) {
-					$resultspost = $tc_db->GetAll("SELECT `id`, `stickied` FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND  `parentid` = '0' AND `stickied` = '0' ORDER BY `lastbumped` ASC LIMIT " . $numthreadsover);
+					$resultspost = $tc_db->GetAll("SELECT `id`, `stickied` FROM `".KU_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND  `parentid` = 0 AND `stickied` = 0 ORDER BY `lastbumped` ASC LIMIT " . $numthreadsover);
 					foreach($resultspost AS $linepost) {
 						$post_class = new Post($linepost['id'], $this->board_dir);
 						$post_class->Delete(true);
@@ -1994,6 +2203,7 @@ class Board {
 	function PrintPage($filename, $contents, $board) {
 		global $tpl;
 		
+		$this->smarty->assign('htmloptions', $tpl['htmloptions']);
 		$this->smarty->assign('title', $tpl['title']);
 		$this->smarty->assign('head', $tpl['head']);
 		$this->smarty->assign('page', $contents);
@@ -2014,6 +2224,11 @@ class Board {
 		global $tpl;
 		
 		$tpl = array();
+		if (KU_LOCALE == 'he' && $this->board_locale == '' || $this->board_locale == 'he') {
+			$tpl['htmloptions'] = ' dir="rtl"';
+		} else {
+			$tpl['htmloptions'] = '';
+		}
 	
 		require_once KU_ROOTDIR . 'lib/smarty/Smarty.class.php';
 		$this->smarty = new Smarty();

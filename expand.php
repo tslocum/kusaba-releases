@@ -49,9 +49,14 @@ if (isset($_GET['preview'])) {
 
 $results = $tc_db->GetAll('SELECT * FROM `'.KU_DBPREFIX.'posts_'.$board_class->board_dir.'` WHERE `IS_DELETED` = 0 AND `parentid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` ASC');
 
+global $expandjavascript;
 $output = '';
+$expandjavascript = '';
 foreach($results AS $line_reply) {
 	$output .= $board_class->BuildPost(true, $board_class->board_dir, $board_class->board_type, $line_reply);
+}
+if ($expandjavascript != '') {
+	$output = '<a href="#" onclick="javascript:' . $expandjavascript . 'return false;">' . _gettext('Expand all images') . '</a>' . $output;
 }
 
 echo $output;

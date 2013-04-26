@@ -236,7 +236,7 @@ class Parse {
 	    return $newStr;
 	}*/
 	
-	function CutWord($txt, $where) {
+	/*function CutWord($txt, $where) {
 		if (empty($txt)) return false;
 		for ($c = 0, $a = 0, $g = 0; $c<strlen($txt); $c++) {
 			$d[$c+$g]=$txt[$c];
@@ -250,6 +250,40 @@ class Parse {
 		}
 		
 		return implode("", $d);
+	}*/
+	
+	function CutWord($txt, $where) {
+		$txt_split_primary = preg_split('/\n/', $txt);
+		$txt_processed = '';
+		$usemb = (function_exists('mb_substr') && function_exists('mb_strlen')) ? true : false;
+		
+		foreach ($txt_split_primary as $txt_split) {
+			$txt_split_secondary = preg_split('/ /', $txt_split);
+			
+			foreach ($txt_split_secondary as $txt_segment) {
+				$segment_length = ($usemb) ? mb_strlen($txt_segment) : strlen($txt_segment);
+				while ($segment_length > $where) {
+					if ($usemb) {
+						$txt_processed .= mb_substr($txt_segment, 0, $where) . "\n";
+						$txt_segment = mb_substr($txt_segment, $where);
+						
+						$segment_length = mb_strlen($txt_segment);
+					} else {
+						$txt_processed .= substr($txt_segment, 0, $where) . "\n";
+						$txt_segment = substr($txt_segment, $where);
+						
+						$segment_length = strlen($txt_segment);
+					}
+				}
+				
+				$txt_processed .= $txt_segment . ' ';
+			}
+			
+			$txt_processed = ($usemb) ? mb_substr($txt_processed, 0, -1) : substr($txt_processed, 0, -1);
+			$txt_processed .= "\n";
+		}
+		
+		return $txt_processed;
 	}
 	
 	function ParsePost($message, $board, $boardtype, $parentid, $ispage = false) {
@@ -257,13 +291,17 @@ class Parse {
 		$this->parentid = $parentid;
 		
 		$message = trim($message);
-		$message = $this->CutWord($message, KU_MAXCHAR, "\n");
+		$message = $this->CutWord($message, (KU_LINELENGTH / 15));
 		$message = htmlspecialchars($message, ENT_QUOTES);
 		if (KU_MAKELINKS) {
 			$message = $this->MakeClickable($message);
 		}
 		$message = $this->ClickableQuote($message, $board, $boardtype, $parentid, $ispage);
 		$message = $this->ColoredQuote($message, $boardtype);
+		/*if (KU_MARKDOWN) {
+			require KU_ROOTDIR . 'lib/markdown/markdown.php';
+			$message = Markdown($message);
+		}*/
 		$message = str_replace("\n", '<br>', $message);
 		$message = $this->BBCode($message);
 		$message = $this->Wordfilter($message, $board);

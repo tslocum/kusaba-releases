@@ -120,8 +120,8 @@
 									'window_color_bar' => $this->applet_dialog_title_bg_color,
 									'window_color_bar_hl' => $this->applet_dialog_title_hl_color,
 									'window_color_bar_text' => $this->applet_dialog_title_text_color,
-									'url_save' => $this->url_save,
-									'url_exit' => $this->url_finish,
+									'url_save' => html_entity_decode($this->url_save),
+									'url_exit' => html_entity_decode($this->url_finish),
 									'url_target' => $this->url_target,
 									'poo' => 'false',
 									'send_advance' => 'true',
@@ -139,7 +139,7 @@
 			$output .= '<applet id="' . $this->applet_id . '" code="c.ShiPainter.class" archive="' . $jar_path . '" width="' . $this->applet_width . '" height="' . $this->applet_height . '" mayscript="">';
 			foreach( $params as $key => $value )
 			{
-				$output .= '<param name="' . htmlspecialchars( $key ) . '" value="' . htmlspecialchars( $value ) . '" />' . "\n";
+				$output .= '<param name="' . htmlspecialchars( $key ) . '" value="' . $value . '" />' . "\n";
 			}
 			$output .= '</applet>';
 			
@@ -185,7 +185,7 @@
 			$output .= '<applet id="' . $this->applet_id . '" code="pbbs.PaintBBS.class" archive="' . $jar_path . '" width="' . $this->applet_width . '" height="' . $this->applet_height . '" mayscript="">';
 			foreach( $params as $key => $value )
 			{
-				$output .= '<param name="' . htmlspecialchars( $key ) . '" value="' . htmlspecialchars( $value ) . '" />' . "\n";
+				$output .= '<param name="' . htmlspecialchars( $key ) . '" value="' . $value . '" />' . "\n";
 			}
 			$output .= '</applet>';
 			
@@ -235,7 +235,7 @@
 			$output .= '<applet id="' . $this->applet_id . '" code="a.p.class" archive="' . $jar_path . '" width="' . $this->applet_width . '" height="' . $this->applet_height . '" mayscript="">';
 			foreach( $params as $key => $value )
 			{
-				$output .= '<param name="' . htmlspecialchars( $key ) . '" value="' . htmlspecialchars( $value ) . '" />' . "\n";
+				$output .= '<param name="' . htmlspecialchars( $key ) . '" value="' . $value . '" />' . "\n";
 			}
 			$output .= '</applet>';
 			

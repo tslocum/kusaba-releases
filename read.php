@@ -36,6 +36,11 @@ if ($results == 0) {
 }
 $board_class = new Board($board);
 
+$postids = getQuoteIds($posts, $replies);
+if (count($postids) == 0) {
+	die('No valid posts specified.');
+}
+
 if ($board_class->board_type == 1) {
 	$noboardlist = true;
 	$hide_extra = true;
@@ -55,12 +60,6 @@ if ($board_class->board_type == 1) {
 		$postidquery .= "`id` = '" . mysql_real_escape_string($postid) . "') OR ";
 	}
 	$postidquery = substr($postidquery, 0, -4);
-}
-
-$postids = getQuoteIds($posts, $replies);
-
-if (count($postids) == 0) {
-	die('No valid posts specified.');
 }
 
 $board_class->InitializeSmarty();

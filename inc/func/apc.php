@@ -13,8 +13,10 @@ function clearBlotterCache() {
  * @param string $board Board name
  */    
 function clearPostCache($id, $board) {
+	global $tc_db;
 	if (KU_APC) {
 		apc_delete('post|' . $board . '|' . $id);
 	}
+	$tc_db->Execute("DELETE FROM `" . KU_DBPREFIX . "reports` WHERE `id` = " . $id . " AND `board` = '" . mysql_real_escape_string($board) . "' LIMIT 1");
 }
 ?>
