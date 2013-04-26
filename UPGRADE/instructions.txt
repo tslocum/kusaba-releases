@@ -1,11 +1,13 @@
 To upgrade, simply copy all the new files over your existing installation, EXCEPT FOR install.php and config.php
 
-Open the version of config.php currently on your server.  You will need this open because this upgrade requires a reconfiguration.
+Open the version of config.php currently on your server.  You will need this open because this upgrade requires a new variable to be set.
 
-Open the new config.php found in this zip, and start filling in values you already have.
+Open the new config.php found in this zip, and look for the line which starts with "$chan_prefix", copy it to your old configuration file.
 
-Upload the new config.php to your server.
+Modify your config.php's version from "0.5" to "0.6"
 
-Run the SQL dump found in this folder, and then log in to your manage panel.
+Re-upload your configuration file.
 
-Congratulations!  You're now running Trevorchan v0.5
+Run the UPGRADE SQL dump found in this folder, and then log in to your manage panel.
+
+Congratulations!  You're now running Trevorchan v0.6

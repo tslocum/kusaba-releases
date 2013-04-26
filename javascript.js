@@ -32,6 +32,12 @@ function insert(text)
 	}
 }
 
+function quote(b,a) { 
+	var v=eval("document."+a+".message");
+	v.value+=">>"+b+"\n";
+	v.focus();
+}
+
 function highlight(post)
 {
 	var cells=document.getElementsByTagName("td");
@@ -64,11 +70,29 @@ function get_password(name)
 }
 
 function togglePassword() {
-	if (document.getElementById("passwordbox").innerHTML=="<td></td><td></td>") {
-        document.getElementById("passwordbox").innerHTML = '<td class="postblock">Mod</td><td><input type="password" name="modpassword" size="28" maxlength="75" />&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
-    } else {
-        document.getElementById("passwordbox").innerHTML = '<td></td><td></td>';
-    }
+	/* Now IE/Opera safe, and 10% less fat! */
+	var bSaf = (navigator.userAgent.indexOf('Safari') != -1);
+	var bOpera = (navigator.userAgent.indexOf('Opera') != -1);
+	var bMoz = (navigator.appName == 'Netscape');
+	var passwordbox = document.getElementById("passwordbox");
+	var passwordbox_html;
+	
+	if ((bSaf) || (bOpera) || (bMoz))
+		passwordbox_html = passwordbox.innerHTML;
+	else passwordbox_html = passwordbox.text;
+	
+	passwordbox_html = passwordbox_html.toLowerCase();
+	
+	if (passwordbox_html=='<td></td><td></td>') {
+		if ((bSaf) || (bOpera) || (bMoz))
+			passwordbox.innerHTML = '<td class="postblock">Mod</td><td><input type="password" name="modpassword" size="28" maxlength="75" />&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
+		else passwordbox.text = '<td class="postblock">Mod</td><td><input type="password" name="modpassword" size="28" maxlength="75" />&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
+	} else {
+		if ((bSaf) || (bOpera) || (bMoz))
+			passwordbox.innerHTML = '<td></td><td></td>';
+		else passwordbox.text = '<td></td><td></td>';
+	}
+	return false;
 }
 
 function getCookie(name)

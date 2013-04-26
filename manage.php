@@ -9,12 +9,12 @@ require_once($chan_rootdir."/inc/functions.php");
 if (isset($_GET['action'])) {
 	if ($_GET['action']=="logout") { //Do this first to not get any header errors
 		if (management_isadmin()) {
-			$result = mysql_query("SELECT `name` FROM `boards`",$dblink);
+			$result = mysql_query("SELECT `name` FROM `".$chan_prefix."boards`",$dblink);
 			while ($line = mysql_fetch_assoc($result)) {
 				setcookie("tcmod","",1,$chan_boardsfolder."/".$line['name']."/",$chan_boardspath);
 			}
 		} else {
-			$result = mysql_query("SELECT `name` FROM `boards`",$dblink);
+			$result = mysql_query("SELECT `name` FROM `".$chan_prefix."boards`",$dblink);
 			while ($line = mysql_fetch_assoc($result)) {
 				setcookie("tcmod","",1,$chan_boardsfolder."/".$line['name']."/",$chan_boardspath);
 			}
@@ -28,37 +28,37 @@ if (isset($_GET['action'])) {
 }
 
 if (isset($_POST['username'])&&isset($_POST['password'])) {
-	mysql_query("DELETE FROM `loginattempts` WHERE `timestamp` < '".(time()-1200)."'",$dblink);
-	$result = mysql_query("SELECT `ip` FROM `loginattempts` WHERE `ip` = '".$_SERVER['REMOTE_ADDR']."' LIMIT 6",$dblink);
+	mysql_query("DELETE FROM `".$chan_prefix."loginattempts` WHERE `timestamp` < '".(time()-1200)."'",$dblink);
+	$result = mysql_query("SELECT `ip` FROM `".$chan_prefix."loginattempts` WHERE `ip` = '".$_SERVER['REMOTE_ADDR']."' LIMIT 6",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>5) {
 		die($lang['locked out']);
 	} else {
-		$result = mysql_query("SELECT `username` FROM `staff` WHERE `username` = '".mysql_escape_string($_POST['username'])."' AND `password` = '".md5($_POST['password'])."' LIMIT 1",$dblink);
+		$result = mysql_query("SELECT `username` FROM `".$chan_prefix."staff` WHERE `username` = '".mysql_escape_string($_POST['username'])."' AND `password` = '".md5($_POST['password'])."' LIMIT 1",$dblink);
 		$rows = mysql_num_rows($result);
 		if ($rows>0) {
-			mysql_query("DELETE FROM `loginattempts` WHERE `ip` < '".$_SERVER['REMOTE_ADDR']."'",$dblink);
+			mysql_query("DELETE FROM `".$chan_prefix."loginattempts` WHERE `ip` < '".$_SERVER['REMOTE_ADDR']."'",$dblink);
 			$_SESSION['manageusername'] = $_POST['username'];
 			$_SESSION['managepassword'] = md5($_POST['password']);
 			management_addlogentry($lang['logged in'],1);
 		} else {
-			mysql_query("INSERT INTO `loginattempts` ( `username` , `ip` , `timestamp` ) VALUES ( '".mysql_escape_string($_POST['username'])."' , '".$_SERVER['REMOTE_ADDR']."' , '".time()."' )",$dblink);
+			mysql_query("INSERT INTO `".$chan_prefix."loginattempts` ( `username` , `ip` , `timestamp` ) VALUES ( '".mysql_escape_string($_POST['username'])."' , '".$_SERVER['REMOTE_ADDR']."' , '".time()."' )",$dblink);
 			die($lang['incorrect username/password']);
 		}
 	}
 }
 if (isset($_SESSION['manageusername'])&&isset($_SESSION['managepassword'])) {
-	$result = mysql_query("SELECT `username` FROM `staff` WHERE `username` = '".mysql_escape_string($_SESSION['manageusername'])."' AND `password` = '".mysql_escape_string($_SESSION['managepassword'])."' LIMIT 1",$dblink);
+	$result = mysql_query("SELECT `username` FROM `".$chan_prefix."staff` WHERE `username` = '".mysql_escape_string($_SESSION['manageusername'])."' AND `password` = '".mysql_escape_string($_SESSION['managepassword'])."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows==0) {
 		session_destroy();
 		die($lang['invalid session']."<br /><br /><a href=\"manage.php\">".$lang['log in again']."</a>");
 	} else {
-		$result = mysql_query("SELECT `boards` FROM `staff` WHERE `username` = '".mysql_escape_string($_SESSION['manageusername'])."' LIMIT 1",$dblink);
+		$result = mysql_query("SELECT `boards` FROM `".$chan_prefix."staff` WHERE `username` = '".mysql_escape_string($_SESSION['manageusername'])."' LIMIT 1",$dblink);
 		$rows = mysql_num_rows($result);
 		if ($rows>0) {
 			if (management_isadmin()) {
-				$resultboard = mysql_query("SELECT `name` FROM `boards`",$dblink);
+				$resultboard = mysql_query("SELECT `name` FROM `".$chan_prefix."boards`",$dblink);
 				while ($lineboard = mysql_fetch_assoc($resultboard)) {
 					setcookie("tcmod","yes",time()+3600,$chan_boardsfolder."/".$lineboard['name']."/");
 				}
@@ -76,14 +76,14 @@ if (isset($_SESSION['manageusername'])&&isset($_SESSION['managepassword'])) {
 		}
 	}
 } else {
-	echo '<script type="text/javascript">function sf(){document.managelogin.username.focus();}</script><body onload="sf();"></body><div style="text-align: center;"><img src="hardgay.gif" alt="Pikachu" title="PIKA PIKA! CHUUUUU~~~" /><br /><form action="manage.php" method="post" name="managelogin"><input type="text" name="username"><br /><input type="password" name="password"><br /><input type="submit" value="Submit"></form></div>';
+	require($chan_rootdir.'/inc/manage_login.php');
 	die();
 }
-$result = mysql_query("SELECT `boards` FROM `staff` WHERE `username` = '".mysql_escape_string($_SESSION['manageusername'])."' LIMIT 1",$dblink);
+$result = mysql_query("SELECT `boards` FROM `".$chan_prefix."staff` WHERE `username` = '".mysql_escape_string($_SESSION['manageusername'])."' LIMIT 1",$dblink);
 $rows = mysql_num_rows($result);
 if ($rows>0) {
 	if (management_isadmin()) {
-		$resultboard = mysql_query("SELECT `name` FROM `boards`",$dblink);
+		$resultboard = mysql_query("SELECT `name` FROM `".$chan_prefix."boards`",$dblink);
 		while ($lineboard = mysql_fetch_assoc($resultboard)) {
 			setcookie("tcmod","yes",time()+3600,$chan_boardsfolder."/".$lineboard['name']."/",$chan_boardspath);
 		}
@@ -119,7 +119,7 @@ echo '</b>';
 if (!management_isadmin()) {
 	echo '<br />'.$lang['moderating boards'].': ';
 	$i = 0;
-	$resultboard = mysql_query("SELECT * FROM `boards`",$dblink);
+	$resultboard = mysql_query("SELECT * FROM `".$chan_prefix."boards`",$dblink);
 	while ($lineboard = mysql_fetch_assoc($resultboard)) {
 		$i++;
 		if (moderator_ismodofboard($lineboard['name'],$_SESSION['manageusername'])) {
@@ -154,9 +154,9 @@ if (isset($_GET['action'])) {
 		management_addlogentry($lang['rebuilt all boards and threads'],2);
 	} else if ($_GET['action']=="modlog") {
 		management_adminsonly();
-		mysql_query("DELETE FROM `modlog` WHERE `timestamp` < '".(time()-config_getvalue('modlogmaxdays')*86400)."'",$dblink);
+		mysql_query("DELETE FROM `".$chan_prefix."modlog` WHERE `timestamp` < '".(time()-config_getvalue('modlogmaxdays')*86400)."'",$dblink);
 		echo '<h2>ModLog</h2><table cellspacing="2" cellpadding="1" border="1"><tr><th>Time</th><th>User</th><th width="100%">Action</th></tr>';
-		$result = mysql_query("SELECT * FROM `modlog` ORDER BY `timestamp` DESC",$dblink);
+		$result = mysql_query("SELECT * FROM `".$chan_prefix."modlog` ORDER BY `timestamp` DESC",$dblink);
 		while ($line = mysql_fetch_assoc($result)) {
 			echo "<tr><td>".date("y/m/d(D)H:i",$line['timestamp'])."</td><td>".$line['user']."</td><td>".$line['entry']."</td></tr>";
 		}
@@ -182,7 +182,7 @@ if (isset($_GET['action'])) {
 			if ($_POST['news']!="") {
 				echo '<hr />';
 				if ($_POST['subject']!="") {
-					mysql_query("INSERT INTO `news` ( `subject` , `message` , `postedat` , `postedby` , `postedemail` ) VALUES ( '".mysql_escape_string($_POST['subject'])."' , '".mysql_escape_string($_POST['news'])."' , '".time()."' , '".mysql_escape_string($_SESSION['manageusername'])."' , '".mysql_escape_string($_POST['email'])."' )",$dblink);
+					mysql_query("INSERT INTO `".$chan_prefix."news` ( `subject` , `message` , `postedat` , `postedby` , `postedemail` ) VALUES ( '".mysql_escape_string($_POST['subject'])."' , '".mysql_escape_string($_POST['news'])."' , '".time()."' , '".mysql_escape_string($_SESSION['manageusername'])."' , '".mysql_escape_string($_POST['email'])."' )",$dblink);
 					echo '<h3>'.$lang['news add successful'].'</h3>';
 					management_addlogentry($lang['added a news entry'],9);
 				} else {
@@ -204,6 +204,11 @@ if (isset($_GET['action'])) {
 			} else {
 				config_setvalue('imagesinnewwindow','0');
 			}
+			if ($_POST['makeurlsclickable']=='1') {
+				config_setvalue('makeurlsclickable','1');
+			} else {
+				config_setvalue('makeurlsclickable','0');
+			}
 			config_setvalue('maxthumbwidth',$_POST['maxthumbwidth']);
 			config_setvalue('maxthumbheight',$_POST['maxthumbheight']);
 			config_setvalue('modlogmaxdays',$_POST['modlogmaxdays']);
@@ -211,6 +216,7 @@ if (isset($_GET['action'])) {
 			config_setvalue('numrepliesdisplayedsticky',$_POST['numrepliesdisplayedsticky']);
 			config_setvalue('numthreadsdisplayed',$_POST['numthreadsdisplayed']);
 			config_setvalue('postboxnotice',$_POST['postboxnotice']);
+			config_setvalue('ircinfo',$_POST['ircinfo']);
 			echo $lang['global configuration successfully updated'];
 			management_addlogentry($lang['updated global configuration'],10);
 			echo '<hr>';
@@ -223,8 +229,11 @@ if (isset($_GET['action'])) {
 		$config_numrepliesdisplayedsticky = config_getvalue('numrepliesdisplayedsticky');
 		$config_numthreadsdisplayed = config_getvalue('numthreadsdisplayed');
 		$config_postboxnotice = config_getvalue('postboxnotice');
+		$config_makeurlsclickable = config_getvalue('makeurlsclickable');
+		$config_ircinfo = config_getvalue('ircinfo');
 		?>
 		<form action="?action=globopts" method="post">
+		<label for="makeurlsclickable">Make URLs clickable:</label><select name="makeurlsclickable"><?php echo ($config_makeurlsclickable=='1') ? '<option value="1">'.$lang['yes'].'</option><option value="0">'.$lang['no'].'</option>' : '<option value="0">'.$lang['no'].'</option><option value="1">'.$lang['yes'].'</option>'; ?></select><br />
 		<label for="maxthumbwidth"><?php echo $lang['maxmimum thumbnail width']; ?>:</label><input type="text" name="maxthumbwidth" value="<?php echo $config_maxthumbwidth; ?>" /><br />
 		<label for="maxthumbheight"><?php echo $lang['maxmimum thumbnail height']; ?>:</label><input type="text" name="maxthumbheight" value="<?php echo $config_maxthumbheight; ?>" /><br />
 		<label for="imagesinnewwindow"><?php echo $lang['open images in new window']; ?>:</label><select name="imagesinnewwindow"><?php echo ($config_imagesinnewwindow=='1') ? '<option value="1">'.$lang['yes'].'</option><option value="0">'.$lang['no'].'</option>' : '<option value="0">'.$lang['no'].'</option><option value="1">'.$lang['yes'].'</option>'; ?></select><br />
@@ -233,18 +242,20 @@ if (isset($_GET['action'])) {
 		<label for="numrepliesdisplayedsticky"><?php echo $lang['replies displayed per thread sticky']; ?>:</label><input type="text" name="numrepliesdisplayedsticky" value="<?php echo $config_numrepliesdisplayedsticky; ?>" /><br />
 		<label for="numthreadsdisplayed"><?php echo $lang['threads displayed per thread']; ?>:</label><input type="text" name="numthreadsdisplayed" value="<?php echo $config_numthreadsdisplayed; ?>" /><br />
 		<label for="postboxnotice"><?php echo $lang['postbox notice']; ?>:</label><textarea name="postboxnotice" rows="8" cols="60"><?php echo $config_postboxnotice; ?></textarea><br />
+		<label for="ircinfo">IRC Info:</label><textarea name="ircinfo" rows="8" cols="60"><?php echo $config_ircinfo; ?></textarea><br />
 		<input type="submit" value="<?php echo $lang['update']; ?>">
 		</form>
 		<?php
 	} else if ($_GET['action']=="boardopts") {
+		management_adminsonly();
 		if (isset($_GET['updateboard'])&&isset($_POST['order'])&&isset($_POST['maxpages'])&&isset($_POST['maxage'])&&isset($_POST['messagelength'])) {
 			if (!moderator_ismodofboard($_GET['updateboard'],$_SESSION['manageusername'])) {
 				die($lang['not a moderator']);
 			}
-			$resultboard = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_GET['updateboard'])."'",$dblink);
+			$resultboard = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_GET['updateboard'])."'",$dblink);
 			$rows = mysql_num_rows($resultboard);
 			if ($rows>0) {
-				if ($_POST['order']>=0&&$_POST['maxpages']>0&&$_POST['maxage']>0&&$_POST['messagelength']>=0) {
+				if ($_POST['order']>=0&&$_POST['maxpages']>=0&&$_POST['maxage']>=0&&$_POST['messagelength']>=0) {
 					$filetypes = array();
 					if (isset($_POST['filetype_gif'])) {
 						$filetypes = array_merge($filetypes,array('GIF'));
@@ -263,9 +274,13 @@ if (isset($_GET['action'])) {
 					} else {
 						$updateboard_locked = "0";
 					}
-					mysql_query("UPDATE `boards` SET `order` = '".mysql_escape_string($_POST['order'])."' , `section` = '".mysql_escape_string($_POST['section'])."' , `desc` = '".mysql_escape_string($_POST['desc'])."' , `filetypes` = '".implode('|',$filetypes)."' , `locked` = '".$updateboard_locked."' , `maximagesize` = '".mysql_escape_string($_POST['maximagesize'])."' , `messagelength` = '".mysql_escape_string($_POST['messagelength'])."' , `maxpages` = '".mysql_escape_string($_POST['maxpages'])."' , `maxage` = '".mysql_escape_string($_POST['maxage'])."' , `maxreplies` = '".mysql_escape_string($_POST['maxreplies'])."' , `image` = '".mysql_escape_string($_POST['image'])."' , `includeheader` = '".mysql_escape_string($_POST['includeheader'])."' , `redirecttothread` = '".mysql_escape_string($_POST['redirecttothread'])."' , `forcedanon` = '".mysql_escape_string($_POST['forcedanon'])."' WHERE `name` = '".mysql_escape_string($_GET['updateboard'])."'",$dblink);
-					echo $lang['update successful'] ;
-					management_addlogentry($lang['updated board configuration']." - /".$_GET['updateboard']."/",4);
+					if ($_POST['type']=='0'||$_POST['type']=='1'||$_POST['type']=='2') {
+						mysql_query("UPDATE `boards` SET `type` = '".mysql_escape_string($_POST['type'])."' , `order` = '".mysql_escape_string($_POST['order'])."' , `section` = '".mysql_escape_string($_POST['section'])."' , `desc` = '".mysql_escape_string($_POST['desc'])."' , `filetypes` = '".implode('|',$filetypes)."' , `locked` = '".$updateboard_locked."' , `maximagesize` = '".mysql_escape_string($_POST['maximagesize'])."' , `messagelength` = '".mysql_escape_string($_POST['messagelength'])."' , `maxpages` = '".mysql_escape_string($_POST['maxpages'])."' , `maxage` = '".mysql_escape_string($_POST['maxage'])."' , `maxreplies` = '".mysql_escape_string($_POST['maxreplies'])."' , `image` = '".mysql_escape_string($_POST['image'])."' , `includeheader` = '".mysql_escape_string($_POST['includeheader'])."' , `redirecttothread` = '".mysql_escape_string($_POST['redirecttothread'])."' , `forcedanon` = '".mysql_escape_string($_POST['forcedanon'])."' WHERE `name` = '".mysql_escape_string($_GET['updateboard'])."'",$dblink);
+						echo $lang['update successful'] ;
+						management_addlogentry($lang['updated board configuration']." - /".$_GET['updateboard']."/",4);
+					} else {
+						echo $lang['generic error'];
+					}
 				} else {
 					echo $lang['integer incorrect'];
 				}
@@ -276,7 +291,7 @@ if (isset($_GET['action'])) {
 			if (!moderator_ismodofboard($_POST['board'],$_SESSION['manageusername'])) {
 				die($lang['not a moderator']);
 			}
-			$resultboard = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'",$dblink);
+			$resultboard = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'",$dblink);
 			$rows = mysql_num_rows($resultboard);
 			if ($rows>0) {
 				while ($lineboard = mysql_fetch_assoc($resultboard)) {
@@ -284,6 +299,7 @@ if (isset($_GET['action'])) {
 					<div class="container">
 					<form action="?action=boardopts&updateboard=<?php echo $_POST['board']; ?>" method="post">
 					<label for="board"><?php echo $lang['directory']; ?>:</label><input type="text" name="board" value="<?php echo $_POST['board']; ?>" disabled /><div class="desc"><?php echo $lang['directory desc']; ?></div><br />
+					<label for="type">Board type:</label><select name="type"><option value="0"<?php if ($lineboard['type']=='0') { echo ' selected'; } ?>>Normal Imageboard</option><option value="1"<?php if ($lineboard['type']=='1') { echo ' selected'; } ?>>Text Board</option><option value="2"<?php if ($lineboard['type']=='2') { echo ' selected'; } ?>>Oekaki Imageboard</option></select><div class="desc"><?php echo 'The type of posts which will be accepted on this board.  A normal imageboard will feature image and extended format posts, a text board will have no images, and an Oekaki board will allow users to draw images and use them in their posts.'.' '.$lang['default']; ?>: <b>Normal Imageboard</b></div><br />
 					<label for="desc"><?php echo $lang['description']; ?>:</label><input type="text" name="desc" value="<?php echo $lineboard['desc']; ?>" /><div class="desc"><?php echo $lang['desc desc']; ?></div><br />
 					<label for="order"><?php echo $lang['order']; ?>:</label><input type="text" name="order" value="<?php echo $lineboard['order']; ?>" /><div class="desc"><?php echo $lang['order desc']; ?> <b>0</b></div><br />
 					<label for="section"><?php echo $lang['section']; ?>:</label><input type="text" name="section" value="<?php echo $lineboard['section']; ?>" /><div class="desc"><?php echo $lang['section desc']; ?></div><br />
@@ -318,7 +334,7 @@ if (isset($_GET['action'])) {
 		if (isset($_POST['ip'])) {
 			if ($_POST['ip']!="") {
 				$deletion_boards = array();
-				$result = mysql_query("SELECT * FROM `boards`",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."boards`",$dblink);
 				while ($line = mysql_fetch_assoc($result)) {
 					$deletion_boards = array_merge($deletion_boards,array($line['name']));
 				}
@@ -345,7 +361,7 @@ if (isset($_GET['action'])) {
 				}
 				$i = 0;
 				foreach ($deletion_new_boards as $deletion_board) {
-					$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($deletion_board)."'",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($deletion_board)."'",$dblink);
 					while ($line = mysql_fetch_assoc($result)) {
 						$board_id = $line['id'];
 					}
@@ -373,7 +389,7 @@ if (isset($_GET['action'])) {
 	} else if (substr($_GET['action'],0,6)=="sticky"||substr($_GET['action'],0,8)=="unsticky") {
 		if ($_GET['action']=="stickypost"&&isset($_GET['postid'])&&isset($_GET['board'])) {
 			if ($_GET['postid']>0&&$_GET['board']!="") {
-				$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$_GET['board']."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".$_GET['board']."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					if (!moderator_ismodofboard($_GET['board'],$_SESSION['manageusername'])) {
@@ -382,7 +398,7 @@ if (isset($_GET['action'])) {
 					while ($line = mysql_fetch_assoc($result)) {
 						$sticky_board_id = $line['id'];
 					}
-					$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$sticky_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$sticky_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
 					$rows = mysql_num_rows($result);
 					if ($rows>0) {
 						mysql_query("UPDATE `posts` SET `stickied` = '1' WHERE `boardid` = '".$sticky_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
@@ -399,7 +415,7 @@ if (isset($_GET['action'])) {
 			}
 		} else if ($_GET['action']=="unstickypost"&&isset($_GET['postid'])&&isset($_GET['board'])) {
 			if ($_GET['postid']>0&&$_GET['board']!="") {
-				$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_GET['board'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_GET['board'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					if (!moderator_ismodofboard($_GET['board'],$_SESSION['manageusername'])) {
@@ -408,7 +424,7 @@ if (isset($_GET['action'])) {
 					while ($line = mysql_fetch_assoc($result)) {
 						$sticky_board_id = $line['id'];
 					}
-					$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$sticky_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$sticky_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
 					$rows = mysql_num_rows($result);
 					if ($rows>0) {
 						mysql_query("UPDATE `posts` SET `stickied` = '0' WHERE `boardid` = '".$sticky_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
@@ -438,7 +454,7 @@ if (isset($_GET['action'])) {
 	} else if (substr($_GET['action'],0,4)=="lock"||substr($_GET['action'],0,6)=="unlock") {
 		if ($_GET['action']=="lockpost"&&isset($_GET['postid'])&&isset($_GET['board'])) {
 			if ($_GET['postid']>0&&$_GET['board']!="") {
-				$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_GET['board'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_GET['board'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					if (!moderator_ismodofboard($_GET['board'],$_SESSION['manageusername'])) {
@@ -447,7 +463,7 @@ if (isset($_GET['action'])) {
 					while ($line = mysql_fetch_assoc($result)) {
 						$lock_board_id = $line['id'];
 					}
-					$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lock_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lock_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
 					$rows = mysql_num_rows($result);
 					if ($rows>0) {
 						mysql_query("UPDATE `posts` SET `locked` = '1' WHERE `boardid` = '".$lock_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
@@ -463,7 +479,7 @@ if (isset($_GET['action'])) {
 				echo '<hr />';
 			}
 		} else if ($_GET['action']=="unlockpost"&&$_GET['postid']>0&&$_GET['board']!="") {
-			$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_GET['board'])."'",$dblink);
+			$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_GET['board'])."'",$dblink);
 			$rows = mysql_num_rows($result);
 			if ($rows>0) {
 				if (!moderator_ismodofboard($_GET['board'],$_SESSION['manageusername'])) {
@@ -472,7 +488,7 @@ if (isset($_GET['action'])) {
 				while ($line = mysql_fetch_assoc($result)) {
 					$lock_board_id = $line['id'];
 				}
-				$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lock_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lock_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					mysql_query("UPDATE `posts` SET `locked` = '0' WHERE `boardid` = '".$lock_board_id."' AND `threadid` = '0' AND `id` = '".mysql_escape_string($_GET['postid'])."'",$dblink);
@@ -500,19 +516,21 @@ if (isset($_GET['action'])) {
 		<?php
 	} else if ($_GET['action']=="cleanup") {
 		management_adminsonly();
-		delunusedimages(true);
+		delorphanreplies(true);
+		echo '<hr>Deleting unused images.<hr>';
+		delunusedimages_beta(true);
 		echo $lang['cleanup finished'];
 		management_addlogentry($lang['ran cleanup'],2);
 	} else if ($_GET['action']=="bans") {
 		$ban_ip = "";
 		if (isset($_POST['ip'])&&isset($_POST['seconds'])) {
 			if ($_POST['ip']!="") {
-				$result = mysql_query("SELECT * FROM `banlist` WHERE `ip` = '".mysql_escape_string($_POST['ip'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."banlist` WHERE `ip` = '".mysql_escape_string($_POST['ip'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows==0) {
 					if ($_POST['seconds']>=0) {
 						$banning_boards = array();
-						$result = mysql_query("SELECT * FROM `boards`",$dblink);
+						$result = mysql_query("SELECT * FROM `".$chan_prefix."boards`",$dblink);
 						while ($line = mysql_fetch_assoc($result)) {
 							$banning_boards = array_merge($banning_boards,array($line['name']));
 						}
@@ -531,28 +549,31 @@ if (isset($_GET['action'])) {
 						if ($banning_new_boards==array()&&$_POST['banfromall']!='on') {
 							die($lang['please select a board']);
 						}
-						$ban_isglobalban = ($_POST['banfromall']=='on') ? '1' : '0';
-						if ($ban_isglobalban=='0') {
+						$ban_globalban = ($_POST['banfromall']=='on') ? '1' : '0';
+						if ($ban_globalban=='0') {
 							$ban_boards = implode('|',$banning_new_boards);
 							foreach (explode('|',$ban_boards) as $board) {
 								if (!moderator_ismodofboard($board,$_SESSION['manageusername'])) {
 									die($lang['you can only ban for boards you moderate']);
 								}
 							}
-						}
-						$query = "INSERT INTO `banlist` ( `ip` , `globalban` , `boards` , `by` , `at` , `until` , `reason` ) VALUES ( '".mysql_escape_string($_POST['ip'])."' , '".$ban_isglobalban."' , '".$ban_boards."' , '".mysql_escape_string($_SESSION['manageusername'])."' , '".time()."' , '";
-						if ($_POST['seconds']=='0') {
-							$query .= '0';
 						} else {
-							$query .= mysql_escape_string(time()+$_POST['seconds']);
+							$ban_boards = '';
 						}
-						$query .= "' , '".mysql_escape_string($_POST['reason'])."' )";
-						$result = mysql_query($query,$dblink);
-						if ($result) {
+						if ($_POST['seconds']=='0') {
+							$ban_duration = '0'; //Permanent ban
+						} else {
+							$ban_duration = mysql_real_escape_string($_POST['seconds']); //Timed ban
+						}
+						if ($_POST['type']=='0') {
+							$ban_type = '0'; //Normal IP address ban
+						} else {
+							$ban_type = '1'; //IP range ban
+						}
+						if (ban_user(mysql_real_escape_string($_POST['ip']),$_SESSION['manageusername'],$ban_globalban,$ban_duration,$ban_boards,mysql_real_escape_string($_POST['reason']),$ban_type)) {
 							echo $lang['ban successfully placed'];
 						} else {
 							echo $lang['generic error'];
-							echo mysql_error($dblink);
 							die();
 						}
 						$logentry = $lang['banned'].' '.$_POST['ip'].' until ';
@@ -562,7 +583,7 @@ if (isset($_GET['action'])) {
 							$logentry .= date('F j, Y, g:i a',time()+$_POST['seconds']);
 						}
 						$logentry .= ' - '.$lang['reason'].': '.$_POST['reason'].' - '.$lang['banned from'].': ';
-						if ($ban_isglobalban=='1') {
+						if ($ban_globalban=='1') {
 							$logentry .= $lang['all boards'].' ';
 						} else {
 							$logentry .=  '/'.implode('/, /',explode('|',$ban_boards)).'/ ';
@@ -589,13 +610,13 @@ if (isset($_GET['action'])) {
 			}
 		} else if (isset($_GET['delban'])) {
 			if ($_GET['delban']>0) {
-				$result = mysql_query("SELECT * FROM `banlist` WHERE `id` = '".mysql_escape_string($_GET['delban'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."banlist` WHERE `id` = '".mysql_escape_string($_GET['delban'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					while ($line = mysql_fetch_assoc($result)) {
 						$unban_ip = $line['ip'];
 					}
-					mysql_query("DELETE FROM `banlist` WHERE `id` = '".mysql_escape_string($_GET['delban'])."'",$dblink);
+					mysql_query("DELETE FROM `".$chan_prefix."banlist` WHERE `id` = '".mysql_escape_string($_GET['delban'])."'",$dblink);
 					echo $lang['ban successfully removed'];
 					management_addlogentry($lang['unbanned'].' '.$unban_ip,8);
 				} else {
@@ -605,13 +626,13 @@ if (isset($_GET['action'])) {
 			}
 		}
 		if (isset($_GET['banboard'])&&isset($_GET['banpost'])) {
-			$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_GET['banboard'])."'",$dblink);
+			$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_GET['banboard'])."'",$dblink);
 			$rows = mysql_num_rows($result);
 			if ($rows>0) {
 				while ($line = mysql_fetch_assoc($result)) {
 					$ban_board_id = $line['id'];
 				}
-				$result = mysql_query("SELECT * FROM `posts` WHERE `boardid` = '".$ban_board_id."' AND `id` = '".mysql_escape_string($_GET['banpost'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `boardid` = '".$ban_board_id."' AND `id` = '".mysql_escape_string($_GET['banpost'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					while ($line = mysql_fetch_assoc($result)) {
@@ -631,6 +652,7 @@ if (isset($_GET['action'])) {
 		}
 		?>
 		<label for="ip"><?php echo $lang['ip']; ?>:</label><input type="text" name="ip" value="<?php echo $ban_ip; ?>" /><?php if ($ban_ip!="") { echo '&nbsp;&nbsp;<a href="?action=deletepostsbyip&ip='.$ban_ip.'" target="_blank">'.$lang['delete all posts by this ip'].'</a>'; } ?><br />
+		<label for="type">Type:</label><select name="type" /><option value="0">Single IP</option><option value="1">IP Range</option></option></select><div class="desc">The type of the ban.  A single IP can be banned by providing the full address, or an IP range can be banned by providing the range you wish to ban.</div><br />
 		<?php echo $lang['ban from']; ?>:&nbsp;
 		<label for="banfromall"><b><?php echo $lang['all boards']; ?></b></label><input type="checkbox" name="banfromall" /><br />OR<br />
 		<?php
@@ -643,32 +665,47 @@ if (isset($_GET['action'])) {
 		</form>
 		<hr /><br />
 		<?php
-		$result = mysql_query("SELECT * FROM `banlist` ORDER BY `id` DESC",$dblink);
-		$rows = mysql_num_rows($result);
-		if ($rows>0) {
-			echo '<table border="1"><tr><th>IP Address</th><th>Boards</th><th>Reason</th><th>Date Added</th><th>Expires</th><th>Added By</th><th>&nbsp;</th></tr>';
-			while ($line = mysql_fetch_assoc($result)) {
-				echo '<tr>';
-				echo '<td>'.$line['ip'].'</td><td>';
-				if ($line['globalban']=='1') {
-					echo '<b>'.$lang['all boards'].'</b>';
-				} else {
-					if ($line['boards']!='') {
-						echo '<b>/'.implode('/</b>, <b>/',explode('|',$line['boards'])).'/</b>&nbsp;';
-					}
-				}
-				echo '</td><td>'.stripslashes($line['reason']).'</td><td>'.date("F j, Y, g:i a",$line['at']).'</td><td>';
-				if ($line['until']=='0') {
-					echo '<b>'.$lang['forever'].'</b>';
-				} else {
-					echo date("F j, Y, g:i a",$line['until']);
-				}
-				echo '</td><td>'.$line['by'].'</td><td>[<a href="manage.php?action=bans&delban='.$line['id'].'">x</a>]</td>';
-				echo '</tr>';
+		for ($i = 1; $i >= 0; $i--) {
+			if ($i==1) {
+				echo '<b>IP Range bans:</b><br>';
+			} else {
+				echo '<br><b>Single IP bans:</b><br>';
 			}
-			echo '</table>';
-		} else {
-			echo $lang['there are currently no bans'];
+			
+			$result = mysql_query("SELECT * FROM `".$chan_prefix."banlist` WHERE `type` = '".$i."' ORDER BY `id` DESC",$dblink);
+			$rows = mysql_num_rows($result);
+			if ($rows>0) {
+				echo '<table border="1"><tr><th>';
+				if ($i==1) {
+					echo 'IP Range';
+					
+				} else {
+					echo 'IP Address';
+				}
+				echo '</th><th>Boards</th><th>Reason</th><th>Date Added</th><th>Expires</th><th>Added By</th><th>&nbsp;</th></tr>';
+				while ($line = mysql_fetch_assoc($result)) {
+					echo '<tr>';
+					echo '<td>'.$line['ip'].'</td><td>';
+					if ($line['globalban']=='1') {
+						echo '<b>'.$lang['all boards'].'</b>';
+					} else {
+						if ($line['boards']!='') {
+							echo '<b>/'.implode('/</b>, <b>/',explode('|',$line['boards'])).'/</b>&nbsp;';
+						}
+					}
+					echo '</td><td>'.stripslashes($line['reason']).'</td><td>'.date("F j, Y, g:i a",$line['at']).'</td><td>';
+					if ($line['until']=='0') {
+						echo '<b>'.$lang['forever'].'</b>';
+					} else {
+						echo date("F j, Y, g:i a",$line['until']);
+					}
+					echo '</td><td>'.$line['by'].'</td><td>[<a href="manage.php?action=bans&delban='.$line['id'].'">x</a>]</td>';
+					echo '</tr>';
+				}
+				echo '</table>';
+			} else {
+				echo $lang['there are currently no bans'];
+			}
 		}
 	} else if ($_GET['action']=="delposts") {
 		if (isset($_POST['boarddir'])||isset($_GET['boarddir'])) {
@@ -682,7 +719,7 @@ if (isset($_GET['action'])) {
 					$_POST['delpostid'] = $_GET['delpostid'];
 				}
 			}
-			$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_POST['boarddir'])."'",$dblink);
+			$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_POST['boarddir'])."'",$dblink);
 			$rows = mysql_num_rows($result);
 			if ($rows>0) {
 				if (!moderator_ismodofboard($_POST['boarddir'],$_SESSION['manageusername'])) {
@@ -693,7 +730,7 @@ if (isset($_GET['action'])) {
 					$board_dir = $line['name'];
 				}
 				if ($_POST['delthreadid']>0) {
-					$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".mysql_escape_string($_POST['delthreadid'])."' AND `threadid` = '0' AND `boardid` = '".$board_id."'",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `IS_DELETED` = '0' AND  `id` = '".mysql_escape_string($_POST['delthreadid'])."' AND `threadid` = '0' AND `boardid` = '".$board_id."'",$dblink);
 					$rows = mysql_num_rows($result);
 					if ($rows>0) {
 						while ($line = mysql_fetch_assoc($result)) {
@@ -712,7 +749,7 @@ if (isset($_GET['action'])) {
 						echo $lang['invalid thread id'];
 					}
 				} else if ($_POST['delpostid']>0) {
-					$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".mysql_escape_string($_POST['delpostid'])."' AND `boardid` = '".$board_id."'",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `IS_DELETED` = '0' AND  `id` = '".mysql_escape_string($_POST['delpostid'])."' AND `boardid` = '".$board_id."'",$dblink);
 					$rows = mysql_num_rows($result);
 					if ($rows>0) {
 						while ($line = mysql_fetch_assoc($result)) {
@@ -755,11 +792,11 @@ if (isset($_GET['action'])) {
 		management_adminsonly();
 		if (isset($_POST['word'])) {
 			if ($_POST['word']!=""&&$_POST['replacedby']!="") {
-				$result = mysql_query("SELECT * FROM `wordfilter` WHERE `word` = '".mysql_escape_string($_POST['word'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."wordfilter` WHERE `word` = '".mysql_escape_string($_POST['word'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows==0) {
 					$wordfilter_boards = array();
-					$result = mysql_query("SELECT * FROM `boards`",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."boards`",$dblink);
 					while ($line = mysql_fetch_assoc($result)) {
 						$wordfilter_boards = array_merge($wordfilter_boards,array($line['name']));
 					}
@@ -775,7 +812,7 @@ if (isset($_GET['action'])) {
 							$wordfilter_new_boards = array_merge($wordfilter_new_boards,array($wordfilter_thisboard_name));
 						}
 					}
-					mysql_query("INSERT INTO `wordfilter` ( `word` , `replacedby` , `boards` , `time` ) VALUES ( '".mysql_escape_string($_POST['word'])."' , '".mysql_escape_string($_POST['replacedby'])."' , '".mysql_escape_string(implode('|',$wordfilter_new_boards))."' , '".time()."' )",$dblink);
+					mysql_query("INSERT INTO `".$chan_prefix."wordfilter` ( `word` , `replacedby` , `boards` , `time` ) VALUES ( '".mysql_escape_string($_POST['word'])."' , '".mysql_escape_string($_POST['replacedby'])."' , '".mysql_escape_string(implode('|',$wordfilter_new_boards))."' , '".time()."' )",$dblink);
 					echo $lang['word successfully added'];
 					management_addlogentry("Added word to wordfilter: ".$_POST['word']." - Changes to: ".$_POST['replacedby']." - Boards: /".implode('/, /',explode('|',implode('|',$wordfilter_new_boards)))."/",11);
 				} else {
@@ -787,13 +824,13 @@ if (isset($_GET['action'])) {
 			echo '<hr />';
 		} else if (isset($_GET['delword'])) {
 			if ($_GET['delword']>0) {
-				$result = mysql_query("SELECT * FROM `wordfilter` WHERE `id` = '".mysql_escape_string($_GET['delword'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."wordfilter` WHERE `id` = '".mysql_escape_string($_GET['delword'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					while ($line = mysql_fetch_assoc($result)) {
 						$del_word = $line['word'];
 					}
-					mysql_query("DELETE FROM `wordfilter` WHERE `id` = '".mysql_escape_string($_GET['delword'])."'",$dblink);
+					mysql_query("DELETE FROM `".$chan_prefix."wordfilter` WHERE `id` = '".mysql_escape_string($_GET['delword'])."'",$dblink);
 					echo $lang['word successfully removed'];
 					management_addlogentry($lang['removed word from wordfilter'].': '.$del_word,11);
 				} else {
@@ -803,7 +840,7 @@ if (isset($_GET['action'])) {
 			}
 		} else if (isset($_GET['delword'])) {
 			if ($_GET['editword']>0) {
-				$result = mysql_query("SELECT * FROM `wordfilter` WHERE `id` = '".mysql_escape_string($_GET['editword'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."wordfilter` WHERE `id` = '".mysql_escape_string($_GET['editword'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					if (!isset($_POST['replacedby'])) {
@@ -815,7 +852,7 @@ if (isset($_GET['action'])) {
 							<label><?php echo $lang['boards']; ?>:</label><br />
 							<?php
 							$array_boards = array();
-							$resultboard = mysql_query("SELECT * FROM `boards`",$dblink);
+							$resultboard = mysql_query("SELECT * FROM `".$chan_prefix."boards`",$dblink);
 							while ($lineboard = mysql_fetch_assoc($resultboard)) {
 								$array_boards = array_merge($array_boards,array($lineboard['name']));
 							}
@@ -832,14 +869,14 @@ if (isset($_GET['action'])) {
 							<?php
 						}
 					} else {
-						$result = mysql_query("SELECT * FROM `wordfilter` WHERE `id` = '".mysql_escape_string($_GET['editword'])."'",$dblink);
+						$result = mysql_query("SELECT * FROM `".$chan_prefix."wordfilter` WHERE `id` = '".mysql_escape_string($_GET['editword'])."'",$dblink);
 						$rows = mysql_num_rows($result);
 						if ($rows>0) {
 							while ($line = mysql_fetch_assoc($result)) {
 								$wordfilter_word = $line['word'];
 							}
 							$wordfilter_boards = array();
-							$result = mysql_query("SELECT * FROM `boards`",$dblink);
+							$result = mysql_query("SELECT * FROM `".$chan_prefix."boards`",$dblink);
 							while ($line = mysql_fetch_assoc($result)) {
 								$wordfilter_boards = array_merge($wordfilter_boards,array($line['name']));
 							}
@@ -875,7 +912,7 @@ if (isset($_GET['action'])) {
 			<label><?php echo $lang['boards']; ?>:</label><br />
 			<?php
 			$array_boards = array();
-			$resultboard = mysql_query("SELECT * FROM `boards`",$dblink);
+			$resultboard = mysql_query("SELECT * FROM `".$chan_prefix."boards`",$dblink);
 			while ($lineboard = mysql_fetch_assoc($resultboard)) {
 				$array_boards = array_merge($array_boards,array($lineboard['name']));
 			}
@@ -887,7 +924,7 @@ if (isset($_GET['action'])) {
 			<?php
 		}
 		echo '<br />';
-		$result = mysql_query("SELECT * FROM `wordfilter`",$dblink);
+		$result = mysql_query("SELECT * FROM `".$chan_prefix."wordfilter`",$dblink);
 		while ($line = mysql_fetch_assoc($result)) {
 			echo 'Word: '.$line['word'].' - Replaced by: '.$line['replacedby'].' - Boards: ';
 			if (explode('|',$line['boards'])!="") {
@@ -901,12 +938,12 @@ if (isset($_GET['action'])) {
 		management_adminsonly();
 		if (isset($_POST['directory'])) {
 			if ($_POST['directory']!=""&&$_POST['desc']!="") {
-				$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_POST['directory'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_POST['directory'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows==0) {
-					if (@mkdir($chan_boardsdir."/".$_POST['directory'], 0777)&&@mkdir($chan_boardsdir."/".$_POST['directory']."/res", 0777)&&@mkdir($chan_boardsdir."/".$_POST['directory']."/src", 0777)&&@mkdir($chan_boardsdir."/".$_POST['directory']."/thumb", 0777)) {
+					if (mkdir($chan_boardsdir."/".$_POST['directory'], 0777)&&mkdir($chan_boardsdir."/".$_POST['directory']."/res", 0777)&&mkdir($chan_boardsdir."/".$_POST['directory']."/src", 0777)&&mkdir($chan_boardsdir."/".$_POST['directory']."/thumb", 0777)) {
 						file_put_contents($chan_boardsdir."/".$_POST['directory']."/.htaccess","DirectoryIndex board.html");
-						mysql_query("INSERT INTO `boards` ( `name` , `desc` , `createdon` ) VALUES ( '".mysql_escape_string($_POST['directory'])."' , '".mysql_escape_string($_POST['desc'])."' , '".time()."' )",$dblink);
+						mysql_query("INSERT INTO `".$chan_prefix."boards` ( `name` , `desc` , `createdon` ) VALUES ( '".mysql_escape_string($_POST['directory'])."' , '".mysql_escape_string($_POST['desc'])."' , '".time()."' )",$dblink);
 						regenerate_board($_POST['directory']);
 						echo $lang['board successfully added'].'<br /><br /><a href="'.$chan_boardspath.'/'.$_POST['directory'].'/">/'.$_POST['directory'].'/</a>!';
 						management_addlogentry($lang['added board'].': /'.$_POST['directory'].'/',3);
@@ -931,7 +968,7 @@ if (isset($_GET['action'])) {
 		management_adminsonly();
 		if (isset($_POST['directory'])) {
 			if ($_POST['directory']!="") {
-				$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_POST['directory'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_POST['directory'])."'",$dblink);
 				while ($line = mysql_fetch_assoc($result)) {
 					$board_id = $line['id'];
 					$board_dir = $line['name'];
@@ -941,7 +978,7 @@ if (isset($_GET['action'])) {
 					if ($_POST['confirmation']=='yes') {
 						if (remove_board($board_dir)) {
 							mysql_query("UPDATE `posts` SET `IS_DELETED` = '1' WHERE `boardid` = '".$board_id."'",$dblink);
-							mysql_query("DELETE FROM `boards` WHERE `id` = '".$board_id."'",$dblink);
+							mysql_query("DELETE FROM `".$chan_prefix."boards` WHERE `id` = '".$board_id."'",$dblink);
 							echo 'Board successfully deleted!';
 							management_addlogentry("Deleted board: /".$_POST['directory']."/",3);
 						} else {
@@ -968,7 +1005,7 @@ if (isset($_GET['action'])) {
 		if (isset($_POST['oldpwd'])&&isset($_POST['newpwd'])&&isset($_POST['newpwd2'])) {
 			if ($_POST['oldpwd']!=""&&$_POST['newpwd']!=""&&$_POST['newpwd2']!="") {
 				if ($_POST['newpwd']==$_POST['newpwd2']) {
-					$result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".mysql_escape_string($_SESSION['manageusername'])."'",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."staff` WHERE `username` = '".mysql_escape_string($_SESSION['manageusername'])."'",$dblink);
 					while ($line = mysql_fetch_assoc($result)) {
 						$staff_passwordenc = $line['password'];
 					}
@@ -999,13 +1036,13 @@ if (isset($_GET['action'])) {
 		management_adminsonly();
 		if (isset($_POST['staffusername'])&&isset($_POST['staffpassword'])) {
 			if ($_POST['staffusername']!=""&&$_POST['staffpassword']!="") {
-				$result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".mysql_escape_string($_POST['staffusername'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."staff` WHERE `username` = '".mysql_escape_string($_POST['staffusername'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows==0) {
 					if ($_POST['isadmin']=="on") {
-						mysql_query("INSERT INTO `staff` ( `username` , `password` , `isadmin` , `addedon` ) VALUES ( '".mysql_escape_string($_POST['staffusername'])."' , '".md5($_POST['staffpassword'])."' , '1' , '".time()."' )",$dblink);
+						mysql_query("INSERT INTO `".$chan_prefix."staff` ( `username` , `password` , `isadmin` , `addedon` ) VALUES ( '".mysql_escape_string($_POST['staffusername'])."' , '".md5($_POST['staffpassword'])."' , '1' , '".time()."' )",$dblink);
 					} else {
-						mysql_query("INSERT INTO `staff` ( `username` , `password` , `isadmin` , `addedon` ) VALUES ( '".mysql_escape_string($_POST['staffusername'])."' , '".md5($_POST['staffpassword'])."' , '0' , '".time()."' )",$dblink);
+						mysql_query("INSERT INTO `".$chan_prefix."staff` ( `username` , `password` , `isadmin` , `addedon` ) VALUES ( '".mysql_escape_string($_POST['staffusername'])."' , '".md5($_POST['staffpassword'])."' , '0' , '".time()."' )",$dblink);
 					}
 					echo $lang['staff member successfully added'];
 					$logentry = $lang['added staff member'].' - ';
@@ -1023,13 +1060,13 @@ if (isset($_GET['action'])) {
 			}
 		} else if (isset($_GET['del'])) {
 			if ($_GET['del']>0) {
-				$result = mysql_query("SELECT * FROM `staff` WHERE `id` = '".mysql_escape_string($_GET['del'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."staff` WHERE `id` = '".mysql_escape_string($_GET['del'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					while ($line = mysql_fetch_assoc($result)) {
 						$staff_username = $line['username'];
 					}
-					mysql_query("DELETE FROM `staff` WHERE `id` = '".mysql_escape_string($_GET['del'])."'",$dblink);
+					mysql_query("DELETE FROM `".$chan_prefix."staff` WHERE `id` = '".mysql_escape_string($_GET['del'])."'",$dblink);
 					echo $lang['staff successfully deleted'];
 					management_addlogentry($lang['deleted staff member'].': '.$staff_username,6);
 				} else {
@@ -1039,7 +1076,7 @@ if (isset($_GET['action'])) {
 			}
 		} else if (isset($_GET['edit'])) {
 			if ($_GET['edit']>0) {
-				$result = mysql_query("SELECT * FROM `staff` WHERE `id` = '".mysql_escape_string($_GET['edit'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."staff` WHERE `id` = '".mysql_escape_string($_GET['edit'])."'",$dblink);
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
 					if (isset($_POST['submitting'])) {
@@ -1048,7 +1085,7 @@ if (isset($_GET['action'])) {
 							$staff_isadmin = $line['isadmin'];
 						}
 						$staff_boards = array();
-						$result = mysql_query("SELECT * FROM `boards`",$dblink);
+						$result = mysql_query("SELECT * FROM `".$chan_prefix."boards`",$dblink);
 						while ($line = mysql_fetch_assoc($result)) {
 							$staff_boards = array_merge($staff_boards,array($line['name']));
 						}
@@ -1078,7 +1115,7 @@ if (isset($_GET['action'])) {
 						}
 						management_addlogentry($logentry,6);
 					}
-					$result = mysql_query("SELECT * FROM `staff` WHERE `id` = '".$_GET['edit']."'",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."staff` WHERE `id` = '".$_GET['edit']."'",$dblink);
 					while ($line = mysql_fetch_assoc($result)) {
 						$staff_username = $line['username'];
 						$staff_isadmin = $line['isadmin'];
@@ -1090,7 +1127,7 @@ if (isset($_GET['action'])) {
 					<label for="isadmin"><?php echo $lang['administrator']; ?>?</label><input type="checkbox" name="isadmin" <?php if ($staff_isadmin=="1") { echo 'checked '; } ?>/><br /><br />
 					<?php
 					echo $lang['moderates'].'<br />';
-					$result = mysql_query("SELECT * FROM `boards`",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."boards`",$dblink);
 					while ($line = mysql_fetch_assoc($result)) {
 						echo '<label for="moderate'.$line['name'].'">'.$line['name'].'</label><input type="checkbox" name="moderate'.$line['name'].'" ';
 						if (in_array($line['name'],$staff_boards)) {
@@ -1119,7 +1156,7 @@ if (isset($_GET['action'])) {
 		<hr /><br />
 		<?php
 		echo $lang['administrators'].':<br />';
-		$result = mysql_query("SELECT * FROM `staff` WHERE `isadmin` = '1' ORDER BY `username` ASC",$dblink);
+		$result = mysql_query("SELECT * FROM `".$chan_prefix."staff` WHERE `isadmin` = '1' ORDER BY `username` ASC",$dblink);
 		$rows = mysql_num_rows($result);
 		if ($rows>0) {
 			echo '<table border="1"><tr><th>Username</th><th>Added on</th><th>&nbsp;</th></tr>';
@@ -1133,7 +1170,7 @@ if (isset($_GET['action'])) {
 			echo $lang['none'];
 		}
 		echo $lang['moderators'].':<br />';
-		$result = mysql_query("SELECT * FROM `staff` WHERE `isadmin` = '0' ORDER BY `username` ASC",$dblink);
+		$result = mysql_query("SELECT * FROM `".$chan_prefix."staff` WHERE `isadmin` = '0' ORDER BY `username` ASC",$dblink);
 		$rows = mysql_num_rows($result);
 		if ($rows>0) {
 			echo '<table border="1"><tr><th>'.$lang['username'].'</th><th>'.$lang['added on'].'</th><th>'.$lang['moderating boards'].'</th><th>&nbsp;</th></tr>';
@@ -1159,14 +1196,14 @@ if (isset($_GET['action'])) {
 		management_adminsonly();
 		if (isset($_GET['threadid'])&&isset($_GET['board'])) {
 			if ($_GET['threadid']>0) {
-				$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_GET['board'])."'",$dblink);
+				$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_GET['board'])."'",$dblink);
 				while ($line = mysql_fetch_assoc($result)) {
 					$board_id = $line['id'];
 					$board_dir = $line['name'];
 				}
 				$rows = mysql_num_rows($result);
 				if ($rows>0) {
-					$result = mysql_query("SELECT * FROM `posts` WHERE `id` = '".mysql_escape_string($_GET['threadid'])."' AND `boardid` = '".$board_id."'",$dblink);
+					$result = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `id` = '".mysql_escape_string($_GET['threadid'])."' AND `boardid` = '".$board_id."'",$dblink);
 					$rows = mysql_num_rows($result);
 					if ($rows>0) {
 						while ($line = mysql_fetch_assoc($result)) {
@@ -1213,7 +1250,7 @@ if (isset($_GET['action'])) {
 				echo $lang['please enter a search query'];
 				exit;
 			}
-			$query = "SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND `message` LIKE '%".$trimmed."%' ORDER BY `postedat` DESC";
+			$query = "SELECT * FROM `".$chan_prefix."posts` WHERE `IS_DELETED` = '0' AND `message` LIKE '%".$trimmed."%' ORDER BY `postedat` DESC";
 			$numresults=mysql_query($query,$dblink);
 			$numrows=mysql_num_rows($numresults);
 			if ($numrows==0) {
@@ -1271,14 +1308,14 @@ if (isset($_GET['action'])) {
 	
 } else {
 	echo '<h3>'.$lang['posting rates past hour'].'</h3><br />';
-	$result = mysql_query("SELECT * FROM `boards` ORDER BY `order` ASC",$dblink);
+	$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` ORDER BY `order` ASC",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
 		echo '<table border="1" cellspacing="2" cellpadding="2"><tr><th>'.$lang['board'].'</th><th>'.$lang['threads'].'</th><th>'.$lang['replies'].'</th><th>'.$lang['posts'].'</th></tr>';
 		while ($line = mysql_fetch_assoc($result)) {
-			$result_threads = mysql_query("SELECT * FROM `posts` WHERE `boardid` = '".$line['id']."' AND `threadid` = '0' AND `postedat` >= '".(time()-3600)."'",$dblink);
+			$result_threads = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `boardid` = '".$line['id']."' AND `threadid` = '0' AND `postedat` >= '".(time()-3600)."'",$dblink);
 			$rows_threads = mysql_num_rows($result_threads);
-			$result_replies = mysql_query("SELECT * FROM `posts` WHERE `boardid` = '".$line['id']."' AND `threadid` != '0' AND `postedat` >= '".(time()-3600)."'",$dblink);
+			$result_replies = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `boardid` = '".$line['id']."' AND `threadid` != '0' AND `postedat` >= '".(time()-3600)."'",$dblink);
 			$rows_replies = mysql_num_rows($result_replies);
 			$rows_posts = $rows_threads+$rows_replies;
 			$threads_perminute = $rows_threads;

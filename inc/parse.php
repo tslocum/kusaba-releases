@@ -65,8 +65,8 @@ function clickable_quote($buffer,$board,$threadid,$ispage = false) {
 	return $buffer;
 }
 function parse_wordfilter($buffer,$board) {
-	global $dblink;
-	$result = mysql_query("SELECT * FROM `wordfilter`",$dblink);
+	require("config.php");
+	$result = mysql_query("SELECT * FROM `".$chan_prefix."wordfilter`",$dblink);
 	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 		$array_boards = explode('|',$line['boards']);
 		if (in_array($board,$array_boards)) {
@@ -112,8 +112,8 @@ function cut_word($txt, $where) {
    if (empty($txt)) return false;
    for ($c = 0, $a = 0, $g = 0; $c<strlen($txt); $c++) {
 	   $d[$c+$g]=$txt[$c];
-	   if ($txt[$c]!=" ") $a++;
-	   else if ($txt[$c]==" ") $a = 0;
+	   if ($txt[$c]!=' '&&$txt[$c]!=chr(10)) $a++;
+	   else if ($txt[$c]==' '||$txt[$c]==chr(10)) $a = 0;
 	   if ($a==$where) {
 	   $g++;
 	   $d[$c+$g]="\n";
@@ -132,7 +132,9 @@ function parse_post($message,$board,$threadid,$ispage = false) {
 		$message = clickable_quote($message,$board,$threadid,$ispage);
 		$message = colored_quote($message);
 	}
-	//$message = make_clickable($message);
+	if (config_getvalue('makeurlsclickable')=='1') {
+		$message = make_clickable($message);
+	}
 	$message = nl2br($message);
 	$message = bbcode($message);
 	$message = parse_wordfilter($message,$board);

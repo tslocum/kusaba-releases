@@ -33,7 +33,7 @@ li a { display: block; width: 100%; }
 
 News | <a href="#">Blog</a> | <a href="#">FAQ</a> | <a href="#">Rules</a></div>
 <?php
-$result = mysql_query("SELECT * FROM `news` ORDER BY `postedat` DESC",$dblink);
+$result = mysql_query("SELECT * FROM `".$chan_prefix."news` ORDER BY `postedat` DESC",$dblink);
 while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 ?>
 <div class="content">

@@ -44,7 +44,7 @@ text-align : left;
 	color : #900;
 	text-decoration : underline;
 	}
-	
+
 label,input {
 	display: block;
 	width: auto;
@@ -62,6 +62,21 @@ label {
 br {
 	clear: left;
 }
+
+/*label {
+	font-size: 12px;
+	text-align: right;
+	width: 175px;
+	padding-right: 20px;
+}
+
+input {
+	display: inline;
+}
+
+br {
+	clear: left;
+}*/
 
 /* So stuff from the futaba styling works */
 

@@ -6,6 +6,7 @@
 
 CREATE TABLE `banlist` (
   `id` tinyint(5) NOT NULL auto_increment,
+  `type` tinyint(1) NOT NULL default '0',
   `ip` varchar(255) NOT NULL,
   `globalban` tinyint(1) NOT NULL default '0',
   `boards` varchar(255) NOT NULL,
@@ -14,7 +15,7 @@ CREATE TABLE `banlist` (
   `until` int(20) NOT NULL,
   `reason` text NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=28 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -26,6 +27,7 @@ CREATE TABLE `boards` (
   `id` tinyint(5) NOT NULL auto_increment,
   `order` tinyint(5) NOT NULL default '0',
   `name` varchar(75) NOT NULL,
+  `type` tinyint(1) NOT NULL default '0',
   `desc` varchar(75) NOT NULL,
   `image` varchar(255) NOT NULL,
   `section` tinyint(2) NOT NULL default '0',
@@ -41,7 +43,7 @@ CREATE TABLE `boards` (
   `redirecttothread` tinyint(1) NOT NULL default '0',
   `forcedanon` tinyint(1) NOT NULL default '0',
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -104,7 +106,7 @@ CREATE TABLE `news` (
   `postedby` varchar(75) NOT NULL,
   `postedemail` varchar(75) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -140,6 +142,19 @@ CREATE TABLE `posts` (
 -- --------------------------------------------------------
 
 -- 
+-- Table structure for table `sections`
+-- 
+
+CREATE TABLE `sections` (
+  `id` int(5) NOT NULL auto_increment,
+  `order` tinyint(3) NOT NULL default '0',
+  `name` varchar(255) NOT NULL,
+  KEY `id` (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
 -- Table structure for table `staff`
 -- 
 
@@ -151,7 +166,7 @@ CREATE TABLE `staff` (
   `boards` text,
   `addedon` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -166,13 +181,5 @@ CREATE TABLE `wordfilter` (
   `boards` text NOT NULL,
   `time` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
-INSERT INTO `config` (`key`, `value`) VALUES ('imagesinnewwindow', '1'),
-('postboxnotice', '<ul><li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.</li></ul>'),
-('modlogmaxdays', '7'),
-('maxthumbwidth', '200'),
-('maxthumbheight', '200'),
-('numrepliesdisplayed', '3'),
-('numrepliesdisplayedsticky', '1'),
-('numthreadsdisplayed', '10');

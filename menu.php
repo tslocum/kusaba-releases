@@ -1,6 +1,7 @@
 <?php
 
-require("config.php");
+require('config.php');
+require($chan_rootdir.'/inc/functions.php');
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -47,7 +48,7 @@ function toggle(button,area) {
 <h2><span class="plus" onclick="toggle(this,'img');" title="Click to show/hide">&minus;</span>Image Boards</h2>
 <div id="img" style="">
 <ul><?php
-$result = mysql_query("SELECT * FROM `boards` ORDER BY `order` ASC",$dblink);
+$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` ORDER BY `order` ASC",$dblink);
 $rows = mysql_num_rows($result);
 if ($rows>0) {
 	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
@@ -63,10 +64,12 @@ if ($rows>0) {
 ?>
 </ul></div>
 
+<?php if (config_getvalue('ircinfo')!='') { ?>
 <h2>IRC</h2>
 <ul>
-<li><a href="irc://irc.fukt.us/trevorchan" title="#trevorchan IRC">#trevorchan @ irc.fukt.us</a></li>
+<li><?php echo config_getvalue('ircinfo'); ?></li>
 </ul>
+<?php } ?>
 
 </body>
 </html>

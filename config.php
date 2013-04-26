@@ -6,6 +6,7 @@ $dbconnection_host = "sql.yourserver.yoursite.com"; //Your hostname (might be lo
 $dbconnection_database = "yourdb"; //mySQL database
 $dbconnection_user = "yourusername"; //mySQL username
 $dbconnection_password = "yourpassword"; //mySQL password
+$chan_prefix = ""; //mySQL prefix for all tables (If none, leave blank)
 $chan_name = "Trevorchan"; //The name of your board
 $chan_fancyname = "<font color=\"#00ccff\">Trevor</font><font color=\"#cc0000\">chan</font>"; //The name of your board including coloring or bolding to make it look pretty
 $chan_rootdir = dirname($_SERVER['SCRIPT_FILENAME']); //Full system path of the folder containing trevorchan.php, without trailing slash;  defaults to dirname($_SERVER['SCRIPT_FILENAME']), but can be changed if desired if desired
@@ -22,7 +23,7 @@ $chan_randomseed = "ENTER RANDOM LETTERS/NUMBERS HERE"; //Type a bunch of random
 /* DO NOT MODIFY BELOW THIS LINE OR ELSE SATAN WILL RISE FROM HELL AND TORTURE YOU FOR ETERNITY UNTIL YOU REALISE WHAT A BAD MISTAKE IT WAS TO EDIT BELOW THIS LINE */
 require($chan_rootdir."/inc/lang/en.php");
 
-$chan_version = "0.5";
+$chan_version = "0.6";
 
 global $dblink;
 if (!isset($dblink)) {
