@@ -43,7 +43,7 @@ if (file_exists("config.php")) {
 		if (TC_RANDOMSEED!="ENTER RANDOM LETTERS/NUMBERS HERE"&&TC_RANDOMSEED!="") {
 			echo 'Configuration appears correct.';
 			echo '<h2>Checking database...</h2>';
-			$reqiredtables = array("banlist","boards","filetypes","iplist","loginattempts","modlog","news","passcache","reports","sections","staff","wordfilter");
+			$reqiredtables = array("banlist","boards","filetypes","dnsbl","loginattempts","filetypes","loginattempts","modlog","module_settings","news","passcache","reports","sections","staff","watchedthreads","wordfilter");
 			foreach ($reqiredtables as $tablename) {
 				if (!mysql_table_exists(TC_DBDATABASE,TC_DBPREFIX.$tablename)) {
 					die("Couldn't find the table <b>".TC_DBPREFIX.$tablename."</b> in the database.  Please <a href=\"install-mysql.php\"><b>insert the mySQL dump</b></a>.");
@@ -63,7 +63,7 @@ if (file_exists("config.php")) {
 				echo '<h2>Done!</h2>Installation has finished!  The default administrator account is <b>admin</b> with the password of <b>admin</b>.<br /><br />Delete this and the install-mysql.php file from the server, then <a href="manage.php">add some boards</a>!';
 				echo '<br /><br /><br /><h1><font color="red">DELETE THIS AND install-mysql.php RIGHT NOW!</font></h1>';
 			} else {
-				echo 'Error inserting SQL.  Please add <b>$tc_db->debug = true;</b> just before ?> in config.php to turn on debugging, and check the error message.';
+				echo 'Error inserting SQL.  Please add <b>$tc_db->debug = true;</b> just before ?&gt; in config.php to turn on debugging, and check the error message.';
 			}
 		} else {
 			echo 'Please enter a random string into the <b>TC_RANDOMSEED</b> value.';

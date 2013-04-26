@@ -1,6 +1,6 @@
 <?php
 session_start();
-require("config.php");
+require('config.php');
 
 /*
 * File: CaptchaSecurityImages.php
@@ -26,57 +26,67 @@ require("config.php");
 
 class CaptchaSecurityImages {
 
-   function generateCode($characters) {
-      /* list all possible characters, similar looking characters and vowels have been removed */
-      $possible = '345789cfkmnpstwxyz';
-      $code = '';
-      $i = 0;
-      while ($i < $characters) { 
-         $code .= substr($possible, mt_rand(0, strlen($possible)-1), 1);
-         $i++;
-      }
-      return $code;
-   }
+	function generateCode($characters) {
+		/* list all possible characters, similar looking characters and vowels have been removed */
+		$possible = '345789cfkmnpstwxyz';
+		$code = '';
+		$i = 0;
+		while ($i < $characters) { 
+			$code .= substr($possible, mt_rand(0, strlen($possible)-1), 1);
+			$i++;
+		}
+		return $code;
+	}
 
-    function CaptchaSecurityImages($width='120',$height='40',$characters='6',$font) {
-        global $font,$font_ballback;
-        $code = $this->generateCode($characters);
-        /* font size will be 75% of the image height */
-        $font_size = $height * 0.75;
-        $image = @imagecreate($width, $height) or die('Cannot initialize new GD image stream');
-        /* set the colours */
-        $background_color = imagecolorallocate($image, 255, 255, 255);
-        $text_color = imagecolorallocate($image, 20, 40, 100);
-        $noise_color = imagecolorallocate($image, 100, 120, 180);
-        /* generate random dots in background */
-        for( $i=0; $i<($width*$height)/12; $i++ ) {
-            imagefilledellipse($image, mt_rand(0,$width), mt_rand(0,$height), 1, 1, $noise_color);
-        }
-        /* generate random lines in background */
-        /*for( $i=0; $i<($width*$height)/150; $i++ ) {
-            imageline($image, mt_rand(0,$width), mt_rand(0,$height), mt_rand(0,$width), mt_rand(0,$height), $noise_color);
-        }*/
-        $x = 4;
-        $y = 5;
-        if (@imagettfbbox($font_size, 0, $font, $code)) {
-            $textbox = imagettfbbox($font_size, 0, $font, $code);
-            $x = ($width - $textbox[4])/2;
-            $y = ($height - $textbox[5])/2;
-            imagettftext($image, $font_size, 0, $x, $y, $text_color, $font, $code);
-        } else {
-            imagestring($image, $font_ballback, $x, $y, $code, $text_color);
-        }
-        /* create textbox and add text
-        $textbox = imagettfbbox($font_size, 0, $font, $code) or die('Error in imagettfbbox function');
-        $x = ($width - $textbox[4])/2;
-        $y = ($height - $textbox[5])/2;
-        imagettftext($image, $font_size, 0, $x, $y, $text_color, $font, $code) or die('Error in imagettftext function');
-        output captcha image to browser */
-        header('Content-Type: image/jpeg');
-        imagejpeg($image);
-        imagedestroy($image);
-        $_SESSION['security_code'] = $code;
-    }
+	function CaptchaSecurityImages($width='120',$height='40',$characters='6',$font) {
+		global $font,$font_ballback;
+		$code = $this->generateCode($characters);
+		/* font size will be 75% of the image height */
+		$font_size = $height * 0.75;
+		$image = @imagecreate($width, $height) or die('Cannot initialize new GD image stream');
+		/* set the colours */
+		$background_color = imagecolorallocate($image, 255, 255, 255);
+		$text_color = imagecolorallocate($image, 35, 45, 100);
+		$noise_color = imagecolorallocate($image, 100, 120, 180);
+		/* generate random dots in background */
+		if (@imagettfbbox($font_size, 0, $font, $code)) {
+			$ttf_supported = true;
+			for( $i=0; $i<($width*$height)/3; $i++ ) {
+				imagefilledellipse($image, mt_rand(0,$width), mt_rand(0,$height), 1, 1, $noise_color);
+			}
+		} else {
+			$ttf_supported = false;
+			for( $i=0; $i<($width*$height)/12; $i++ ) {
+				imagefilledellipse($image, mt_rand(0,$width), mt_rand(0,$height), 1, 1, $noise_color);
+			}
+		}
+		/* generate random lines in background */
+		if ($ttf_supported) {
+			for( $i=0; $i<($width*$height)/150; $i++ ) {
+				imageline($image, mt_rand(0,$width), mt_rand(0,$height), mt_rand(0,$width), mt_rand(0,$height), $noise_color);
+			}
+		}
+		if ($ttf_supported) {
+			$textbox = imagettfbbox($font_size, 0, $font, $code);
+			$x = ($width - $textbox[4])/2;
+			$y = ($height - $textbox[5])/2;
+			imagettftext($image, $font_size, 0, $x, $y, $text_color, $font, $code);
+		} else {
+			$x = 4;
+			$y = 5;
+			imagestring($image, $font_ballback, $x, $y, $code, $text_color);
+		}
+		/* create textbox and add text
+		$textbox = imagettfbbox($font_size, 0, $font, $code) or die('Error in imagettfbbox function');
+		$x = ($width - $textbox[4])/2;
+		$y = ($height - $textbox[5])/2;
+		imagettftext($image, $font_size, 0, $x, $y, $text_color, $font, $code) or die('Error in imagettftext function');
+		output captcha image to browser */
+		header('Content-Type: image/jpeg');
+		imagejpeg($image);
+		imagedestroy($image);
+		$_SESSION['security_code'] = $code;
+	}
 
 }
 
@@ -84,8 +94,8 @@ $width = 90;
 $height = 30;
 $characters = 6;
 
-$font = TC_ROOTDIR.'inc/monofont.ttf';
-$font_fallback = imageloadfont(TC_ROOTDIR.'inc/captchafont.gdf');
+$font = TC_ROOTDIR.'inc/fonts/monofont.ttf';
+$font_fallback = imageloadfont(TC_ROOTDIR.'inc/fonts/captchafont.gdf');
 
 $captcha = new CaptchaSecurityImages($width,$height,$characters,$font);
 

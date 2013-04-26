@@ -10,47 +10,47 @@ a:hover {
 	color: #0066FF;
 }
 .adminbar {
-        clear:both;
-        float:right;
-        font-size: .8em;
+	clear:both;
+	float:right;
+	font-size: .8em;
 }
 .adminbar a {
 	font-weight: bold;
 }
 .logo {
-        clear:both;
-        text-align:left;
-        font-size:2em;
-        font-weight: bold;
-        color:#FF6600;
-        /*width:100%;*/
+	clear:both;
+	text-align:left;
+	font-size:2em;
+	font-weight: bold;
+	color:#FF6600;
+	/*width:100%;*/
 }
 .theader, .passvalid {
-        background:#DDDDDD;
-        text-align:center;
-        padding:2px;
-        color:#2266AA;
-        clear: both;
-        font-weight: bold;
-        margin-bottom: .5em;
-        border: solid 1px #CCCCCC;
-        -moz-border-radius: 5px;
+	background:#DDDDDD;
+	text-align:center;
+	padding:2px;
+	color:#2266AA;
+	clear: both;
+	font-weight: bold;
+	margin-bottom: .5em;
+	border: solid 1px #CCCCCC;
+	-moz-border-radius: 5px;
 }
 .postarea {
 }
 .rules {
-        font-size:0.7em;
+	font-size:0.7em;
 }
 .postblock {
-        background:transparent;
-        color:#002244;
-        font-weight:bold;
+	background:transparent;
+	color:#002244;
+	font-weight:bold;
 }
 .footer {
-        text-align:center;
-        font-size:12px;
-        font-family:serif;
-        margin: 2em 0 0 0;
+	text-align:center;
+	font-size:12px;
+	font-family:serif;
+	margin: 2em 0 0 0;
 }
 .dellist {
 	font-weight: bold;
@@ -76,8 +76,8 @@ a:hover {
 	color:#002244;
 }
 .row2 {
-        background:#CCCCCC;
-        color:#002244;
+	background:#CCCCCC;
+	color:#002244;
 }
 .unkfunc {
 	background:inherit;
@@ -106,11 +106,11 @@ a:hover {
 	color:#FF3300;
 }
 .oldpost {
-        color:#CC1105;
-        font-weight:bold;
+	color:#CC1105;
+	font-weight:bold;
 }
 .omittedposts {
-        color:#666666;
+	color:#666666;
 }
 .reply {
 	background:#DDDDDD;
@@ -137,11 +137,11 @@ blockquote p {
 }
 .replytitle {
 	font-size: 1.2em;
-        color:#002244;
-        font-weight:bold;
+	color:#002244;
+	font-weight:bold;
 }
 .commentpostername {
-        color:#004A99;
+	color:#004A99;
 	font-weight:800;
 }
 .thumbnailmsg {
@@ -166,10 +166,16 @@ table td {
 }
 
 .abbrev {
-        color:#666666;
+	color:#666666;
 }
 .highlight {
 	background:#EEDACB;
 	color:#333333;
 	border: 2px dashed #EE6600;
+}
+
+.watchedthreads {
+	background-color: #DDDDDD !important;
+  	border: 1px solid #CCCCCC !important;
+  	-moz-border-radius: 5px;
 }

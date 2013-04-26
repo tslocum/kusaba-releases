@@ -25,8 +25,8 @@
 if (file_exists("install.php")) {
 	die('You are seeing this message because either you haven\'t ran the install file yet, and can do so <a href="install.php">here</a>, or already have, and <b>must delete it</b>.');
 }
-
-require("config.php");
+$preconfig_db_unnecessary = true;
+require('config.php');
 
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">

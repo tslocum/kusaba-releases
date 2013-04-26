@@ -117,3 +117,8 @@ a.quotejs:hover {
 .adminbar {
   text-align: center;
 }
+
+.watchedthreads {
+	background-color: #D9AF9E !important;
+  	border: 1px solid #CA927B !important;
+}

@@ -39,6 +39,9 @@ msgstr ""
 msgid "Moderation"
 msgstr ""
 
+msgid "translator-credits"
+msgstr ""
+
 msgid "Moderates"
 msgstr ""
 
@@ -72,6 +75,9 @@ msgstr ""
 msgid "Reply"
 msgstr ""
 
+msgid "Quick Reply"
+msgstr ""
+
 msgid "Replies"
 msgstr ""
 
@@ -99,7 +105,19 @@ msgstr ""
 msgid "Subject"
 msgstr ""
 
-msgid "E-mail"
+msgid "Email"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "File"
+msgstr ""
+
+msgid "Captcha"
+msgstr ""
+
+msgid "Shown below"
 msgstr ""
 
 msgid "Add"
@@ -124,6 +142,9 @@ msgid "Update"
 msgstr ""
 
 msgid "Go"
+msgstr ""
+
+msgid "Continue"
 msgstr ""
 
 msgid "Edit"
@@ -157,6 +178,9 @@ msgid "Error: Incorrect captcha entered."
 msgstr ""
 
 msgid "Sorry, your message is too long.  Message length: %d, maxmimum allowed length: %d"
+msgstr ""
+
+msgid "Invalid MIME type for this filetype."
 msgstr ""
 
 msgid "Invalid thread ID.  This may have been caused by the thread recently being deleted."
@@ -220,6 +244,12 @@ msgid "Reply successfully posted.  You are now being redirected."
 msgstr ""
 
 msgid "Manage boards"
+msgstr ""
+
+msgid "Modules"
+msgstr ""
+
+msgid "Module settings"
 msgstr ""
 
 msgid "Welcome"
@@ -289,6 +319,9 @@ msgid "Delete"
 msgstr ""
 
 msgid "Report"
+msgstr ""
+
+msgid "Reports"
 msgstr ""
 
 msgid "Can be left blank."
@@ -474,6 +507,15 @@ msgstr ""
 msgid "Board successfully added."
 msgstr ""
 
+msgid "Board successfully deleted."
+msgstr ""
+
+msgid "Unable to delete board."
+msgstr ""
+
+msgid "Are you absolutely sure you want to delete %s?"
+msgstr ""
+
 msgid "Unable to locate that word."
 msgstr ""
 
@@ -505,6 +547,12 @@ msgid "Redirecting"
 msgstr ""
 
 msgid "There are currently no bans."
+msgstr ""
+
+msgid "%s bans not shown."
+msgstr ""
+
+msgid "View all bans"
 msgstr ""
 
 msgid "Ban from"
@@ -550,6 +598,12 @@ msgid "Ban successfully placed."
 msgstr ""
 
 msgid "You can only make board specific bans to boards which you moderate."
+msgstr ""
+
+msgid "Deleting non-deleted replies which belond to deleted threads."
+msgstr ""
+
+msgid "Deleting unused images."
 msgstr ""
 
 msgid "Cleanup finished."
@@ -627,7 +681,7 @@ msgstr ""
 msgid "View deleted thread"
 msgstr ""
 
-msgid "Rebuild all boards and html files"
+msgid "Rebuild all html files"
 msgstr ""
 
 msgid "Cleanup"
@@ -711,6 +765,9 @@ msgstr ""
 msgid "Removed word from wordfilter"
 msgstr ""
 
+msgid "Regular expression"
+msgstr ""
+
 msgid "Deleted thread"
 msgstr ""
 
@@ -766,6 +823,9 @@ msgid "Posting mode: Reply"
 msgstr ""
 
 msgid "Click Reply to view."
+msgstr ""
+
+msgid "Click Reply to view, or %sexpand%s."
 msgstr ""
 
 msgid "YOU ARE BANNED"
@@ -893,6 +953,12 @@ msgstr ""
 msgid "There are currently no filetypes."
 msgstr ""
 
+msgid "Edit filetypes"
+msgstr ""
+
+msgid "Edit sections"
+msgstr ""
+
 msgid "Regenerated %s"
 msgstr ""
 
@@ -900,4 +966,116 @@ msgid "Cache successfully flushed."
 msgstr ""
 
 msgid "Unable to clear cache: you do not have caching enabled."
+msgstr ""
+
+msgid "Check for new version"
+msgstr ""
+
+msgid "Current version:"
+msgstr ""
+
+msgid "Disk space used"
+msgstr ""
+
+# To go back to where you came from
+msgid "Return"
+msgstr ""
+
+msgid "All Threads"
+msgstr ""
+
+msgid "New Thread"
+msgstr ""
+
+msgid "Last Post"
+msgstr ""
+
+msgid "There are currently no threads to display."
+msgstr ""
+
+msgid "Never"
+msgstr ""
+
+msgid "Does not expire"
+msgstr ""
+
+msgid "YOU ARE NOT BANNED!"
+msgstr ""
+
+msgid "Unable to find record of your IP being banned."
+msgstr ""
+
+msgid "The 5 newest replies are shown below."
+msgstr ""
+
+msgid "Read this thread from the beginning"
+msgstr ""
+
+msgid "(for post and file deletion)"
+msgstr ""
+
+msgid "Default style:"
+msgstr ""
+
+msgid "The style which will be set when the user first visits the board."
+msgstr ""
+
+msgid "Trial"
+msgstr ""
+
+msgid "If set to yes, this board will appear in italics in the menu"
+msgstr ""
+
+msgid "Popular"
+msgstr ""
+
+msgid "If set to yes, this board will appear in bold in the menu"
+msgstr ""
+
+msgid "Board type:"
+msgstr ""
+
+msgid "Normal imageboard"
+msgstr ""
+
+msgid "Text board"
+msgstr ""
+
+msgid "Oekaki imageboard"
+msgstr ""
+
+msgid "The type of posts which will be accepted on this board.  A normal imageboard will feature image and extended format posts, a text board will have no images, and an Oekaki board will allow users to draw images and use them in their posts."
+msgstr ""
+
+msgid "Upload type:"
+msgstr ""
+
+msgid "No embedding"
+msgstr ""
+
+msgid "Images and embedding"
+msgstr ""
+
+msgid "Embedding only"
+msgstr ""
+
+msgid "Whether or not to allow embedding of videos."
+msgstr ""
+
+msgid "Enable reporting:"
+msgstr ""
+
+msgid "Reporting allows users to report posts, adding the post to the report list."
+msgstr ""
+
+msgid "Enable captcha:"
+msgstr ""
+
+msgid "Enable/disable captcha system for this board.  If captcha is enabled, in order for a user to post, they must first correctly enter the text on an image."
+msgstr ""
+
+msgid "Ban proxy list"
+msgstr ""
+
+msgid "Proxy list"
 msgstr ""
