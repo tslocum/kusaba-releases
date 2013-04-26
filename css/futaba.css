@@ -136,13 +136,3 @@ a:hover {
 	color:#800000;
 	border: 2px dashed #EEAA88;
 }
-
-.admin {
-	color: purple;
-	font-weight:normal;
-}
-
-.mod {
-	color: red;
-	font-weight:normal;
-}

@@ -34,15 +34,12 @@ function highlight(post)
 		reply.className="highlight";
 		var match=/^([^#]*)/.exec(document.location.toString());
 		document.location=match[1]+"#"+post;
-		return false;
 	}
-
-	return true;
 }
 
 function togglePassword() {
 	if (document.getElementById("passwordbox").innerHTML=="") {
-        document.getElementById("passwordbox").innerHTML = '<td class="postblock">Passwd</td><td><input type="password" name="password" size="28" maxlength="75" /></td>';
+        document.getElementById("passwordbox").innerHTML = '<td class="postblock">Passwd</td><td><input type="password" name="password" size="28" maxlength="75" />&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
     } else {
         document.getElementById("passwordbox").innerHTML = '';
     }
@@ -65,6 +62,78 @@ function getCookie(name) {
     return unescape(dc.substring(begin + prefix.length, end));
 }
 
+function set_cookie(cookieName,cookieValue,nDays) {
+ var today = new Date();
+ var expire = new Date();
+ if (nDays==null || nDays==0) nDays=1;
+ expire.setTime(today.getTime() + 3600000*24*nDays);
+ document.cookie = cookieName+"="+escape(cookieValue)
+                 + ";expires="+expire.toGMTString();
+}
+
+function set_stylesheet(styletitle,norefresh)
+{
+	set_cookie("tcstyle",styletitle,365);
+
+	var links=document.getElementsByTagName("link");
+	var found=false;
+	for(var i=0;i<links.length;i++)
+	{
+		var rel=links[i].getAttribute("rel");
+		var title=links[i].getAttribute("title");
+		if(rel.indexOf("style")!=-1&&title)
+		{
+			links[i].disabled=true; // IE needs this to work. IE needs to die.
+			if(styletitle==title) { links[i].disabled=false; found=true; }
+		}
+	}
+	if(!found) set_preferred_stylesheet();
+}
+
+function set_preferred_stylesheet()
+{
+	var links=document.getElementsByTagName("link");
+	for(var i=0;i<links.length;i++)
+	{
+		var rel=links[i].getAttribute("rel");
+		var title=links[i].getAttribute("title");
+		if(rel.indexOf("style")!=-1&&title) links[i].disabled=(rel.indexOf("alt")!=-1);
+	}
+}
+
+function get_active_stylesheet()
+{
+	var links=document.getElementsByTagName("link");
+	for(var i=0;i<links.length;i++)
+	{
+		var rel=links[i].getAttribute("rel");
+		var title=links[i].getAttribute("title");
+		if(rel.indexOf("style")!=-1&&title&&!links[i].disabled) return title;
+	}
+	return null;
+}
+
+function get_preferred_stylesheet()
+{
+	var links=document.getElementsByTagName("link");
+	for(var i=0;i<links.length;i++)
+	{
+		var rel=links[i].getAttribute("rel");
+		var title=links[i].getAttribute("title");
+		if(rel.indexOf("style")!=-1&&rel.indexOf("alt")==-1&&title) return title;
+	}
+	return null;
+}
+
+window.onunload=function(e)
+{
+	if(style_cookie)
+	{
+		var title=get_active_stylesheet();
+		set_cookie(style_cookie,title,365);
+	}
+}
+
 window.onload=function(e)
 {
 	var match;
@@ -75,4 +144,11 @@ window.onload=function(e)
 
 	if(match=/#([0-9]+)/.exec(document.location.toString()))
 	highlight(match[1]);
+}
+
+if(style_cookie)
+{
+	var cookie=getCookie(style_cookie);
+	var title=cookie?cookie:get_preferred_stylesheet();
+	set_stylesheet(title);
 }

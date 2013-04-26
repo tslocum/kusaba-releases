@@ -1,30 +1,47 @@
 <?php
 if (!function_exists("chan_postbox")) {
-	function chan_postbox($board) {
+	function chan_postbox($board, $replythread = '0') {
 		is_file("config.php") ? require("config.php") : require("../config.php");
+		$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
+		$rows = mysql_num_rows($result);
+		if ($rows>0) {
+			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+				$board_forcedanon = $line['forcedanon'];
+			}
+		} else {
+			die("INVALID BOARD FED TO POSTBOX");
+		}
 		$output = '';
 		$output .= '
 		<div class="postarea">
-		<form id="postform" action="'.$chan_webpath.'/'.$board.'/board.php" method="post" enctype="multipart/form-data">
+		<form id="postform" action="'.$chan_webfolder.'/board.php" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="board" value="'.$board.'" />';
+		if ($replythread!='0') {
+			$output .= '
+			<input type="hidden" name="replythread" value="'.$replythread.'" />';
+		}
+		$output .= '
 		<p>
-		<table><tbody>
-		<tr>
-		<td class="postblock">Name</td><td><input type="text" name="name" size="28" maxlength="75" /></td>
-		</tr>
-		<tr>
-		<td class="postblock">E-mail</td><td><input type="text" name="email" size="28" maxlength="75" /></td>
+		<table><tbody>';
+		if ($board_forcedanon!='1') {
+			$output .= '<tr>
+			<td class="postblock">Name</td><td><input type="text" name="name" size="28" maxlength="75" /></td>
+			</tr>
+			<tr>';
+		}
+		$output .= '<td class="postblock">E-mail</td><td><input type="text" name="email" size="28" maxlength="75" /></td>
 		</tr>
 		<tr>
 		<td class="postblock">Subject</td><td><input type="text" name="subject" size="35" maxlength="75" /><input type="submit" value="Submit" /></td>
 		</tr>
 		<tr>
-		<td class="postblock">Messag<a href="#" onclick="togglePassword();" style="color: inherit; text-decoration: none;">e</a></td><td><textarea name="message" cols="48" rows="4"></textarea></td>
+		<td class="postblock">Message</td><td><textarea name="message" cols="48" rows="4"></textarea></td>
 		</tr>
-		<tr><td class="postblock">File</td><td><input type="file" name="imagefile" size="35" /></td>
+		<tr><td class="postblock">File<a href="#" onclick="togglePassword();" style="text-decoration: none;">&nbsp;</a></td><td><input type="file" name="imagefile" size="35" /></td>
 		</tr>
 		<tr id="passwordbox"></tr>
 		<tr>
-		<td colspan="2"> <div class="rules"><ul> <li>Supported file types are: GIF, JPG, PNG</li> <li>Maximum file size allowed is 1000 KB.</li> <li>Images greater than 200x200 pixels will be thumbnailed.</li> </ul> </div></td>
+		<td colspan="2"><div class="rules">'.format_postboxnotice(config_getvalue('postboxnotice'),$board).'</div></td>
 		</tr>
 		</tbody></table>
 		</p>

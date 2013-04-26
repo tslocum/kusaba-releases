@@ -35,24 +35,25 @@ function toggle(button,area) {
 	createCookie('nav_show_'+area, tog.style.display?'0':'1', 365);
 }
 </script>
+<base target="main" />
 </head>
 <body>
 <h1><?php echo $chan_name; ?></h1>
 <ul>
-<li><a href="<?php echo $chan_webpath; ?>" target="_top">Front Page</a></li>
+<li><a href="<?php echo $chan_webpath.$chan_webfolder; ?>" target="_top">Front Page</a></li>
  
 </ul>
 
 <h2><span class="plus" onclick="toggle(this,'img');" title="Click to show/hide">&minus;</span>Image Boards</h2>
 <div id="img" style="">
 <ul><?php
-$result = mysql_query("SELECT * FROM `boards`",$dblink);
+$result = mysql_query("SELECT * FROM `boards` ORDER BY `order` ASC",$dblink);
 $rows = mysql_num_rows($result);
 if ($rows>0) {
 	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-		echo '<li><a href="'.$chan_webpath.'/'.$line['name'].'/board.html" target="main">'.$line['desc'];
+		echo '<li><a href="'.$chan_webpath.$chan_webfolder.'/'.$line['name'].'/board.html">'.$line['desc'];
 		if ($line['locked']=="1") {
-			echo ' <img src="/locked.gif" border="0" alt="Locked" />';
+			echo ' <img src="'.$chan_webfolder.'/locked.gif" border="0" alt="Locked" />';
 		}
 		echo '</a></li>';
 	}

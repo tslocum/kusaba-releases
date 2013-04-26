@@ -1,5 +1,5 @@
 DirectoryIndex trevorchan.php
-AddCharset utf-8 html # If you change this, remember to change the RewriteRule entry further down, too!
+AddCharset utf-8 html
 
 <IfModule mod_headers.c>
 <Files *.html>
@@ -8,10 +8,4 @@ Header add Pragma "no-cache"
 Header add Cache-Control "max-age=0; must-revalidate; no-cache"
 Header unset Vary
 </Files>
-</IfModule>
-
-<IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteCond %{HTTP_ACCEPT} application/xhtml\+xml
-RewriteRule ^(.*)/board.php$ board.php?board=$1
 </IfModule>

@@ -1,5 +1,5 @@
 <?php
-function make_clickable($buffer) {
+/*function make_clickable($buffer) {
 	$buffer = eregi_replace("(^|[ \n\r\t])((http(s?)://)(www\.)?([a-z0-9_-]+(\.[a-z0-9_-]+)+)(/[^/ \n\r]*)*)","\\1<a href=\"\\2\" target=\"_blank\">\\2</a>", $buffer);
 	$buffer = eregi_replace("(^|[ \n\r\t])((ftp://)(www\.)?([a-z0-9_-]+(\.[a-z0-9_-]+)+)(/[^/ \n\r]*)*)","\\1<a href=\"\\2\" target=\"_blank\">\\2</a>", $buffer);
 	$buffer = eregi_replace("([a-z_-][a-z0-9\._-]*@[a-z0-9_-]+(\.[a-z0-9_-]+)+)","<a href=\"mailto:\\1\">\\1</a>", $buffer);
@@ -7,23 +7,29 @@ function make_clickable($buffer) {
 	$buffer = eregi_replace("(^|[ \n\r\t])(ftp\.([a-z0-9_-]+(\.[a-z0-9_-]+)+)(/[^/ \n\r]*)*)","\\1<a href=\"ftp://\\2\" target=\"_blank\">\\2</a>", $buffer);
 
 	return $buffer;
-}
+}*/
+function make_clickable($txt) {
+  # (1) catch those with url larger than 71 characters
+  $pat = '/(http|ftp)+(?:s)?:(\\/\\/)'.'((\\w|\\.)+)(\\/)?(\\S){71,}/i';
+  $txt = preg_replace($pat, "<a href=\"\\0\" target=\"_blank\">$1$2$3/...</a>",$txt);
+
+  # (2) replace the other short urls provided that they are not contained inside an html tag already.
+  $pat = '/(?<!href=\")(http|ftp)+(s)?:'.'(\\/\\/)((\\w|\\.)+) (\\/)?(\\S)/i';
+  $txt = preg_replace($pat,"<a href=\"$0\" target=\"_blank\">$0</a> ",
+  $txt);
+
+  return $txt;
+} 
 function bbcode($string){
 	$patterns = array(
 										'`\[b\](.+?)\[/b\]`is',
 										'`\[i\](.+?)\[/i\]`is',
-										'`\[u\](.+?)\[/u\]`is',
-										'`\[strike\](.+?)\[/strike\]`is',
-										'`\[quote\](.+?)\[/quote\]`is',
-										'`\[indent](.+?)\[/indent\]`is',
+										'`\[u\](.+?)\[/u\]`is'
 									    );
 	$replaces =  array(
 										'<strong>\\1</strong>',
 										'<em>\\1</em>',
-										'<span style="border-bottom: 1px dotted">\\1</span>',
-										'<strike>\\1</strike>',
-										'<strong>Quote:</strong><div style="margin:0px 10px;padding:5px;background-color:#F7F7F7;border:1px dotted #CCCCCC;width:80%;"><em>\1</em></div>',
-										'<pre>\\1</pre>',
+										'<span style="border-bottom: 1px dotted">\\1</span>'
 										);
 	$string = preg_replace($patterns, $replaces , $string);
 	
@@ -38,10 +44,13 @@ function colored_quote($buffer) {
 	
 	return $buffer;
 }
-function clickable_quote($buffer,$board,$threadid) {
+function clickable_quote($buffer,$board,$threadid,$ispage = false) {
 	//require_once("dbconnection.php");
-	$buffer = preg_replace('/[>][>]([0-9]+)/', '<a href="/'.$board.'/res/'.$threadid.'.html#i\\1">&gt;&gt;\\1</a>', $buffer);
-	
+	if ($ispage==false) {
+		$buffer = preg_replace('/[>][>]([0-9]+)/', '<a href="/'.$board.'/res/'.$threadid.'.html#i\\1">&gt;&gt;\\1</a>', $buffer);
+	} else {
+		$buffer = preg_replace('/[>][>]([0-9]+)/', '<a href="/'.$board.'/res/'.$threadid.'.html#\\1">&gt;&gt;\\1</a>', $buffer);
+	}
 	/*$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
@@ -71,14 +80,22 @@ function parse_wordfilter($buffer,$board) {
 	}
 	return $buffer;
 }
-function parse_post($message,$board,$threadid) {
-	$message = strip_tags($message);
+function replace_brackets($buffer) {
+	$buffer = strip_tags($buffer);
+	//$buffer = str_ireplace('<','&lt;',$buffer);
+	//$buffer = str_ireplace('>','&gt;',$buffer);
+	return $buffer;
+}
+function parse_post($message,$board,$threadid,$ispage = false) {
+	$message = replace_brackets($message);
+	$message = trim($message);
+	$message = wordwrap($message, 75, "\n", true);
 	if ($threadid!='0') {
-		$message = clickable_quote($message,$board,$threadid);
+		$message = clickable_quote($message,$board,$threadid,$ispage);
 		$message = colored_quote($message);
 	}
-	$message = str_replace(chr(13),"<br />",$message);
-	$message = make_clickable($message);
+	$message = nl2br($message);
+	//$message = make_clickable($message); --DISABLED UNTIL FIXED
 	$message = bbcode($message);
 	$message = parse_wordfilter($message,$board);
 	$message = addslashes($message);

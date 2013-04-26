@@ -31,15 +31,15 @@ li a { display: block; width: 100%; }
 <div style="text-align:center;"><h1><?php echo $chan_fancyname; ?></h1></div>
 <div class="menu">
 
-News | <a href="#">Blog</a> | <a href="/faq.php">FAQ</a> | <a href="#">Rules</a></div>
+News | <a href="#">Blog</a> | <a href="#">FAQ</a> | <a href="#">Rules</a></div>
 <?php
 $result = mysql_query("SELECT * FROM `news` ORDER BY `postedat` DESC",$dblink);
 while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 ?>
 <div class="content">
-<h2><?php echo $line['subject']; ?> by <a href="mailto:<?php echo $line['postedemail']; ?>"><?php echo $line['postedby']; ?></a> - <?php echo date("n/j/y @ g:iA T",$line['postedat']); ?></h2>
+<h2><?php echo stripslashes($line['subject']); ?> by <?php if ($line['postedemail']!="") { echo '<a href="mailto:'.stripslashes($line['postedemail']).'">'; } echo stripslashes($line['postedby']); if ($line['postedemail']!="") { echo '</a>'; } ?> - <?php echo date("n/j/y @ g:iA T",$line['postedat']); ?></h2>
 
-<?php echo $line['message']; ?></div>
+<?php echo stripslashes($line['message']); ?></div>
 <?php } ?>
 
 </body>
