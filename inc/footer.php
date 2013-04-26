@@ -3,6 +3,8 @@ if (!function_exists("chan_footer")) {
 	function chan_footer($noboardlist = false) {
 		if ($noboardlist==false) {
 			$output = '<br />'.display_boardlist();
+		} else {
+			$output = '';
 		}
 		is_file("config.php") ? require("config.php") : require("../config.php");
 		$output .= '

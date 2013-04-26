@@ -30,9 +30,11 @@ CREATE TABLE `boards` (
   `name` varchar(75) NOT NULL,
   `desc` varchar(75) NOT NULL,
   `image` varchar(255) NOT NULL,
+  `section` tinyint(2) NOT NULL default '0',
   `maximagesize` int(20) NOT NULL default '1024000',
   `maxpages` int(20) NOT NULL default '10',
   `maxage` int(20) NOT NULL default '96',
+  `maxreplies` int(5) NOT NULL default '200',
   `filetypes` varchar(255) NOT NULL default 'GIF|JPG|PNG',
   `messagelength` int(10) NOT NULL default '8192',
   `createdon` int(20) NOT NULL,
@@ -65,6 +67,19 @@ DROP TABLE IF EXISTS `iplist`;
 CREATE TABLE `iplist` (
   `ip` varchar(200) NOT NULL,
   `lastpost` int(20) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `loginattempts`
+-- 
+
+DROP TABLE IF EXISTS `loginattempts`;
+CREATE TABLE `loginattempts` (
+  `username` varchar(255) NOT NULL,
+  `ip` varchar(20) NOT NULL,
+  `timestamp` int(20) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -115,6 +130,7 @@ CREATE TABLE `posts` (
   `message` text NOT NULL,
   `image` varchar(20) NOT NULL,
   `imagetype` varchar(5) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `postedat` int(20) NOT NULL,
   `lastbumped` int(20) NOT NULL default '0',
   `ip` varchar(75) NOT NULL,

@@ -46,7 +46,7 @@ if (file_exists("config.php")) {
 		if ($chan_randomseed!="ENTER RANDOM LETTERS/NUMBERS HERE"&&$chan_randomseed!="") {
 			echo 'Configuration appears correct.';
 			echo '<h2>Checking database...</h2>';
-			$reqiredtables = array("banlist","boards","config","iplist","modlog","news","posts","staff","wordfilter");
+			$reqiredtables = array("banlist","boards","config","iplist","loginattempts","modlog","news","posts","staff","wordfilter");
 			foreach ($reqiredtables as $tablename) {
 				if (!mysql_table_exists($dblink,$dbconnection_database,$tablename)) {
 					die("Couldn't find the table <b>".$tablename."</b> in the database.  Please (re)execute the included SQL file.");
@@ -64,9 +64,19 @@ if (file_exists("config.php")) {
 					if ($result) {
 						$result = mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'modlogmaxdays' , '7' )",$dblink);
 						if ($result) {
-							echo 'Default configs inserted.';
-							echo '<h2>Done!</h2>Installation has finished!  The default administrator account is <b>admin</b> with the password of <b>admin</b>.<br /><br />Delete this file from the server, then <a href="manage.php">add some boards</a>!';
-							echo '<br /><br /><br /><h1><font color="red">DELETE THIS FILE RIGHT NOW!</font></h1>';
+							$result = mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'maxthumbwidth' , '200' )",$dblink);
+							if ($result) {
+								$result = mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'maxthumbheight' , '200' )",$dblink);
+								if ($result) {
+									echo 'Default configs inserted.';
+									echo '<h2>Done!</h2>Installation has finished!  The default administrator account is <b>admin</b> with the password of <b>admin</b>.<br /><br />Delete this file from the server, then <a href="manage.php">add some boards</a>!';
+									echo '<br /><br /><br /><h1><font color="red">DELETE THIS FILE RIGHT NOW!</font></h1>';
+								} else {
+									echo 'Error: '.mysql_error($dblink);
+								}
+							} else {
+								echo 'Error: '.mysql_error($dblink);
+							}
 						} else {
 							echo 'Error: '.mysql_error($dblink);
 						}

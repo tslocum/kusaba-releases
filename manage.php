@@ -6,6 +6,7 @@ session_start();
 require("config.php");
 require_once("inc/functions.php");
 
+
 if ($_GET['action']=="logout") { //Do this first to get no header errors
 	if (management_isadmin()) {
 		$resultboard = mysql_query("SELECT * FROM `boards`",$dblink);
@@ -26,14 +27,23 @@ if ($_GET['action']=="logout") { //Do this first to get no header errors
 }
 
 if ($_POST['username']!=""&&$_POST['password']!="") {
-	$result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".mysql_escape_string($_POST['username'])."' AND `password` = '".md5($_POST['password'])."'",$dblink);
+	mysql_query("DELETE FROM `loginattempts` WHERE `timestamp` < '".(time()-1200)."'",$dblink);
+	$result = mysql_query("SELECT * FROM `loginattempts` WHERE `ip` = '".$_SERVER['REMOTE_ADDR']."'",$dblink);
 	$rows = mysql_num_rows($result);
-	if ($rows>0) {
-		$_SESSION['manageusername'] = $_POST['username'];
-		$_SESSION['managepassword'] = md5($_POST['password']);
-		management_addlogentry("Logged in");
+	if ($rows>5) {
+		die("Sorry, because of your numerous failed logins, you have been locked out from logging in for 20 minutes.  Please wait and then try again.");
 	} else {
-		die("Incorrect username/password.");
+		$result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".mysql_escape_string($_POST['username'])."' AND `password` = '".md5($_POST['password'])."'",$dblink);
+		$rows = mysql_num_rows($result);
+		if ($rows>0) {
+			mysql_query("DELETE FROM `loginattempts` WHERE `ip` < '".$_SERVER['REMOTE_ADDR']."'",$dblink);
+			$_SESSION['manageusername'] = $_POST['username'];
+			$_SESSION['managepassword'] = md5($_POST['password']);
+			management_addlogentry("Logged in");
+		} else {
+			mysql_query("INSERT INTO `loginattempts` ( `username` , `ip` , `timestamp` ) VALUES ( '".mysql_escape_string($_POST['username'])."' , '".$_SERVER['REMOTE_ADDR']."' , '".time()."' )",$dblink);
+			die("Incorrect username/password.");
+		}
 	}
 }
 if (isset($_SESSION['manageusername'])&&isset($_SESSION['managepassword'])) {
@@ -59,10 +69,13 @@ if (isset($_SESSION['manageusername'])&&isset($_SESSION['managepassword'])) {
 					setcookie("tcmod","yes",time()+3600,$chan_webfolder."/".$this_board_name."/");
 				}
 			}
+		} else {
+			session_destroy();
+			die("Invalid session.<br /><br /><a href=\"manage.php\">Log In Again</a>");
 		}
 	}
 } else {
-	echo '<script type="text/javascript">function sf(){document.managelogin.username.focus();}</script><body onload="sf();"></body><div style="text-align: center;"><img src="pikachu.gif" alt="Pikachu" title="PIKA PIKA! CHUUUUU~~~" /><br /><form action="manage.php" method="post" name="managelogin"><input type="text" name="username"><br /><input type="password" name="password"><br /><input type="submit" value="Submit"></form></div>';
+	echo '<script type="text/javascript">function sf(){document.managelogin.username.focus();}</script><body onload="sf();"></body><div style="text-align: center;"><img src="hardgay.gif" alt="Pikachu" title="PIKA PIKA! CHUUUUU~~~" /><br /><form action="manage.php" method="post" name="managelogin"><input type="text" name="username"><br /><input type="password" name="password"><br /><input type="submit" value="Submit"></form></div>';
 	die();
 }
 $result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".mysql_escape_string($_SESSION['manageusername'])."'",$dblink);
@@ -82,12 +95,41 @@ if ($rows>0) {
 		}
 	}
 }
+removed_expired_bans();
 
-echo '<title>Manage boards</title><style type="text/css">
-body { margin: 0; padding: 8px; margin-bottom: auto; } blockquote blockquote { margin-left: 0em } form { margin-bottom: 0px } form .trap { display:none } .postarea { text-align: center } .postarea table { margin: 0px auto; text-align: left } .thumb { border: none; float: left; margin: 2px 20px } .nothumb { float: left; background: #eee; border: 2px dashed #aaa; text-align: center; margin: 2px 20px; padding: 1em 0.5em 1em 0.5em; } .reply blockquote, blockquote :last-child { margin-bottom: 0em } .reflink a { color: inherit; text-decoration: none } .reply .filesize { margin-left: 20px } .userdelete { float: right; text-align: center; white-space: nowrap } .replypage .replylink { display: none }
-</style>
-<link rel="stylesheet" type="text/css" href="'.$chan_webfolder.'/css/burichan.css" title="Burichan" />';
-echo '<div class="logo">Manage Boards</div>';
+echo '<title>Manage boards</title>
+<!--<link rel="stylesheet" type="text/css" href="'.$chan_webfolder.'/css/burichan.css" title="Burichan" />-->
+<link rel="stylesheet" type="text/css" href="'.$chan_webfolder.'/css/manage.css" title="Manage" />';
+?>
+<script type="text/javascript">
+window.onload = function()
+{
+	if(document.getElementById)
+	{
+		var linkContainer = document.getElementById('linkContainer');
+		var toggle = linkContainer.appendChild(document.createElement('a'));
+		toggle.href = '#';
+		toggle.appendChild(document.createTextNode('Remove optional fields?'));
+		toggle.onclick = function()
+		{
+			var linkText = this.firstChild.nodeValue;
+			this.firstChild.nodeValue = (linkText == 'Remove optional fields?') ? 'Display optional fields?' : 'Remove optional fields?';
+			
+			var tmp = document.getElementsByTagName('div');
+			for (var i=0;i<tmp.length;i++)
+			{
+				if(tmp[i].className == 'fm-optional')
+				{
+					tmp[i].style.display = (tmp[i].style.display == 'none') ? 'block' : 'none';
+				}
+			}
+			return false;
+		}
+	}
+}
+</script>
+<?php
+echo '<div style="text-align: center;"><h1>Manage Boards</h1></div>';
 echo 'Welcome, '.$_SESSION['manageusername'].' [<a href="?action=logout">logout</a>]<br />';
 if ($_SESSION['manageusername']=="admin"&&$_SESSION['managepassword']==md5("admin")) {
 	echo '<font color="red"><b>NOTICE: You are using the default administrator account.  Anyone can log in to this account so a second administrator account needs to be created.  Create another, log in to it, and delete this one.</b></font><br />';
@@ -116,6 +158,7 @@ if (!management_isadmin()) {
 	}
 }
 echo '<hr />';
+echo '<div style="text-align: left;">';
 
 if (management_isadmin()) {
 	echo 'Administration: <a href="?action=addnews">Add news</a> - <a href="?globopts">Global options</a> - <a href="?action=addboard">Add board</a> - <a href="?action=delboard">Delete board</a> - <a href="?action=wordfilter">Wordfilter</a> - <a href="?action=rebuildall">Rebuild all boards and html files</a> - <a href="?action=cleanup">Cleanup</a> - <a href="?action=staff">Staff</a> - <a href="?action=modlog">ModLog</a> - <a href="?action=sql">SQL Query</a><br />';
@@ -123,6 +166,7 @@ if (management_isadmin()) {
 echo 'Boards: <a href="?boardopts">Board options</a> - <a href="?action=stickypost">Manage stickies</a> - <a href="?action=lockpost">Manage locked threads</a> - <a href="?action=delposts">Delete thread/post</a><br />';
 echo 'Moderation: <a href="?action=bans">View/Add/Remove bans</a> - <a href="?action=deletepostsbyip">Delete all posts by IP</a> - <a href="?action=getpwd">Get posting password</a> - <a href="?action=changepwd">Change account password</a>';
 
+echo '</div>';
 echo '<hr />';
 if ($_GET['test']=='1') {
 	regenerate_board('test');
@@ -168,31 +212,40 @@ if ($_GET['action']=="rebuildall") {
 		}
 		echo '<hr />';
 	}
-	echo '<form method="post" action="?action=addnews"><label for="subject">Subject:</label>&nbsp;<input type="text" name="subject" value="" />&nbsp;<i>(Can <b>not</b> be left blank.)</i><br />
+	echo '<form method="post" action="?action=addnews"><label for="subject">Subject:</label><input type="text" name="subject" value="" /><div class="desc">Can <b>not</b> be left blank.</div><br />
 	<textarea name="news" rows="25" cols="80">';
 	echo 'News post goes here.<br />
 <br />
 Make sure to enter <br />\'s, not just line returns!';
-	echo '</textarea><br /><label for="email">E-mail:</label>&nbsp;<input type="text" name="email" value="" />&nbsp;<i>(Can be left blank.)</i><br /><input type="submit" value="Add!" /></form>';
+	echo '</textarea><br /><label for="email">E-mail:</label><input type="text" name="email" value="" /><div class="desc">Can be left blank.</div><br /><input type="submit" value="Add!" /></form>';
 } else if (isset($_GET['globopts'])) {
 	management_adminsonly();
 	if (isset($_POST['imagesinnewwindow'])) {
+		if (!$_POST['maxthumbwidth']>0||!$_POST['maxthumbheight']>0) {
+			die("Maximum thumbnail width/height must be greater than zero.");
+		}
 		if ($_POST['imagesinnewwindow']=='1') {
 			config_setvalue('imagesinnewwindow','1');
 		} else {
 			config_setvalue('imagesinnewwindow','0');
 		}
+		config_setvalue('maxthumbwidth',$_POST['maxthumbwidth']);
+		config_setvalue('maxthumbheight',$_POST['maxthumbheight']);
 		config_setvalue('modlogmaxdays',$_POST['modlogmaxdays']);
 		config_setvalue('postboxnotice',$_POST['postboxnotice']);
 		echo 'Global configuration successfully updated.';
 		management_addlogentry("Updated global configuration");
 		echo '<hr>';
 	}
+	$config_maxthumbwidth = config_getvalue('maxthumbwidth');
+	$config_maxthumbheight = config_getvalue('maxthumbheight');
 	$config_imagesinnewwindow = config_getvalue('imagesinnewwindow');
 	$config_modlogmaxdays = config_getvalue('modlogmaxdays');
 	$config_postboxnotice = config_getvalue('postboxnotice');
 	?>
 	<form action="?globopts" method="post">
+	<label for="maxthumbwidth">Maxmimum thumbnail width:</label><input type="text" name="maxthumbwidth" value="<?php echo $config_maxthumbwidth; ?>" /><br />
+	<label for="maxthumbheight">Maxmimum thumbnail height:</label><input type="text" name="maxthumbheight" value="<?php echo $config_maxthumbheight; ?>" /><br />
 	<label for="imagesinnewwindow">Open images in new window:</label><select name="imagesinnewwindow"><?php echo ($config_imagesinnewwindow=='1') ? '<option value="1">Yes</option><option value="0">No</option>' : '<option value="0">No</option><option value="1">Yes</option>'; ?></select><br />
 	<label for="modlogmaxdays">Days to keep modlog entries:</label><input type="text" name="modlogmaxdays" value="<?php echo $config_modlogmaxdays; ?>" /><br />
 	<label for="postboxnotice">Postbox Notice:</label><textarea name="postboxnotice" rows="8" cols="60"><?php echo $config_postboxnotice; ?></textarea><br />
@@ -208,8 +261,18 @@ Make sure to enter <br />\'s, not just line returns!';
 		$rows = mysql_num_rows($resultboard);
 		if ($rows>0) {
 			if ($_POST['order']>=0&&$_POST['maxpages']>0&&$_POST['maxage']>0&&$_POST['messagelength']>=0) {
+				$filetypes = array();
+				if ($_POST['filetype_gif']=='on') {
+					$filetypes = array_merge($filetypes,array('GIF'));
+				}
+				if ($_POST['filetype_jpg']=='on') {
+					$filetypes = array_merge($filetypes,array('JPG'));
+				}
+				if ($_POST['filetype_png']=='on') {
+					$filetypes = array_merge($filetypes,array('PNG'));
+				}
 				$updateboard_locked = $_POST['locked']=="on" ? "1" : "0";
-				mysql_query("UPDATE `boards` SET `order` = '".$_POST['order']."' , `desc` = '".$_POST['desc']."' , `locked` = '".$updateboard_locked."' , `maximagesize` = '".mysql_escape_string($_POST['maximagesize'])."' , `messagelength` = '".mysql_escape_string($_POST['messagelength'])."' , `maxpages` = '".mysql_escape_string($_POST['maxpages'])."' , `maxage` = '".mysql_escape_string($_POST['maxage'])."' , `image` = '".mysql_escape_string($_POST['image'])."' , `includeheader` = '".mysql_escape_string($_POST['includeheader'])."' , `redirecttothread` = '".mysql_escape_string($_POST['redirecttothread'])."' , `forcedanon` = '".$_POST['forcedanon']."' WHERE `name` = '".mysql_escape_string($_GET['updateboard'])."'",$dblink);
+				mysql_query("UPDATE `boards` SET `order` = '".mysql_escape_string($_POST['order'])."' , `section` = '".mysql_escape_string($_POST['section'])."' , `desc` = '".mysql_escape_string($_POST['desc'])."' , `filetypes` = '".implode('|',$filetypes)."' , `locked` = '".$updateboard_locked."' , `maximagesize` = '".mysql_escape_string($_POST['maximagesize'])."' , `messagelength` = '".mysql_escape_string($_POST['messagelength'])."' , `maxpages` = '".mysql_escape_string($_POST['maxpages'])."' , `maxage` = '".mysql_escape_string($_POST['maxage'])."' , `maxreplies` = '".mysql_escape_string($_POST['maxreplies'])."' , `image` = '".mysql_escape_string($_POST['image'])."' , `includeheader` = '".mysql_escape_string($_POST['includeheader'])."' , `redirecttothread` = '".mysql_escape_string($_POST['redirecttothread'])."' , `forcedanon` = '".mysql_escape_string($_POST['forcedanon'])."' WHERE `name` = '".mysql_escape_string($_GET['updateboard'])."'",$dblink);
 				echo 'Update successful.';
 				management_addlogentry("Updated board configuration - /".$_GET['updateboard']."/");
 			} else {
@@ -227,21 +290,26 @@ Make sure to enter <br />\'s, not just line returns!';
 		if ($rows>0) {
 			while ($lineboard = mysql_fetch_array($resultboard, MYSQL_ASSOC)) {
 				?>
+				<div class="container">
 				<form action="manage.php?boardopts&updateboard=<?php echo $_POST['board']; ?>" method="post">
-				<label for="board">Directory:</label><input type="text" name="board" value="<?php echo $_POST['board']; ?>" disabled />&nbsp;<i>The directory of the board.</i><br />
-				<label for="desc">Description:</label><input type="text" name="desc" value="<?php echo $lineboard['desc']; ?>" />&nbsp;<i>The name of the board.</i><br />
-				<label for="order">Order:</label><input type="text" name="order" value="<?php echo $lineboard['order']; ?>" />&nbsp;<i>Order to show board in menu's list, in ascending order.  Default: <b>0</b></i><br />
-				<label for="locked">Locked: (<img src="locked.gif" alt="Lock" />)</label><input type="checkbox" name="locked" <?php if ($lineboard['locked']=="1") { echo'checked '; } ?>/>&nbsp;<i>Only moderators of the board and admins can make new posts/replies</i><br />
-				<label for="maximagesize">Maximum Image Size:</label><input type="text" name="maximagesize" value="<?php echo $lineboard['maximagesize']; ?>" />&nbsp;<i>Maxmimum size of uploaded images, in <b>bytes</b>.  Default: <b>1024000</b></i><br />
-				<label for="messagelength">Maximum Message Length:</label><input type="text" name="messagelength" value="<?php echo $lineboard['messagelength']; ?>" />&nbsp;<i>Default: <b>10</b></i><br />
-				<label for="maxpages">Maximum Board Pages:</label><input type="text" name="maxpages" value="<?php echo $lineboard['maxpages']; ?>" />&nbsp;<i>Default: <b>10</b></i><br />
-				<label for="maxage">Maximum Thread Age: (Hours)</label><input type="text" name="maxage" value="<?php echo $lineboard['maxage']; ?>" />&nbsp;<i>Default: <b>96</b></i><br />
-				<label for="image">Header Image:</label><input type="text" name="image" value="<?php echo $lineboard['image']; ?>" />&nbsp;<i>Overrides the header set in the config file.  Leave blank to use configured global header image.  Needs to be a full url including http://.  Set to <b>none</b> to show no header image.</i><br />
-				<label for="includeheader">Include Header:</label><textarea name="includeheader" rows="12" cols="80"><?php echo $lineboard['includeheader']; ?></textarea>&nbsp;<i>Raw HTML which will be inserted at the top of each page of the board.  Default: <b>blank</b></i><br />
-				<label for="redirecttothread">Redirect to Thread:</label><select name="redirecttothread"><?php echo ($lineboard['redirecttothread']=='1') ? '<option value="1">Yes</option><option value="0">No</option>' : '<option value="0">No</option><option value="1">Yes</option>'; ?></select>&nbsp;<i>If set to yes, users will be redirected to the thread they replied to/posted after posting.  If set to no, users will be redirected to the first page of the board.  Default: <b>No</b></i><br />
-				<label for="forcedanon">Forced Anonymous:</label><select name="forcedanon"><?php echo ($lineboard['forcedanon']=='1') ? '<option value="1">Yes</option><option value="0">No</option>' : '<option value="0">No</option><option value="1">Yes</option>'; ?></select>&nbsp;<i>If set to yes, users will not be allowed to enter a name, making everyone appear as <b>Anonymous</b>.  Default: <b>No</b></i><br />
-				<input type="submit" value="Go">
+				<label for="board">Directory:</label><input type="text" name="board" value="<?php echo $_POST['board']; ?>" disabled /><div class="desc">The directory of the board.</div><br />
+				<label for="desc">Description:</label><input type="text" name="desc" value="<?php echo $lineboard['desc']; ?>" /><div class="desc">The name of the board.</div><br />
+				<label for="order">Order:</label><input type="text" name="order" value="<?php echo $lineboard['order']; ?>" /><div class="desc">Order to show board in menu's list, in ascending order.  Default: <b>0</b></div><br />
+				<label for="section">Section:</label><input type="text" name="section" value="<?php echo $lineboard['section']; ?>" /><div class="desc">The section the board is in.  This is used for displaying the list of boards on the top and bottom of pages.</div><br />
+				<label for="locked">Locked: (<img src="locked.gif" alt="Lock" />)</label><input type="checkbox" name="locked" <?php if ($lineboard['locked']=="1") { echo'checked '; } ?>/><div class="desc">Only moderators of the board and admins can make new posts/replies</div><br />
+				<label>Allowed Image Types:</label><div class="desc">What filetypes users are allowed to use for images</div><br /><label for="filetype_gif">GIF</label><input type="checkbox" name="filetype_gif" <?php if (in_array('GIF',explode('|',$lineboard['filetypes']))) { echo'checked '; } ?>/><br /><label for="filetype_jpg">JPG</label><input type="checkbox" name="filetype_jpg" <?php if (in_array('JPG',explode('|',$lineboard['filetypes']))) { echo'checked '; } ?>/><br /><label for="filetype_png">PNG</label><input type="checkbox" name="filetype_png" <?php if (in_array('PNG',explode('|',$lineboard['filetypes']))) { echo'checked '; } ?>/><br />
+				<label for="maximagesize">Maximum Image Size:</label><input type="text" name="maximagesize" value="<?php echo $lineboard['maximagesize']; ?>" /><div class="desc">Maxmimum size of uploaded images, in <b>bytes</b>.  Default: <b>1024000</b></div><br />
+				<label for="messagelength">Maximum Message Length:</label><input type="text" name="messagelength" value="<?php echo $lineboard['messagelength']; ?>" /><div class="desc">Default: <b>8192</b></div><br />
+				<label for="maxpages">Maximum Board Pages:</label><input type="text" name="maxpages" value="<?php echo $lineboard['maxpages']; ?>" /><div class="desc">Default: <b>10</b></div><br />
+				<label for="maxage">Maximum Thread Age: (Hours)</label><input type="text" name="maxage" value="<?php echo $lineboard['maxage']; ?>" /><div class="desc">Default: <b>96</b></div><br />
+				<label for="maxreplies">Maximum Thread Replies:</label><input type="text" name="maxreplies" value="<?php echo $lineboard['maxreplies']; ?>" /><div class="desc">The number of replies a thread can have before autosaging to the back of the board.  Default: <b>200</b></div><br />
+				<label for="image">Header Image:</label><input type="text" name="image" value="<?php echo $lineboard['image']; ?>" /><div class="desc">Overrides the header set in the config file.  Leave blank to use configured global header image.  Needs to be a full url including http://.  Set to <b>none</b> to show no header image.</div><br />
+				<label for="includeheader">Include Header:</label><textarea name="includeheader" rows="12" cols="80"><?php echo $lineboard['includeheader']; ?></textarea><div class="desc">Raw HTML which will be inserted at the top of each page of the board.  Default: <b>blank</b></div><br />
+				<label for="redirecttothread">Redirect to Thread:</label><select name="redirecttothread"><?php echo ($lineboard['redirecttothread']=='1') ? '<option value="1">Yes</option><option value="0">No</option>' : '<option value="0">No</option><option value="1">Yes</option>'; ?></select><div class="desc">If set to yes, users will be redirected to the thread they replied to/posted after posting.  If set to no, users will be redirected to the first page of the board.  Default: <b>No</b></div><br />
+				<label for="forcedanon">Forced Anonymous:</label><select name="forcedanon"><?php echo ($lineboard['forcedanon']=='1') ? '<option value="1">Yes</option><option value="0">No</option>' : '<option value="0">No</option><option value="1">Yes</option>'; ?></select><div class="desc">If set to yes, users will not be allowed to enter a name, making everyone appear as <b>Anonymous</b>.  Default: <b>No</b></div><br />
+				<input type="submit" name="submit" value="Update Board" />
 				</form>
+				</div>
 				<?php
 			}
 		} else {
@@ -363,7 +431,7 @@ Make sure to enter <br />\'s, not just line returns!';
 	<label for="board">Board Directory:</label><?php echo make_boardlist_dropdown('board',moderator_boardlist($_SESSION['manageusername'])); ?><br />
 	<label for="postid">Thread ID:</label><input type="text" name="postid"><input type="submit" value="Sticky!">
 	</form>
-	<hr />
+	<br /><hr />
 	<form action="manage.php" method="get"><input type="hidden" name="action" value="unstickypost">
 	<label for="board">Board Directory:</label><?php echo make_boardlist_dropdown('board',moderator_boardlist($_SESSION['manageusername'])); ?><br />
 	<label for="postid">Thread ID:</label><input type="text" name="postid"><input type="submit" value="Un-Sticky!">
@@ -424,7 +492,7 @@ Make sure to enter <br />\'s, not just line returns!';
 	<label for="board">Board Directory:</label><?php echo make_boardlist_dropdown('board',moderator_boardlist($_SESSION['manageusername'])); ?><br />
 	<label for="postid">Thread ID:</label><input type="text" name="postid"><input type="submit" value="Lock!">
 	</form>
-	<hr />
+	<br /><hr />
 	<form action="manage.php" method="get"><input type="hidden" name="action" value="unlockpost">
 	<label for="board">Board Directory:</label><?php echo make_boardlist_dropdown('board',moderator_boardlist($_SESSION['manageusername'])); ?><br />
 	<label for="postid">Thread ID:</label><input type="text" name="postid"><input type="submit" value="Un-lock!">
@@ -558,16 +626,16 @@ Make sure to enter <br />\'s, not just line returns!';
 	?>
 	<label for="ip">IP:</label><input type="text" name="ip" value="<?php echo $ban_ip; ?>" /><?php if ($ban_ip!="") { echo '&nbsp;&nbsp;<a href="?action=deletepostsbyip&ip='.$ban_ip.'" target="_blank">Delete all posts by this IP</a>'; } ?><br />
 	Ban from:&nbsp;
-	<label for="banfromall"><b>ALL BOARDS</b></label><input type="checkbox" name="banfromall" />&nbsp;&nbsp;&nbsp;&nbsp;OR&nbsp;&nbsp;&nbsp;
+	<label for="banfromall"><b>ALL BOARDS</b></label><input type="checkbox" name="banfromall" /><br />OR<br />
 	<?php
 	make_boardlist_checkbox('bannedfrom',moderator_boardlist($_SESSION['manageusername']));
 	?>
 	<br />
-	<label for="seconds">Seconds:</label><input type="text" name="seconds" />&nbsp;Presets:&nbsp;<a href="#" onclick="document.banform.seconds.value='3600';">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='604800';">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='1209600';">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='2592000';">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='31536000';">1yr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='0';">never</a><br />
-	<label for="reason">Reason:</label><input type="text" name="reason" />&nbsp;Presets:&nbsp;<a href="#" onclick="document.banform.reason.value='Child Pornography';">CP</a>&nbsp;<a href="#" onclick="document.banform.reason.value='Proxy';">Proxy</a><br />
+	<label for="seconds">Seconds:</label><input type="text" name="seconds" /><div class="desc">Presets:&nbsp;<a href="#" onclick="document.banform.seconds.value='3600';">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='604800';">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='1209600';">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='2592000';">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='31536000';">1yr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value='0';">never</a></div><br />
+	<label for="reason">Reason:</label><input type="text" name="reason" /><div class="desc">Presets:&nbsp;<a href="#" onclick="document.banform.reason.value='Child Pornography';">CP</a>&nbsp;<a href="#" onclick="document.banform.reason.value='Proxy';">Proxy</a></div><br />
 	<input type="submit" value="Add Ban">
 	</form>
-	<hr />
+	<hr /><br />
 	<?php
 	$result = mysql_query("SELECT * FROM `banlist`",$dblink);
 	$rows = mysql_num_rows($result);
@@ -719,7 +787,7 @@ Make sure to enter <br />\'s, not just line returns!';
 	<label for="delthreadid">Thread ID:</label><input type="text" name="delthreadid" /><br />
 	<input type="submit" value="Delete Thread">
 	</form>
-	<hr />
+	<br /><hr />
 	<form action="manage.php?action=delposts" method="post">
 	<label for="boarddir">Board dir:</label><?php echo make_boardlist_dropdown('boarddir',moderator_boardlist($_SESSION['manageusername'])); ?><br />
 	<label for="delpostid">Post ID:</label><input type="text" name="delpostid" /><br />
@@ -796,7 +864,7 @@ Make sure to enter <br />\'s, not just line returns!';
 						if (in_array($this_board_name,explode("|",$line['boards']))&&explode("|",$line['boards'])!="") {
 							echo 'checked ';
 						}
-						echo '/>';
+						echo '/><br />';
 					}
 					?><br />
 					<input type="submit" value="Edit Word">
@@ -845,16 +913,19 @@ Make sure to enter <br />\'s, not just line returns!';
 		<label for="replacedby">Is replaced by:</label><input type="text" name="replacedby" /><br />
 		<label>Boards:</label><br />
 		<?php
-		$result = mysql_query("SELECT * FROM `boards`",$dblink);
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-			echo '<label for="wordfilter'.$line['name'].'">'.$line['name'].'</label><input type="checkbox" name="wordfilter'.$line['name'].'" />';
+		$array_boards = array();
+		$resultboard = mysql_query("SELECT * FROM `boards`",$dblink);
+		while ($lineboard = mysql_fetch_array($resultboard, MYSQL_ASSOC)) {
+			$array_boards = array_merge($array_boards,array($lineboard['name']));
 		}
+		make_boardlist_checkbox('wordfilter',$array_boards);
 		?><br />
 		<input type="submit" value="Add Word to Filter">
 		</form>
 		<hr />
 		<?php
 	}
+	echo '<br />';
 	$result = mysql_query("SELECT * FROM `wordfilter`",$dblink);
 	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 		echo 'Word: '.$line['word'].' - Replaced by: '.$line['replacedby'].' - Boards: ';
@@ -872,7 +943,7 @@ Make sure to enter <br />\'s, not just line returns!';
 			$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_POST['directory'])."'",$dblink);
 			$rows = mysql_num_rows($result);
 			if ($rows==0) {
-				if (mkdir($chan_rootdir."/".$_POST['directory'], 0777)&&mkdir($chan_rootdir."/".$_POST['directory']."/res", 0777)&&mkdir($chan_rootdir."/".$_POST['directory']."/src", 0777)&&mkdir($chan_rootdir."/".$_POST['directory']."/thumb", 0777)) {
+				if (@mkdir($chan_rootdir."/".$_POST['directory'], 0777)&&@mkdir($chan_rootdir."/".$_POST['directory']."/res", 0777)&&@mkdir($chan_rootdir."/".$_POST['directory']."/src", 0777)&&@mkdir($chan_rootdir."/".$_POST['directory']."/thumb", 0777)) {
 					file_put_contents($chan_rootdir."/".$_POST['directory']."/.htaccess","DirectoryIndex board.html");
 					mysql_query("INSERT INTO `boards` ( `name` , `desc` , `createdon` ) VALUES ( '".mysql_escape_string($_POST['directory'])."' , '".mysql_escape_string($_POST['desc'])."' , '".time()."' )",$dblink);
 					regenerate_board($_POST['directory']);
@@ -890,8 +961,8 @@ Make sure to enter <br />\'s, not just line returns!';
 	}
 	?>
 	<form action="manage.php?action=addboard" method="post">
-	<label for="directory">Directory:</label><input type="text" name="directory" />&nbsp;<i>The directory of the board.  <b>Only put in the letter(s) of the board directory, no slashes!</b></i><br />
-	<label for="desc">Description:</label><input type="text" name="desc" />&nbsp;<i>The name of the board.</i><br />
+	<label for="directory">Directory:</label><input type="text" name="directory" /><div class="desc">The directory of the board.  <b>Only put in the letter(s) of the board directory, no slashes!</b></div><br />
+	<label for="desc">Description:</label><input type="text" name="desc" /><div class="desc">The name of the board.</div><br />
 	<input type="submit" value="Add Board">
 	</form>
 	<?php
@@ -1060,6 +1131,7 @@ Make sure to enter <br />\'s, not just line returns!';
 			?>
 			<input type="submit" value="Modify Staff Member" name="submitting" />
 			</form>
+			<br />
 			<?php
 		} else {
 			echo 'A staff member with that id doesn\'t appear to exist.';
@@ -1073,7 +1145,7 @@ Make sure to enter <br />\'s, not just line returns!';
 	<label for="isadmin">Is Administrator:</label><input type="checkbox" name="isadmin" /><br />
 	<input type="submit" value="Add Staff Member">
 	</form>
-	<hr />
+	<hr /><br />
 	Admins:<br />
 	<?php
 	$result = mysql_query("SELECT * FROM `staff` WHERE `isadmin` = '1' ORDER BY `username` ASC",$dblink);
@@ -1167,6 +1239,7 @@ Make sure to enter <br />\'s, not just line returns!';
 				} else {
 					echo 'Unable to delete thread/post, maybe it doesn\'t exist anymore?';
 				}
+
 			} else {
 				echo 'You are about to delete the thread/post <strong>#'.$_GET['quickdel'].'</strong>, then <b>ban</b> the poster.<br /><br /><form action="?quickdelban='.$_GET['quickdelban'].'&board='.$_GET['board'].'&confirm=1" method="post"><label for="ip">IP:</label><input type="text" name="ip" value="'.$poster_ip.'" disabled /><br /><label for="duration">Duration (Minutes):</label><input type="text" name="duration" value="1440" /><br /><label for="reason">Reason:</label><input type="text" name="reason" value="No reason." /><br /><input type="submit" value="Continue"></form>';
 			}
@@ -1178,6 +1251,8 @@ Make sure to enter <br />\'s, not just line returns!';
 	require_once("inc/encryption.php");
 	echo 'Your posting password:<br /><b>'.md5_encrypt($_SESSION['manageusername'],$chan_randomseed).'</b>';
 }
+
+echo '<br /><br />';
 
 require("inc/footer.php");
 echo chan_footer(true);

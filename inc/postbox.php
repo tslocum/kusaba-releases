@@ -39,6 +39,9 @@ if (!function_exists("chan_postbox")) {
 		</tr>
 		<tr><td class="postblock">File<a href="#" onclick="togglePassword();" style="text-decoration: none;">&nbsp;</a></td><td><input type="file" name="imagefile" size="35" /></td>
 		</tr>
+		<tr>
+		<td class="postblock">Password</td><td><input type="password" name="postpassword" size="8" />&nbsp;(for post and file deletion)</td>
+		</tr>
 		<tr id="passwordbox"></tr>
 		<tr>
 		<td colspan="2"><div class="rules">'.format_postboxnotice(config_getvalue('postboxnotice'),$board).'</div></td>

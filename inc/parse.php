@@ -9,14 +9,7 @@
 	return $buffer;
 }*/
 function make_clickable($txt) {
-  # (1) catch those with url larger than 71 characters
-  $pat = '/(http|ftp)+(?:s)?:(\\/\\/)'.'((\\w|\\.)+)(\\/)?(\\S){71,}/i';
-  $txt = preg_replace($pat, "<a href=\"\\0\" target=\"_blank\">$1$2$3/...</a>",$txt);
-
-  # (2) replace the other short urls provided that they are not contained inside an html tag already.
-  $pat = '/(?<!href=\")(http|ftp)+(s)?:'.'(\\/\\/)((\\w|\\.)+) (\\/)?(\\S)/i';
-  $txt = preg_replace($pat,"<a href=\"$0\" target=\"_blank\">$0</a> ",
-  $txt);
+  $txt = preg_replace('#(http://)([^(\s<)]*)#', '<a href="\\1\\2">\\1\\2</a>', $txt);
 
   return $txt;
 } 
@@ -24,12 +17,16 @@ function bbcode($string){
 	$patterns = array(
 										'`\[b\](.+?)\[/b\]`is',
 										'`\[i\](.+?)\[/i\]`is',
-										'`\[u\](.+?)\[/u\]`is'
+										'`\[u\](.+?)\[/u\]`is',
+										'`\[s\](.+?)\[/s\]`is',
+										'`\[code\](.+?)\[/code\]`is',
 									    );
 	$replaces =  array(
 										'<strong>\\1</strong>',
 										'<em>\\1</em>',
-										'<span style="border-bottom: 1px dotted">\\1</span>'
+										'<span style="border-bottom: 1px dotted">\\1</span>',
+										'<strike>\\1</strike>',
+										'<font face="Times New Roman"><pre>\\1</pre></font>',
 										);
 	$string = preg_replace($patterns, $replaces , $string);
 	
@@ -39,7 +36,7 @@ function colored_quote($buffer) {
 	if (substr($buffer,strlen($buffer)-1)!="\n") {
 		$buffer .= "\n";
 	}
-	$buffer = preg_replace('/^(>[^>](.*))\n/m', '<blockquote class="unkfunc">\\1</blockquote>', $buffer);
+	$buffer = preg_replace('/^(&gt;[^>](.*))\n/m', '<blockquote class="unkfunc">\\1</blockquote>', $buffer);
 	$buffer = str_replace('<blockquote class="unkfunc">>','<blockquote class="unkfunc">&gt;',$buffer);
 	
 	return $buffer;
@@ -47,9 +44,9 @@ function colored_quote($buffer) {
 function clickable_quote($buffer,$board,$threadid,$ispage = false) {
 	//require_once("dbconnection.php");
 	if ($ispage==false) {
-		$buffer = preg_replace('/[>][>]([0-9]+)/', '<a href="/'.$board.'/res/'.$threadid.'.html#i\\1">&gt;&gt;\\1</a>', $buffer);
+		$buffer = preg_replace('/&gt;&gt;([0-9]+)/', '<a href="/'.$board.'/res/'.$threadid.'.html#i\\1">&gt;&gt;\\1</a>', $buffer);
 	} else {
-		$buffer = preg_replace('/[>][>]([0-9]+)/', '<a href="/'.$board.'/res/'.$threadid.'.html#\\1">&gt;&gt;\\1</a>', $buffer);
+		$buffer = preg_replace('/&gt;&gt;([0-9]+)/', '<a href="/'.$board.'/res/'.$threadid.'.html#\\1">&gt;&gt;\\1</a>', $buffer);
 	}
 	/*$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
 	$rows = mysql_num_rows($result);
@@ -81,24 +78,52 @@ function parse_wordfilter($buffer,$board) {
 	return $buffer;
 }
 function replace_brackets($buffer) {
-	$buffer = strip_tags($buffer);
-	//$buffer = str_ireplace('<','&lt;',$buffer);
-	//$buffer = str_ireplace('>','&gt;',$buffer);
+	$buffer = str_ireplace('<','&lt;',$buffer);
+	$buffer = str_ireplace('>','&gt;',$buffer);
 	return $buffer;
+}
+function check_notempty($buffer) {
+	$buffer_temp = str_replace("\n","",$buffer);
+	$buffer_temp = str_replace("<br />","",$buffer_temp);
+	$buffer_temp = str_replace(" ","",$buffer_temp);
+	if ($buffer_temp=="") {
+		return "";
+	} else {
+		return $buffer;
+	}
+}
+function escape_quotes($receive) {
+   if (!is_array($receive))
+       $thearray = array($receive);
+   else
+       $thearray = $receive;
+  
+   foreach (array_keys($thearray) as $string) {
+       $thearray[$string] = addslashes($thearray[$string]);
+       //$thearray[$string] = preg_replace("/[\\/]+/","/",$thearray[$string]);
+   }
+  
+   if (!is_array($receive))
+       return $thearray[0];
+   else
+       return $thearray;
 }
 function parse_post($message,$board,$threadid,$ispage = false) {
 	$message = replace_brackets($message);
 	$message = trim($message);
+	//$message = str_replace(chr(9),"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",$message);
 	$message = wordwrap($message, 75, "\n", true);
 	if ($threadid!='0') {
 		$message = clickable_quote($message,$board,$threadid,$ispage);
 		$message = colored_quote($message);
 	}
+	$message = make_clickable($message);
 	$message = nl2br($message);
-	//$message = make_clickable($message); --DISABLED UNTIL FIXED
 	$message = bbcode($message);
 	$message = parse_wordfilter($message,$board);
-	$message = addslashes($message);
+	$message = check_notempty($message);
+	$message = str_replace("\\","\\\\",$message);
+	$message = escape_quotes($message);
 	
 	return $message;
 }

@@ -39,7 +39,7 @@ function highlight(post)
 
 function togglePassword() {
 	if (document.getElementById("passwordbox").innerHTML=="") {
-        document.getElementById("passwordbox").innerHTML = '<td class="postblock">Passwd</td><td><input type="password" name="password" size="28" maxlength="75" />&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
+        document.getElementById("passwordbox").innerHTML = '<td class="postblock">Mod</td><td><input type="password" name="modpassword" size="28" maxlength="75" />&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
     } else {
         document.getElementById("passwordbox").innerHTML = '';
     }
@@ -62,13 +62,16 @@ function getCookie(name) {
     return unescape(dc.substring(begin + prefix.length, end));
 }
 
-function set_cookie(cookieName,cookieValue,nDays) {
- var today = new Date();
- var expire = new Date();
- if (nDays==null || nDays==0) nDays=1;
- expire.setTime(today.getTime() + 3600000*24*nDays);
- document.cookie = cookieName+"="+escape(cookieValue)
-                 + ";expires="+expire.toGMTString();
+function set_cookie(name,value,days)
+{
+	if(days)
+	{
+		var date=new Date();
+		date.setTime(date.getTime()+(days*24*60*60*1000));
+		var expires="; expires="+date.toGMTString();
+	}
+	else expires="";
+	document.cookie=name+"="+value+expires+"; path=/";
 }
 
 function set_stylesheet(styletitle,norefresh)
@@ -144,10 +147,10 @@ window.onload=function(e)
 
 	if(match=/#([0-9]+)/.exec(document.location.toString()))
 	highlight(match[1]);
+
 }
 
-if(style_cookie)
-{
+if(style_cookie) {
 	var cookie=getCookie(style_cookie);
 	var title=cookie?cookie:get_preferred_stylesheet();
 	set_stylesheet(title);

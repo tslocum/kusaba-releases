@@ -16,6 +16,17 @@ if (!function_exists("file_put_contents")) {
 	   }
 	}
 }
+// <3 coda for this wonderful snippet
+// print $contents to $filename by using a temporary file and renaming it
+function print_page($filename,$contents,$board) {
+	require("config.php");
+	$tempfile = tempnam($chan_webfolder."/".$board."/res", "tmp"); //note: THIS actually creates the file
+	$fp = fopen($tempfile, "w");
+	fwrite($fp, $contents);
+	fclose($fp);
+	rename($tempfile, $filename);
+	chmod($filename, 0664); //it was created 0600
+}
 if(!function_exists('str_ireplace')) {
 	function str_ireplace( $find, $replace, $string ) {
 		// Case-insensitive str_replace()
@@ -31,6 +42,46 @@ if(!function_exists('str_ireplace')) {
 		
 		return( join( $replace, $parts ) );
 	}
+}
+
+//Header
+function print_stylesheets($prefered_stylesheet = 'Burichan') {
+	require("config.php");
+	if ($prefered_stylesheet!='Burichan'&&$prefered_stylesheet!='Futaba'&&$prefered_stylesheet!='Gurochan'&&$prefered_stylesheet!='Photon'&&$prefered_stylesheet!='Fuhrerchan') {
+		$prefered_stylesheet = 'Burichan';
+	}
+	if ($prefered_stylesheet=='Burichan') {
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />';
+	} else if ($prefered_stylesheet=='Futaba') {
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />';
+	} else if ($prefered_stylesheet=='Gurochan') {
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />';
+	} else if ($prefered_stylesheet=='Photon') {
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />';
+	} else if ($prefered_stylesheet=='Fuhrerchan') {
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />';
+	}
+	
 }
 
 //Management
@@ -147,7 +198,7 @@ function make_boardlist_dropdown($name,$boards) {
 function make_boardlist_checkbox($prefix,$boards) {
 	if ($boards!="") {
 		foreach ($boards as $board) {
-			echo '<label for="'.$prefix.$board.'">'.$board.'</label><input type="checkbox" name="'.$prefix.$board.'" />&nbsp;&nbsp;';
+			echo '<label for="'.$prefix.$board.'">'.$board.'</label><input type="checkbox" name="'.$prefix.$board.'" /> ';
 		}
 	}
 }
@@ -230,16 +281,6 @@ function regenerate_board($board,$pagesonly = false) {
 		$board_dir = $lineboard['name'];
 		$board_desc = $lineboard['desc'];
 		$board_locked = $lineboard['locked'];
-		//Delete old pages
-		$dir = $chan_rootdir.'/'.$board_dir;
-		$files = glob ("$dir/{*.html}",  GLOB_BRACE);
-		if (is_array($files)) { 
-			foreach ($files as $htmlfile) {
-				if (preg_match("/[0-9+].html/",$htmlfile)) {
-					unlink($htmlfile);
-				}
-			}
-		}
 		//Rebuild pages
 		$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."' AND `threadid` = '0' ORDER BY `stickied` DESC, `lastbumped` DESC",$dblink);
 		$numpostsleft = mysql_num_rows($result);
@@ -262,8 +303,8 @@ function regenerate_board($board,$pagesonly = false) {
 				}
 				/*
 				This will be implemented in 0.4, feel free to modify it if you wish.  If you do implement it yourself, I'd love to see the code :)
-				echo '<br clear="left" /><hr /><table class="userdelete"><tbody><tr><td>Delete Post<br />Password <input type="password" name="password" size="8" />&nbsp;<input value="Delete" type="submit" /></td></tr></tbody></table></form>';
 				*/
+				echo '<table class="userdelete"><tbody><tr><td>Delete Post [<label><input type="checkbox" name="fileonly" value="on" />File Only</label>]<br />Password <input type="password" name="postpassword" size="8" />&nbsp;<input value="Delete" type="submit" /></td></tr></tbody></table></form>';
 				echo '<table border="1"><tbody><tr><td>';
 				if ($boardpage==0) {
 					echo 'Previous';
@@ -299,9 +340,9 @@ function regenerate_board($board,$pagesonly = false) {
 				echo chan_footer();
 				$page = ob_get_clean();
 				if ($boardpage==0) {
-					file_put_contents($chan_rootdir."/".$board_dir."/board.html",$page);
+					print_page($chan_rootdir."/".$board_dir."/board.html",$page,$board_dir);
 				} else {
-					file_put_contents($chan_rootdir."/".$board_dir."/".$boardpage.".html",$page);
+					print_page($chan_rootdir."/".$board_dir."/".$boardpage.".html",$page,$board_dir);
 				}
 				$page = "";
 				$boardpage++;
@@ -316,7 +357,7 @@ function regenerate_board($board,$pagesonly = false) {
 			require_once("footer.php");
 			echo chan_footer();
 			$page = ob_get_clean();
-			file_put_contents($chan_rootdir."/".$board_dir."/board.html",$page);
+			print_page($chan_rootdir."/".$board_dir."/board.html",$page,$board_dir);
 		}
 		//Rebuild /res/
 		if ($pagesonly==false) {
@@ -330,7 +371,19 @@ function regenerate_board($board,$pagesonly = false) {
 			$files = glob ("$dir/{*.html}",  GLOB_BRACE);
 			if (is_array($files)) { 
 				foreach ($files as $htmlfile) {
-					if (in_array(substr($htmlfile,strrpos($htmlfile,'/')+1),$res_threadlist)==false) {
+					if (!in_array(basename($htmlfile),$res_threadlist)) {
+						unlink($htmlfile);
+					}
+				}
+			}
+		}
+		//Delete old pages
+		$dir = $chan_rootdir.'/'.$board_dir;
+		$files = glob ("$dir/{*.html}",  GLOB_BRACE);
+		if (is_array($files)) { 
+			foreach ($files as $htmlfile) {
+				if (preg_match("/[0-9+].html/",$htmlfile)) {
+					if (substr(basename($htmlfile),0,strpos(basename($htmlfile),'.html'))>$boardstooutput) {
 						unlink($htmlfile);
 					}
 				}
@@ -430,7 +483,7 @@ function buildthread($board,$threadid,$page = false) {
 	ob_start();
 	require("config.php");
 	if (!$threadid>0||$board=="") {
-		die();
+		die("Invalid arguments sent to function buildthread()");
 	}
 	if ($board!="") {
 		$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
@@ -451,16 +504,23 @@ function buildthread($board,$threadid,$page = false) {
 	$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".$threadid."' AND `boardid` = '".$board_id."' AND `threadid` = '0'",$dblink);
 	$rows = mysql_num_rows($result);
 	if (!$rows>0) {
-		die();
+		die("No posts in thread to build from.");
 	}
 	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 		$thread_id = $line['id'];
-		$imageDim = getimagesize($chan_rootdir."/".$board_dir."/src/".$line['image'].'.'.$line['imagetype']);
-		$imgWidth = $imageDim[0];
-		$imgHeight = $imageDim[1];
-		$imageDim_thumb = getimagesize($chan_rootdir."/".$board_dir."/thumb/".$line['image'].'s.'.$line['imagetype']);
-		$imgWidth_thumb = $imageDim_thumb[0];
-		$imgHeight_thumb = $imageDim_thumb[1];
+		if ($line['image']=="removed") {
+			$imgWidth = '0';
+			$imgHeight = '0';
+			$imgWidth_thumb = '189';
+			$imgHeight_thumb = '16';
+		} else {
+			$imageDim = getimagesize($chan_rootdir."/".$board_dir."/src/".$line['image'].'.'.$line['imagetype']);
+			$imgWidth = $imageDim[0];
+			$imgHeight = $imageDim[1];
+			$imageDim_thumb = getimagesize($chan_rootdir."/".$board_dir."/thumb/".$line['image'].'s.'.$line['imagetype']);
+			$imgWidth_thumb = $imageDim_thumb[0];
+			$imgHeight_thumb = $imageDim_thumb[1];
+		}
 		$result2 = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."' AND `threadid` = '".$thread_id."'");
 		$numReplies = mysql_num_rows($result2);
 		$numImageReplies = 0;
@@ -487,22 +547,24 @@ function buildthread($board,$threadid,$page = false) {
 		}
 		/*
 		This will be implemented in 0.4, feel free to modify it if you wish.  If you do implement it yourself, I'd love to see the code :)
-		echo '<form id="delform" action="'.$chan_webfolder.'/manage.php" method="post">';
 		*/
+		echo '<form id="delform" action="'.$chan_webfolder.'/board.php" method="post"><input type="hidden" name="board" value="'.$board_dir.'" />';
 		?>
-		<span class="filesize">File: <a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php echo $chan_webfolder."/".$board_dir."/src/".$line['image']; ?>.<?php echo $line['imagetype']; ?>"><?php echo $line['image'].'.'.$line['imagetype']; ?></a> -(<em><?php
-		echo filesize($chan_rootdir."/".$board_dir."/src/".$line['image'].'.'.$line['imagetype']).' B, '.$imgWidth.'x'.$imgHeight; ?>
+		<span class="filesize">File: <a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($line['image']=="removed") { echo $chan_webfolder."/imageremoved"; } else { echo $chan_webfolder."/".$board_dir."/src/".$line['image']; }?>.<?php if ($line['image']=="removed") { echo 'png'; } else { echo $line['imagetype']; } ?>"><?php if ($line['image']=="removed") { echo 'imageremoved.png'; } else { echo $line['image'].'.'.$line['imagetype']; } ?></a> -(<em><?php
+		if ($line['image']=="removed") { echo '&nbsp'; } else { echo round(filesize($chan_rootdir."/".$board_dir."/src/".$line['image'].'.'.$line['imagetype'])/1024).' KB, '.$imgWidth.'x'.$imgHeight; } ?>
 		</em>)</span><span class="thumbnailmsg"> Thumbnail displayed, click image for full size.</span><br />
-		<a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php echo $chan_webfolder."/".$board_dir."/src/".$line['image']; ?>.<?php echo $line['imagetype']; ?>">
-		<img src="<?php echo $chan_webfolder."/".$board_dir."/thumb/".$line['image']; ?>s.<?php echo $line['imagetype']; ?>" width="<?php echo $imgWidth_thumb; ?>" height="<?php echo $imgHeight_thumb; ?>" alt="<?php echo $thread_id; ?>" class="thumb" /></a><a name="<?php echo $thread_id; ?>">
+		<a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($line['image']=="removed") { echo $chan_webfolder."/imageremoved"; } else { echo $chan_webfolder."/".$board_dir."/src/".$line['image']; } ?>.<?php if ($line['image']=="removed") { echo "png"; } else { echo $line['imagetype']; } ?>">
+		<img src="<?php if ($line['image']=="removed") { echo $chan_webfolder."/imageremoved"; } else { echo $chan_webfolder."/".$board_dir."/thumb/".$line['image']."s"; } ?>.<?php if ($line['image']=="removed") { echo "png"; } else { echo $line['imagetype']; } ?>" width="<?php echo $imgWidth_thumb; ?>" height="<?php echo $imgHeight_thumb; ?>" alt="<?php echo $thread_id; ?>" class="thumb" /></a><a name="<?php echo $thread_id; ?>">
 		</a><label><input type="checkbox" name="delete" value="<?php echo $thread_id; ?>" />&nbsp;
 		<?php if ($line['subject']!="") { echo '<span class="filetitle">'.stripslashes($line['subject']).'</span>&nbsp;'; } ?>
 		<span class="postername"><?php
 		if ($line['email']!="") {
 			echo '<a href="mailto:'.$line['email'].'">';
 		}
-		if ($line['user']=="") {
+		if ($line['user']==""&&$line['tripcode']=="") {
 			echo 'Anonymous';
+		} else if ($line['user']==""&&$line['tripcode']!="") {
+			echo ''; // If they have a tripcode, just display the tripcode
 		} else {
 			echo stripslashes($line[user]);
 		}
@@ -521,7 +583,7 @@ function buildthread($board,$threadid,$page = false) {
 			}
 		}
 		echo '&nbsp;'.date("y/m/d(D)H:i",$line['postedat']); ?></label>&nbsp;
-		<span class="reflink"><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#i<?php echo $thread_id; ?>" onclick="insert('>><?php echo $thread_id; ?>');">No.<?php echo $thread_id; ?></a><?php if ($line['locked']=="1") { echo '&nbsp;<img style="border: 0;" src="'.$chan_webfolder.'/locked.gif" alt="locked" />'; } ?><?php if ($line['stickied']=="1") { echo '<img style="border: 0;" src="'.$chan_webfolder.'/sticky.gif" alt="stickied" />'; } ?></span>
+		<span class="reflink"><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#<?php echo $thread_id; ?>">No.</a><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#i<?php echo $thread_id; ?>" <?php if ($page==false) { echo ' onclick="insert(\'>>'.$thread_id.'\');"'; } ?>><?php echo $thread_id; ?></a><?php if ($line['locked']=="1") { echo '&nbsp;<img style="border: 0;" src="'.$chan_webfolder.'/locked.gif" alt="locked" />'; } ?><?php if ($line['stickied']=="1") { echo '<img style="border: 0;" src="'.$chan_webfolder.'/sticky.gif" alt="stickied" />'; } ?></span>
 		<?php if ($page==true) { echo '&nbsp;&#91;<a href="'.$chan_webfolder.'/'.$board_dir.'/res/'.$thread_id.'.html">Reply</a>&#93;'; } ?>
 		<?php echo moderator_deleteandbanlinks($chan_webfolder,$board_dir,$thread_id,true); ?>
 		<blockquote>
@@ -554,9 +616,11 @@ function buildthread($board,$threadid,$page = false) {
 						if ($numReplies-3!=1) {
 							echo 's';
 						}
-						echo ' and '.$numImageReplies.' image';
-						if ($numImageReplies!=1) {
-							echo 's';
+						if ($numImageReplies>0) {
+							echo ' and '.$numImageReplies.' image';
+							if ($numImageReplies!=1) {
+								echo 's';
+							}
 						}
 						echo ' omitted. Click Reply to view.  </span>';
 					}
@@ -567,9 +631,11 @@ function buildthread($board,$threadid,$page = false) {
 						if ($numReplies-1!=1) {
 							echo 's';
 						}
-						echo ' and '.$numImageReplies.' image';
-						if ($numImageReplies!=1) {
-							echo 's';
+						if ($numImageReplies>0) {
+							echo ' and '.$numImageReplies.' image';
+							if ($numImageReplies!=1) {
+								echo 's';
+							}
 						}
 						echo ' omitted. Click Reply to view.  </span>';
 					}
@@ -588,12 +654,19 @@ function buildthread($board,$threadid,$page = false) {
 				$reply_imagetype = $line2['imagetype'];
 				$reply_posterauthority = $line2['posterauthority'];
 				if ($reply_image!="") {
-					$reply_imageDim = getimagesize($chan_rootdir."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype);
-					$reply_imgWidth = $reply_imageDim[0];
-					$reply_imgHeight = $reply_imageDim[1];
-					$reply_imageDim_thumb = getimagesize($chan_rootdir."/".$board_dir."/thumb/".$reply_image.'s.'.$reply_imagetype);
-					$reply_imgWidth_thumb = $reply_imageDim_thumb[0];
-					$reply_imgHeight_thumb = $reply_imageDim_thumb[1];
+					if ($reply_image=="removed") {
+						$reply_imgWidth = '0';
+						$reply_imgHeight = '0';
+						$reply_imgWidth_thumb = '189';
+						$reply_imgHeight_thumb = '16';
+					} else {
+						$reply_imageDim = getimagesize($chan_rootdir."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype);
+						$reply_imgWidth = $reply_imageDim[0];
+						$reply_imgHeight = $reply_imageDim[1];
+						$reply_imageDim_thumb = getimagesize($chan_rootdir."/".$board_dir."/thumb/".$reply_image.'s.'.$reply_imagetype);
+						$reply_imgWidth_thumb = $reply_imageDim_thumb[0];
+						$reply_imgHeight_thumb = $reply_imageDim_thumb[1];
+					}
 				}
 				?>
 				<table>
@@ -612,8 +685,10 @@ function buildthread($board,$threadid,$page = false) {
 					}
 					echo $reply_email.'">';
 				}
-				if ($reply_user=="") {
+				if ($reply_user==""&&$reply_tripcode=="") {
 					echo 'Anonymous';
+				} else if ($reply_user==""&&$line['tripcode']!="") {
+					echo ''; // If they have a tripcode, just display the tripcode
 				} else {
 					echo $reply_user;
 				}
@@ -631,14 +706,14 @@ function buildthread($board,$threadid,$page = false) {
 						echo '&nbsp;<span class="mod">##&nbsp;Mod&nbsp;##</span>';
 					}
 				}
-				echo '&nbsp;'.date("y/m/d(D)H:i",$reply_postedat); ?></label> <span class="reflink"><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#i<?php echo $reply_id; ?>" onclick="insert('>><?php echo $reply_id; ?>');">No.<?php echo $reply_id; ?></a></span>
+				echo '&nbsp;'.date("y/m/d(D)H:i",$reply_postedat); ?></label> <span class="reflink"><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#<?php echo $reply_id; ?>">No.</a><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#i<?php echo $reply_id; ?>" <?php if ($page==false) { echo ' onclick="insert(\'>>'.$reply_id.'\');"'; } ?>><?php echo $reply_id; ?></a></span>
 				<?php echo moderator_deleteandbanlinks($chan_webfolder,$board_dir,$reply_id,false); ?>
 				&nbsp;<br />
 				<?php
 				if ($reply_image!="") {
 					?>
-					<span class="filesize">File: <a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php echo $chan_webfolder."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype; ?>"><?php echo $reply_image.'.'.$reply_imagetype; ?></a> -(<em><?php if (@filesize($chan_rootdir."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype)) { echo filesize($chan_rootdir."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype); } else { echo 'err'; } echo ' B, '.$reply_imgWidth.'x'.$reply_imgHeight; ?></em>)</span> <span class="thumbnailmsg">Thumbnail displayed, click image for full size.</span><br />
-					<a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php echo $chan_webfolder."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype; ?>"><img src="<?php echo $chan_webfolder."/".$board_dir."/thumb/".$reply_image.'s.'.$reply_imagetype; ?>" width="<?php echo $reply_imgWidth_thumb; ?>" height="<?php echo $reply_imgHeight_thumb; ?>" alt="<?php echo $reply_id; ?>" class="thumb" /></a>
+					<span class="filesize">File: <a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($reply_image=="removed") { echo $chan_webfolder."/imageremoved.png"; } else { echo $chan_webfolder."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype; } ?>"><?php if ($reply_image=="removed") { echo 'imageremoved.png'; } else { echo $reply_image.'.'.$reply_imagetype; } ?></a> -(<em><?php if ($reply_image=="removed") { echo '&nbsp'; } else { echo round(filesize($chan_rootdir."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype)/1024).' KB, '.$reply_imgWidth.'x'.$reply_imgHeight; }  ?></em>)</span> <span class="thumbnailmsg">Thumbnail displayed, click image for full size.</span><br />
+					<a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($reply_image=="removed") { echo $chan_webfolder."/imageremoved.png"; } else {echo $chan_webfolder."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype; } ?>"><img src="<?php if ($reply_image=="removed") { echo $chan_webfolder."/imageremoved.png"; } else { echo $chan_webfolder."/".$board_dir."/thumb/".$reply_image.'s.'.$reply_imagetype; } ?>" width="<?php echo $reply_imgWidth_thumb; ?>" height="<?php echo $reply_imgHeight_thumb; ?>" alt="<?php echo $reply_id; ?>" class="thumb" /></a>
 					<?php
 				}
 				?>
@@ -649,16 +724,16 @@ function buildthread($board,$threadid,$page = false) {
 					foreach ($message_exploded as $message_line) {
 						$i++;
 						if ($i<=15) {
-							echo preg_replace('/<a href="\/'.$board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;', stripslashes($message_line))."<br />";
+							echo preg_replace('/<a href="\/'.$board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;', $message_line)."<br />";
 						}
 					}
 					echo '</p><div class="abbrev">Comment too long. Click <a href="'.$chan_webfolder.'/'.$board_dir.'/res/'.$thread_id.'.html">here</a> to view the full text.</div>';
 				} else {
 					//echo '/[\<a href\="\/b\/res\/'.$thread_id.'\.html#i]([0-9]+)["\>&gt;&gt;]/'.'<br /><br />'.'<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;\\1</a>'.'<br /><br />';
 					if ($page==true) {
-						echo preg_replace('/<a href="\/'.$board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;', stripslashes($reply_message));
+						echo preg_replace('/<a href="\/'.$board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;', $reply_message);
 					} else {
-						echo preg_replace('/<a href="\/'.$board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1" onclick="highlight(\'\\1\');">&gt;&gt;', stripslashes($reply_message));
+						echo preg_replace('/<a href="\/'.$board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1" onclick="highlight(\'\\1\');">&gt;&gt;', $reply_message);
 					}
 					//echo preg_replace('/'.preg_quote('<a href="\/b\/res\/'.$thread_id.'.html#i').'([0-9]+)'.preg_quote('">&gt;&gt;').'/', '<a href="/b/res/'.$thread_id.'.html#\\1">&gt;&gt;',stripslashes($line['message']));
 					echo '</p>';
@@ -676,6 +751,9 @@ function buildthread($board,$threadid,$page = false) {
 		<br clear="left" />
 		<hr />
 		<?php
+		if (!$page) {
+			echo '<table class="userdelete"><tbody><tr><td>Delete Post [<label><input type="checkbox" name="fileonly" value="on" />File Only</label>]<br />Password <input type="password" name="postpassword" size="8" />&nbsp;<input value="Delete" type="submit" /></td></tr></tbody></table></form>';
+		}
 		$output = ob_get_clean();
 		$output = str_replace(chr(9),"",$output);
 		$output = str_replace(chr(10),"",$output);
@@ -702,7 +780,7 @@ function regenerate_thread($board,$threadid) {
 			$thread_page .= buildthread($lineboard['name'],$post_id);
 			require_once("footer.php");
 			$thread_page .= chan_footer();
-			file_put_contents($lineboard['name']."/res/".$post_id.".html",$thread_page);
+			print_page($lineboard['name']."/res/".$post_id.".html",$thread_page,$board);
 		}
 	}
 }
@@ -728,14 +806,14 @@ function delete_post($post,$board) {
 			$rows = mysql_num_rows($result);
 			if ($rows>0) {
 				while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-					if ($line['image']!="") {
+					if ($line['image']!=""&&$line['image']!="removed") {
 						unlink($chan_rootdir.'/'.$board.'/src/'.$line['image'].'.'.$line['imagetype']);
 						unlink($chan_rootdir.'/'.$board.'/thumb/'.$line['image'].'s.'.$line['imagetype']);
 					}
 				}
 				$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '".$post."' AND `boardid` = '".$board_id."'",$dblink);
 				while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-					if ($line['image']!="") {
+					if ($line['image']!=""&&$line['image']!="removed") {
 						unlink($chan_rootdir.'/'.$board.'/src/'.$line['image'].'.'.$line['imagetype']);
 						unlink($chan_rootdir.'/'.$board.'/thumb/'.$line['image'].'s.'.$line['imagetype']);
 					}
@@ -867,6 +945,10 @@ function display_bannedmessage($globalban,$boards,$reason,$at,$until) {
 	$output .= "<br /><br />Reason: ".stripslashes($reason)."<br /><br />Placed: ".$at."<br />Expires: ".$until."</div>";
 	return $output;
 }
+function removed_expired_bans() {
+	require("config.php");
+	mysql_query("DELETE FROM `banlist` WHERE `until` != '0' AND `until` < '".time()."'",$dblink);
+}
 
 //Posting
 function getnextpostid($dblink,$boardid) {
@@ -947,11 +1029,31 @@ function createthumb($name,$filename,$new_w,$new_h) {
 
 //Header
 function display_boardlist() {
+	$output = '';
+	/*require("config.php");
+	$result = mysql_query("SELECT DISTINCT `section` FROM `boards` ORDER BY `section` ASC",$dblink);
+	$rows = mysql_num_rows($result);
+	$board_sections = array();
+	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		$board_sections = array_merge($board_sections,array($line['section']));
+	}
+	foreach ($board_sections as $board_section) {
+		$board_this_section = '';
+		$output .= '[';
+		$result = mysql_query("SELECT * FROM `boards` WHERE `section` = '".$board_section."' ORDER BY `order` ASC",$dblink);
+		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			$board_this_section .= ' <a title="'.$line['desc'].'" href="'.$chan_webfolder.'/'.$line['name'].'/">'.$line['name'].'</a> /';
+		}
+		$board_this_section = substr($board_this_section,0,strlen($board_this_section)-1);
+		$output .= $board_this_section;
+		$output .= ']&nbsp;';
+	}*/
 	if (is_file("boards.html")) {
 		return '<div class="navbar">'.stripslashes(file_get_contents("boards.html")).'</div>';
 	} else {
 		return '<div class="navbar">'.stripslashes(file_get_contents("../boards.html")).'</div>';
 	}
+	//return $output;
 }
 function format_postboxnotice($notice,$board) {
 	require("config.php");
@@ -959,8 +1061,21 @@ function format_postboxnotice($notice,$board) {
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
 		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			$notice = str_replace('<!tc_maxthumbwidth />',config_getvalue('maxthumbwidth'),$notice);
+			$notice = str_replace('<!tc_maxthumbheight />',config_getvalue('maxthumbheight'),$notice);
 			$notice = str_replace('<!tc_uniqueposts />',display_numuniqueposts($board),$notice);
 			$notice = str_replace('<!tc_maximagekb />',round($line['maximagesize']/1024),$notice);
+			$filetypes = '';
+			$filetypes_allowed = explode('|',$line['filetypes']);
+			if ($filetypes_allowed=='') {
+				$filetypes = 'NONE';
+			} else {
+				foreach ($filetypes_allowed as $filetype) {
+					$filetypes .= $filetype.', ';
+				}
+				$filetypes = substr($filetypes,0,strlen($filetypes)-2);
+			}
+			$notice = str_replace('<!tc_filetypes />',$filetypes,$notice);
 		}
 	}
 	return $notice;

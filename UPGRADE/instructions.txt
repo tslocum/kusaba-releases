@@ -1,0 +1,11 @@
+To upgrade, simply copy all the new files over your existing installation, EXCEPT FOR install.php and config.php
+
+Open up config.php (the version on your server), and go to line 21, change "0.3" to "0.4" (Yes, I know theres a notice.  I'm giving you special permission :D)
+
+Run the SQL dump found in this folder, and then log in to your manage panel.
+
+Go to global options, and change your postbox notice to:
+
+<ul><li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.</li></ul>
+
+Congratulations!  You're now running Trevorchan v0.4

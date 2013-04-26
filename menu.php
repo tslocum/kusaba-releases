@@ -63,9 +63,5 @@ if ($rows>0) {
 ?>
 </ul></div>
 
-<h2>IRC</h2>
-<ul>
-<li><a href="irc://irc.fukt.us/trevorchan" title="#trevorchan IRC">#trevorchan @ irc.fukt.us</a></li>
-</ul>
 </body>
 </html>
