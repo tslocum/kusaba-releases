@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Trevorchan - Documentation</title>
+<style type="text/css">
+body { font-family: sans-serif; font-size: 75%; background: #ffe }
+a { text-decoration: none; color: #550 }
+h1,h2 { margin: 0px; background: #fca }
+h1 { font-size: 150% }
+h2 { font-size: 100%; margin-top: 1em }
+h3 { margin: -5px; background: #fca; font-size: 150%; }
+h4 { margin: 0px; background: #fca; font-size: 150%; }
+.hl { font-style: italic }
+.plus { float: right; font-size: 8px; font-weight: normal; padding: 1px 4px 2px 4px; margin: 0px 0px; background: #eb9; color: #000; border: 1px solid #da8; cursor: hand; cursor: pointer }
+.plus:hover { background: #da8; border: 1px solid #c97 }
+li:hover { background: #fec; }
+li a { display: block; width: 100%; }
+</style>
+</head>
+<body>
+<div style="text-align:center;"><h3><a href="http://trevorchan.tj9991.com/"><font color="#00ccff">Trevor</font><font color="#cc0000">chan</font></a></h3></div><br />
+
+<font size="+2">Installation</font>
+
+<div class="content">
+<h2>Requirements</h2>
+
+<ul><li>PHP 4+</li>
+<li>mySQL database</li></ul>
+</div>
+
+<div class="content">
+<h2>First Things First</h2>
+
+Because you are viewing this file, you've made it as far as unzipping the file into a directory.<br />
+Now open up the directory <b>inc</b>.  You should see a few files, including <b>config.php</b>.  Open that up in your favorite text editor. (e.g. notepad)<br />
+It contains a bunch of default values being assigned to global variables.  You need to edit them to your liking.  For help, here is what each is for:<br /><br />
+<ul><li><b>$dbconnection_host</b> - The hostname of your mySQL database.  Most people will use <i>localhost</i>, but it does differ.</li>
+<li><b>$dbconnection_database</b> - The name of the database which you will be using for the image board.</li>
+<li><b>$dbconnection_user</b> - The username you will be using to connect to the mySQL database.</li>
+<li><b>$dbconnection_password</b> - The password to the above username.</li>
+<li><b>$chan_name</b> - What you would like to name your image board site.</li>
+<li><b>$chan_fancyname</b> - The same above, but can be <b>F</b><u>o</u><i>r</i><font color="blue">matted</font>.</li>
+<li><b>$chan_rootdir</b> - This is the full internal path to the image board, you should probably leave this as the default.</li>
+<li><b>$chan_webpath</b> - The URL you will use to access your image board, such as <i>http://imageboard.example.com</i>.  No trailing slash.</li>
+<li><b>$chan_headerurl</b> - The full URL to the header logo you would like to use.  If you leave it blank, one will not be used.</li>
+<li><b>$chan_maxppm</b> - The number of posts any unique user may make per minute.</li>
+<li><b>$chan_postdelay</b> - The number of seconds any unique user must wait before making another post.</li>
+<li><b>$chan_randomseed</b> - Needs to be a lengthy string randomly entered, unique to your image board.</li>
+</li></ul><br />
+Now that your board has been configured, it's time to add the database.  Included in the zip file should have been a file named <i>trevorchan.sql</i>, open it up and paste it into a SQL prompt, or upload it to the database using your favorite database manager. (e.g. phpMyAdmin)<br />
+If everything looks like it worked, upload the files (including the directories).<br />
+</div><br />
+
+<font size="+2">Getting Started</font>
+
+<div class="content">
+<h2>Add an Administrator Account</h2>
+
+Now that your database is set up, your configuration is configured, and your files are uploaded, it's time to add a board.  But first, we need to be able to log in to do so.<br />
+Open up your board in your browser.  Visit the <b>management panel</b>, which can be done by accessing manage.php<br />
+If your board was at <i>http://imageboard.example.com</i>, you would visit the management panel by going to <i>http://imageboard.example.com/manage.php</i>.<br />
+You should see a very bare page, containing two input boxes, and a submit button.  This is what it is supposed to look like.<br />
+This is where you will put your username and password when you want to log in.  When the board is first created, there is only one user, an administrator with the username and password of "admin".<br />
+Log in with that combination, and you should see a variety of links to do different things.  You'll learn about them all later.<br />
+For now, we need to secure your board.  Click <b>Staff</b>.<br />
+Above the lists of administrators/moderators, there is a form to add a staff member.  This is where you put in the username/password combination you desire.  Fill them in, check the <i>Is Administrator</i> checkbox and click <b>Add Staff Member</b>.<br />
+Now click <b>[logout]</b>.  This time log in with the combination you entered.  If you successfully log in and see the panel just as you did before, then it worked.  Log out again, and log in as admin.<br />
+Click <b>Staff</b> again, but this time delete the old admin account.  Now only you can log into your management panel.
+</div>
+
+<div class="content">
+<h2>Add a Board</h2>
+
+While logged in to the management panel, click <b>Add Board</b>.<br />
+You should see a short form.  Think of a name for your first board, and the directory it should reside in.<br />
+If you can't think of one, try <i>Random</i> with the directory of <i>b</i>.
+In the <b>directory</b> box, put the directory for the image board, <b>WITHOUT</b> any <b>/</b>'s.
+In the <b>description</b> box, put the name of the image board.<br />
+Click the <b>Add Board</b> button.  You should see a message telling you it worked.<br />
+But you're not done yet.  Look for a file named <b>board.htaccess</b>.  Copy this file into the directory of the new board on your host, and rename it to <b>.htaccess</b>.
+Congratulations, you just set up your first image board!
+</div>
+
+<div class="content">
+<h2>View and Post in the Board</h2>
+
+Go ahead and visit your newly created image board.  If you gave the board a directory of <b>b</b>, accessing it would be similar to <i>http://imageboard.example.com/b/</i>.
+Make a test post, which should get the ID of 1.  Try replying to it and make sure the post ID's are properly incrementing.<br />
+If everything looks like it is working, move on to the next step.
+</div>
+
+<div class="content">
+<h2>Administrator Posting</h2>
+
+Ruling your board with an iron fist may not be such a good idea, but it is nice to exercise some power once in a while.<br />
+Visit the management panel, and click on <b>Get posting password</b>.
+There should be a large, odd looking string of random characters.  Copy the whole line to your clipboard.
+Now go back to your board.  Fill in all the forms you were going to post with, but before clicking submit, open the password box.
+You do this by clicking the last <b>e</b> in <b>Message</b>.  A box should appear.
+Paste your posting password into that box, and click submit.  Once the board is finished regenerating, you should see <b>## Admin ##</b> next to your name, in purple.<br />
+This works similarly for moderators, which can only do things to the board you allow them, and can not access the board administration pages.  When they post, they get <b>## Mod ##</b> next to their name, in red.<br />
+An administrator can also use a different password to appear as a moderator in their post <u>(soon)</u>.
+</div>
+
+</body>
+</html>
