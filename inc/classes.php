@@ -1,20 +1,59 @@
 <?php
-/*
-* +------------------------------------------------------------------------------+
-* Classes derived from board and post functions from functions.php
-* +------------------------------------------------------------------------------+
-* These classes are used for most board and post operations.  The functions were
-* switched to use this system for increased readability and ease of use.  By
-* using OOP, the overall flow of the program is more stable.
-* +------------------------------------------------------------------------------+
-*/
+  /*
+   * This file is part of Trevorchan.
+   *
+   * Trevorchan is free software; you can redistribute it and/or modify it under the
+   * terms of the GNU General Public License as published by the Free Software
+   * Foundation; either version 2 of the License, or (at your option) any later
+   * version.
+   *
+   * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+   * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+   * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   *
+   * You should have received a copy of the GNU General Public License along with
+   * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+   * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   * +------------------------------------------------------------------------------+
+   * Classes derived from board and post functions from functions.php
+   * +------------------------------------------------------------------------------+
+   * These classes are used for most board and post operations.  The functions were
+   * switched to use this system for increased readability and ease of use.  By
+   * using OOP, the overall flow of the program is more stable.
+   * +------------------------------------------------------------------------------+
+   */
 class Board {
+    /* Declare the public variables */
+    var $board_id;
+    var $board_type;
+    var $board_uploadtype;
+    var $board_dir;
+    var $board_desc;
+    var $board_enablereporting;
+    var $board_image;
+    var $board_includeheader;
+    var $board_forcedanon;
+    var $board_filetypes;
+    var $board_maximagesize;
+    var $board_maxage;
+    var $board_maxreplies;
+    var $board_maxpages;
+    var $board_messagelength;
+    var $board_locked;
+    var $board_defaultstyle;
+    var $board_redirecttothread;
+    var $board_enablecaptcha;
+    var $board_enablenofile;
+    var $board_postboxnotice;
+    
+    /* Initialization function for the Board class, which is called when a new instance of this class is created.  Takes a board directory as an argument */
     function Board($board) {
         global $tc_db;
 
+        /* If the instance was created with the board argument present, get all of the board info and configuration values and save it inside of the class */
         if ($board!='') {
-        	$query = "SELECT * FROM `".TC_DBPREFIX."boards` WHERE `name` = '".mysql_real_escape_string($board)."' LIMIT 1";
-            $results = (TC_DBUSECACHE) ? $tc_db->CacheGetAssoc($query) : $tc_db->GetAssoc($query); 
+            $query = "SELECT * FROM `".TC_DBPREFIX."boards` WHERE `name` = '".mysql_real_escape_string($board)."' LIMIT 1";
+            $results = (TC_DBUSECACHE) ? $tc_db->CacheGetAssoc($query) : $tc_db->GetAssoc($query);
             foreach($results AS $line) {
                 $this->board_id = $line['id'];
                 $this->board_type = $line['type'];
@@ -25,21 +64,21 @@ class Board {
                 $this->board_image = $line['image'];
                 $this->board_includeheader = $line['includeheader'];
                 $this->board_forcedanon = $line['forcedanon'];
-                $this->board_filetypes = explode('|',$line['filetypes']);
+                $this->board_filetypes = explode('|', $line['filetypes']);
                 $this->board_maximagesize = $line['maximagesize'];
                 $this->board_maxage = $line['maxage'];
                 $this->board_maxreplies = $line['maxreplies'];
                 $this->board_maxpages = $line['maxpages'];
                 $this->board_messagelength = $line['messagelength'];
                 $this->board_locked = $line['locked'];
+                $this->board_defaultstyle = $line['defaultstyle'];
                 $this->board_redirecttothread = $line['redirecttothread'];
                 $this->board_enablecaptcha = $line['enablecaptcha'];
+                $this->board_enablenofile = $line['enablenofile'];
             }
-            $this->config_postboxnotice = format_postboxnotice(config_getvalue('postboxnotice'),$this->board_dir);
-            $this->config_numrepliesdisplayed = config_getvalue("numrepliesdisplayed");
-            $this->config_numrepliesdisplayedsticky = config_getvalue("numrepliesdisplayedsticky");
-            $this->config_numthreadsdisplayed = config_getvalue("numthreadsdisplayed");
-            $this->config_imagesinnewwindow = config_getvalue("imagesinnewwindow");
+            
+            /* Format the postbox according to this board */
+            $this->board_postboxnotice = format_postboxnotice(TC_POSTBOX, $this->board_dir);
         }
     }
 
@@ -51,56 +90,62 @@ class Board {
 
     function RegeneratePages() {
         global $tc_db;
-        global $clock;
-        //$clock[] = 'Regenerate pages start: '.microtime_float();
-        //$clock[] = '1: '.microtime_float();
+        
         $numpostsleft = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC");
+        $boardpage = 0;
+        
         if ($this->board_type==1) {
             $numthreadsdisplayed = 15;
             $hide_extra = true;
         } else {
-            $numthreadsdisplayed = $this->config_numthreadsdisplayed;
+            $numthreadsdisplayed = TC_THREADS;
             $hide_extra = false;
         }
-        //$clock[] = '2: '.microtime_float();
+        
         $boardstooutput = floor(($numpostsleft-1) / $numthreadsdisplayed);
-        $boardpage = 0;
+        
         if ($numpostsleft>0) {
             $cached_pageheader = $this->PageHeader($this->board_dir);
-            $cached_postbox = $this->Postbox(0, '', $this->config_postboxnotice);
+            $cached_postbox = $this->Postbox(0, '', $this->board_postboxnotice);
             while ($numpostsleft>0) {
-                //$clock[] = 'RUN 1: '.microtime_float();
                 $executiontime_start_regeneratepages = microtime_float();
-                $page = $cached_pageheader;
-                $page .= $cached_postbox;
+                
+                $page = $cached_pageheader . $cached_postbox;
+                
                 if ($this->board_type!=1) {
-                    $page .= '<form id="delform" action="'.TC_BOARDSFOLDER.'board.php" method="post"><input type="hidden" name="board" value="'.mysql_real_escape_string($this->board_dir).'" />';
+                    $page .= '<form id="delform" action="'.TC_BOARDSFOLDER.'board.php" method="post"><input type="hidden" name="board" value="'.mysql_real_escape_string($this->board_dir).'">';
                 }
-                $results = $tc_db->GetAll("SELECT `id` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC LIMIT ".($boardpage*$numthreadsdisplayed).','.$numthreadsdisplayed);
+                
+                $results = $tc_db->GetAll("SELECT `id` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC LIMIT ".($boardpage*$numthreadsdisplayed).', '.$numthreadsdisplayed);
+                
                 $thread_relative_id = 0;
                 $thread_ids = array();
                 foreach($results AS $line) { 
                     $thread_ids[] = $line[0];
-                    //$thread_relative_id++;
                 }
-                $page .= $this->BuildThread($thread_ids,true,false,$thread_relative_id);
-                //$clock[] = 'RUN 2: '.microtime_float();
+                
+                $page .= $this->BuildThread($thread_ids, true, false, $thread_relative_id);
                 if ($this->board_type!=1) {
-                    $page .= '<table class="userdelete"><tbody><tr><td>Delete Post [<label><input type="checkbox" name="fileonly" value="on" />File Only</label>]<br>Password <input type="password" name="postpassword" size="8" />&nbsp;<input name="deletepost" value="Delete" type="submit" />';
+                    $page .= '<table class="userdelete"><tbody><tr><td>'.ucwords(_('Delete Post')).' [<label><input type="checkbox" name="fileonly" value="on">'._('File Only').'</label>]<br>'._('Password').' <input type="password" name="postpassword" size="8">&nbsp;<input name="deletepost" value="'._('Delete').'" type="submit">';
+                    
                     if ($this->board_enablereporting==1) {
-                        $page .= '<input name="reportpost" value="Report" type="submit" />';
+                        $page .= '<input name="reportpost" value="'._('Report').'" type="submit">';
                     }
+                    
                     $page .= '</td></tr></tbody></table></form><script type="text/javascript">set_delpass("delform")</script><table border="1"><tbody><tr><td>';
+                    
                     if ($boardpage==0) {
-                        $page .= 'Previous';
+                        $page .= _('Previous');
                     } else {
                         if ($boardpage-1!=0) {
-                            $page .= '<form method="get" action="'.TC_BOARDSFOLDER.$this->board_dir.'/'.($boardpage-1).'.html"><input value="Previous" type="submit" /></form>';
+                            $page .= '<form method="get" action="'.TC_BOARDSFOLDER.$this->board_dir.'/'.($boardpage-1).'.html"><input value="'._('Previous').'" type="submit"></form>';
                         } else {
-                            $page .= '<form method="get" action="'.TC_BOARDSFOLDER.$this->board_dir.'/board.html"><input value="Previous" type="submit" /></form>';
+                            $page .= '<form method="get" action="'.TC_BOARDSFOLDER.$this->board_dir.'/board.html"><input value="'._('Previous').'" type="submit"></form>';
                         }
                     }
+                    
                     $page .= '</td><td>';
+                    
                     for ($i=0;$i<=$boardstooutput;$i++) {
                         if ($boardpage==$i) {
                             $page .= '&#91;'.$i.'&#93;';
@@ -112,21 +157,26 @@ class Board {
                             }
                         }
                     }
+                    
                     $page .= '</td><td>';
+                    
                     if ($boardpage==$boardstooutput) {
-                        $page .= 'Next';
+                        $page .= _('Next');
                     } else {
-                        $page .= '<form method="get" action="'.TC_BOARDSFOLDER.$this->board_dir.'/'.($boardpage+1).'.html"><input value="Next" type="submit" /></form>';
+                        $page .= '<form method="get" action="'.TC_BOARDSFOLDER.$this->board_dir.'/'.($boardpage+1).'.html"><input value="'._('Next').'" type="submit"></form>';
                     }
+                    
                     $page .= '</td></tr></tbody></table>';
                 }
-                //$clock[] = 'RUN 3: '.microtime_float();
-                $page .= $this->Footer(false,(microtime_float()-$executiontime_start_regeneratepages),$hide_extra);
+                
+                $page .= $this->Footer(false, (microtime_float()-$executiontime_start_regeneratepages), $hide_extra);
+                
                 if ($boardpage==0) {
-                    print_page(TC_BOARDSDIR.$this->board_dir."/board.html",$page,$this->board_dir);
+                    print_page(TC_BOARDSDIR.$this->board_dir."/board.html", $page, $this->board_dir);
                 } else {
-                    print_page(TC_BOARDSDIR.$this->board_dir."/".$boardpage.".html",$page,$this->board_dir);
+                    print_page(TC_BOARDSDIR.$this->board_dir."/".$boardpage.".html", $page, $this->board_dir);
                 }
+                
                 $page = '';
                 $boardpage++;
                 if ($this->board_type==1) {
@@ -134,17 +184,16 @@ class Board {
                 } else {
                     $numpostsleft -= $numthreadsdisplayed;
                 }
-                //$clock[] = 'RUN 4: '.microtime_float();
             }
-        } else { //Make a blank index
+        } else {
+            /* Make a blank index page */
             $executiontime_start_blankindex = microtime_float();
             $page = $this->PageHeader();
-            $page .= $this->Postbox(0, '', $this->config_postboxnotice);
-            $page .= $this->Footer(false,(microtime_float()-$executiontime_start_blankindex),$hide_extra);
-            print_page(TC_BOARDSDIR.$this->board_dir."/board.html",$page,$this->board_dir);
+            $page .= $this->Postbox(0, '', $this->board_postboxnotice);
+            $page .= $this->Footer(false, (microtime_float()-$executiontime_start_blankindex), $hide_extra);
+            print_page(TC_BOARDSDIR.$this->board_dir."/board.html", $page, $this->board_dir);
         }
-        //$clock[] = '3: '.microtime_float();
-        //If text board, rebuild thread list html files
+        /* If text board, rebuild thread list html files */
         if ($this->board_type==1) {
             $numpostsleft = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC");
             $liststooutput = floor(($numpostsleft-1) / 40);
@@ -153,36 +202,34 @@ class Board {
             while ($numpostsleft>0) {
                 $executiontime_start_list = microtime_float();
                 $page = $this->PageHeader(0, $currentpostwave, $listpage, $liststooutput);
-                $page .= $this->Footer(false,(microtime_float()-$executiontime_start_list),$hide_extra);
+                $page .= $this->Footer(false, (microtime_float()-$executiontime_start_list), $hide_extra);
                 if ($listpage==0) {
-                    print_page(TC_BOARDSDIR.$this->board_dir.'/list.html',$page,$this->board_dir);
+                    print_page(TC_BOARDSDIR.$this->board_dir.'/list.html', $page, $this->board_dir);
                 } else {
-                    print_page(TC_BOARDSDIR.$this->board_dir.'/list'.$listpage.'.html',$page,$this->board_dir);
+                    print_page(TC_BOARDSDIR.$this->board_dir.'/list'.$listpage.'.html', $page, $this->board_dir);
                 }
                 $currentpostwave += 40;
                 $numpostsleft -= 40;
                 $listpage++;
             }
         }
-        //$clock[] = '4: '.microtime_float();
-        //Delete old pages
+        /* Delete old pages */
         $dir = TC_BOARDSDIR.$this->board_dir;
-        $files = glob ("$dir/{*.html}",  GLOB_BRACE);
+        $files = glob ("$dir/{*.html}", GLOB_BRACE);
         if (is_array($files)) { 
             foreach ($files as $htmlfile) {
-                if (preg_match("/[0-9+].html/",$htmlfile)) {
-                    if (substr(basename($htmlfile),0,strpos(basename($htmlfile),'.html'))>$boardstooutput) {
+                if (preg_match("/[0-9+].html/", $htmlfile)) {
+                    if (substr(basename($htmlfile), 0, strpos(basename($htmlfile), '.html'))>$boardstooutput) {
                         unlink($htmlfile);
                     }
                 }
-                if (preg_match("/list[0-9+].html/",$htmlfile)) {
-                    if (substr(basename($htmlfile),4,strpos(basename($htmlfile),'.html'))>$liststooutput) {
+                if (preg_match("/list[0-9+].html/", $htmlfile)) {
+                    if (substr(basename($htmlfile), 4, strpos(basename($htmlfile), '.html'))>$liststooutput) {
                         unlink($htmlfile);
                     }
                 }
             }
         }
-        //$clock[] = 'Regenerate pages end: '.microtime_float();
     }
 
     function RegenerateThreads() {
@@ -190,14 +237,14 @@ class Board {
         $res_threadlist = array();
         $results = $tc_db->GetAll("SELECT `id` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `threadid` = 0 AND `IS_DELETED` = 0 ORDER BY `lastbumped` DESC");
         foreach($results AS $line) {
-            $res_threadlist = array_merge($res_threadlist,array($line['id'].'.html'));
+            $res_threadlist = array_merge($res_threadlist, array($line['id'].'.html'));
             $this->RegenerateThread($line['id']);
         }
         $dir = TC_BOARDSDIR.$this->board_dir.'/res';
-        $files = glob ("$dir/{*.html}",  GLOB_BRACE);
+        $files = glob ("$dir/{*.html}", GLOB_BRACE);
         if (is_array($files)) { 
             foreach ($files as $htmlfile) {
-                if (!in_array(basename($htmlfile),$res_threadlist)) {
+                if (!in_array(basename($htmlfile), $res_threadlist)) {
                     unlink($htmlfile);
                 }
             }
@@ -206,44 +253,44 @@ class Board {
 
     function RegenerateThread($threadid) {
         global $tc_db;
-        $resultsboard = $tc_db->CacheGetAssoc("SELECT `id`,`type`,`name` FROM `".TC_DBPREFIX."boards` WHERE `id` = ".mysql_real_escape_string($this->board_id)." LIMIT 1");
+        $query = "SELECT `id`, `type`, `name` FROM `".TC_DBPREFIX."boards` WHERE `id` = ".mysql_real_escape_string($this->board_id)." LIMIT 1";
+        $resultsboard = (TC_DBUSECACHE) ? $tc_db->CacheGetAssoc($query) : $tc_db->GetAssoc($query);
         foreach($resultsboard AS $lineboard) {
             $results = $tc_db->GetAll("SELECT `id` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = 0 AND `id` = ".mysql_real_escape_string($threadid)." LIMIT 1");
             foreach($results AS $line) {
                 $executiontime_start_regeneratethread = microtime_float();
                 $thread_page = '';
                 $this->post_id_id = $line['id'];
-                $thread_page .= $this->PageHeader($threadid, '', $this->config_postboxnotice);
+                $thread_page .= $this->PageHeader($threadid, '', $this->board_postboxnotice);
                 if ($lineboard['type']==1) {
-                    $thread_page .= "<a href=\"".TC_BOARDSPATH."/{$lineboard['name']}/board.html\">Return</a><br><br>";
+                    $thread_page .= '<a href="'.TC_BOARDSPATH.'/'.$lineboard['name'].'/board.html">Return</a><br><br>';
                     $hide_extra = true;
                 } else {
-                    $thread_page .= "&#91;<a href=\"".TC_BOARDSPATH."/{$lineboard['name']}/board.html\">Return</a>&#93; <div class=\"theader\">Posting mode: Reply</div>";
+                    $thread_page .= '&#91;<a href="'.TC_BOARDSPATH.'/'.$lineboard['name'].'/board.html">Return</a>&#93; <div class="theader">'._('Posting mode: Reply').'</div>';
                     $hide_extra = false;
                 }
-                $thread_page .= $this->Postbox($threadid,'',$this->config_postboxnotice);
+                $thread_page .= $this->Postbox($threadid, '', $this->board_postboxnotice);
                 $thread_page .= $this->BuildThread($this->post_id_id);
-                $thread_page .= $this->Footer(false,(microtime_float()-$executiontime_start_regeneratethread),$hide_extra);
-                print_page(TC_BOARDSDIR.$lineboard['name'].'/res/'.$threadid.'.html',$thread_page,$lineboard['name']);
+                $thread_page .= $this->Footer(false, (microtime_float()-$executiontime_start_regeneratethread), $hide_extra);
+                print_page(TC_BOARDSDIR.$lineboard['name'].'/res/'.$threadid.'.html', $thread_page, $lineboard['name']);
             }
         }
     }
 
     function BuildThread($threadid, $page = false, $resurrect = false, $thread_relative_id = 0) {
         global $tc_db;
-        global $clock;
-        //$clock[] = 'BuildThread start: '.microtime_float();
+        
         if (!is_array($threadid)) {
             $threadid = array($threadid);
         }
         $buildthread_output = '';
         foreach ($threadid AS $this_threadid) {
             if ($this_threadid<=0) {
-                die("Invalid arguments sent to function buildthread(): threadid <= 0");
+                die("buildthread(): error.  threadid <= 0");
             }
         }
         if ($this->board_dir=='') {
-            die("Invalid arguments sent to function buildthread(): boarddir = ''");
+            die("Ibuildthread(): error. boarddir = ''");
         }
         if ($resurrect) {
             $isdeleted_check = '1';
@@ -251,182 +298,50 @@ class Board {
             $isdeleted_check = '0';
         }
         if ($this->board_type==1) {
-            $results = $tc_db->GetAll('SELECT COUNT(*) FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = 0 ORDER BY `stickied`,`lastbumped` DESC LIMIT 15');
-            $num_threads_onfrontpage = $results[0][0];
+            $results = $tc_db->GetAll('SELECT COUNT(*) FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = 0');
+            $num_threads_onfrontpage = min($results[0][0], 15);
         }
         $query_idsegment = '';
         foreach ($threadid as $this_threadid) {
             $query_idsegment .= '`id` = '.mysql_real_escape_string($this_threadid).' OR ';
         }
-        $query_idsegment = substr($query_idsegment,0,-4);
+        $query_idsegment = substr($query_idsegment, 0, -4);
         $results = $tc_db->GetAll('SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND ('.$query_idsegment.') AND `threadid` = 0 ORDER BY `stickied` DESC, `lastbumped` DESC');
         if (count($results)==0) {
-            die('No posts in thread to build from.');
+            die('buildthread(): error.  No posts in thread to build from.');
         }
         $final_output = '';
         if (!$page&&$this->board_type!=1) {
-           $buildthread_output .= '<form id="delform" action="'.TC_BOARDSFOLDER.'board.php" method="post"><input type="hidden" name="board" value="'.$this->board_dir.'" />';
+           $buildthread_output .= '<form id="delform" action="'.TC_BOARDSFOLDER.'board.php" method="post"><input type="hidden" name="board" value="'.$this->board_dir.'">';
         }
-        //$clock[] = 'BuildThread 1: '.microtime_float();
         foreach($results AS $line) {
-            //$clock[] = 'BuildThread Line 1: '.microtime_float();
             $thread_id = $line['id'];
-            if ($resurrect==false) {
-                if ($line['image']=="removed") {
-                    $imgWidth = '0';
-                    $imgHeight = '0';
-                    $imgWidth_thumb = '189';
-                    $imgHeight_thumb = '16';
-                } else if ($line['imagetype']=="swf") {
-                    $imgWidth = '0';
-                    $imgHeight = '0';
-                    $imgWidth_thumb = '86';
-                    $imgHeight_thumb = '86';
-                } else if ($line['image']!='') {
-                    $imgWidth = $line['image_w'];
-                    $imgHeight = $line['image_h'];
-                    $imgWidth_thumb = $line['thumb_w'];
-                    $imgHeight_thumb = $line['thumb_h'];
-                }
-            }
-            //$clock[] = 'BuildThread Line 2: '.microtime_float();
             $results2 = $tc_db->GetAll('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id));
             $numReplies = count($results2);
             if ($this->board_type==0||$this->board_type==2) {
                 $numImageReplies = 0;
                 if ($page==true) {
                     if ($line['stickied']==0) {
-                        if ($numReplies>$this->config_numrepliesdisplayed) {
-                            $results = $tc_db->GetAll('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' AND `image` != \'\' ORDER BY `postedat` ASC LIMIT 0,'.($numReplies-$this->config_numrepliesdisplayed));
+                        if ($numReplies>TC_REPLIES) {
+                            $results = $tc_db->GetAll('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' AND `image` != \'\' AND `image` != \'removed\' ORDER BY `postedat` ASC LIMIT 0, '.($numReplies-TC_REPLIES));
                             $numImageReplies = count($results);
                         }
                     } else {
-                        if ($numReplies>$this->config_numrepliesdisplayedsticky) {
-                            $results = $tc_db->GetAll('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' AND `image` != \'\' ORDER BY `postedat` ASC LIMIT 0,'.($numReplies-$this->config_numrepliesdisplayedsticky));
+                        if ($numReplies>TC_REPLIESSTICKY) {
+                            $results = $tc_db->GetAll('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' AND `image` != \'\' AND `image` != \'removed\' ORDER BY `postedat` ASC LIMIT 0, '.($numReplies-TC_REPLIESSTICKY));
                             $numImageReplies = count($results);
                         }
                     }
                 }
-                //$clock[] = 'BuildThread Line Mark 1: '.microtime_float();
-                if ($line['imagetype']!='you'&&$line['imagetype']!='goo') {
-                    $buildthread_output .= '<span class="filesize">File: <a ';
-                    if ($this->config_imagesinnewwindow==1) {
-                        $buildthread_output .= 'target="_blank" ';
-                    }
-                    $buildthread_output .= 'href="';
-                    if ($line['image']=='removed') {
-                        $buildthread_output .= TC_BOARDSFOLDER.'imageremoved.png">imageremoved.png';
-                    } else {
-                        $buildthread_output .= TC_BOARDSFOLDER.$this->board_dir.'/src/'.$line['image'].'.'.$line['imagetype'].'">'.$line['image'].'.'.$line['imagetype'];
-                    }
-                    $buildthread_output .= '</a> -(<em>';
-                    if ($line['image']=='removed'||$resurrect) {
-                        $buildthread_output .= '&nbsp';
-                    } else {
-                        $buildthread_output .= round($line['image_size']/1024)." KB, {$imgWidth}x$imgHeight";
-                    }
-                    $buildthread_output .= '</em>)</span><span class="thumbnailmsg"> Thumbnail displayed, click image for full size.</span><br>';
-                    if (!$resurrect) {
-                        $buildthread_output .= '<a ';
-                        if ($this->config_imagesinnewwindow==1) {
-                            $buildthread_output .= 'target="_blank" ';
-                        }
-                        $buildthread_output .= 'href="';
-                        if ($line['image']=='removed') {
-                            $buildthread_output .= TC_BOARDSFOLDER.'imageremoved.png"><img src="'.TC_BOARDSFOLDER.'imageremoved.png';
-                        } else if ($line['imagetype']=="swf") {
-                            $buildthread_output .= TC_BOARDSPATH."/{$this->board_dir}/src/{$line['image']}.{$line['imagetype']}\"><img src=\"".TC_BOARDSPATH."/flash.png";
-                        } else {
-                            $buildthread_output .= TC_BOARDSPATH."/{$this->board_dir}/src/{$line['image']}.{$line['imagetype']}\"><img src=\"".TC_BOARDSPATH."/{$this->board_dir}/thumb/{$line['image']}s.{$line['imagetype']}";
-                        }
-                        $buildthread_output .= "\" width=\"$imgWidth_thumb\" height=\"$imgHeight_thumb\" alt=\"$thread_id\" class=\"thumb\" /></a>";
-                    }
-                }
-                //$clock[] = 'BuildThread Line Mark 2: '.microtime_float();
-                $buildthread_output .= "<a name=\"$thread_id\"></a><label><input type=\"checkbox\" name=\"delete\" value=\"$thread_id\" />&nbsp;";
-                if ($line['subject']!='') {
-                    $buildthread_output .= '<span class="filetitle">'.stripslashes($line['subject']).'</span> ';
-                }
-                $buildthread_output .= '<span class="postername">';
-                if ($line['email']!='') {
-                    $buildthread_output .= '<a href="mailto:'.$line['email'].'">';
-                }
-                if ($line['user']==''&&$line['tripcode']=='') {
-                    $buildthread_output .= 'Anonymous';
-                } else if ($line['user']==''&&$line['tripcode']!='') {
-                    $buildthread_output .= ''; // If they have a tripcode, just display the tripcode
-                } else {
-                    $buildthread_output .= stripslashes($line['user']);
-                }
-                if ($line['email']!='') {
-                    $buildthread_output .= '</a>';
-                }
-                $buildthread_output .= '</span>';
-                if ($line['tripcode']!='') {
-                    $buildthread_output .= '<span class="postertrip">!'.$line['tripcode'].'</span>';
-                }
-                //$clock[] = 'BuildThread Line Mark 3: '.microtime_float();
-                if ($line['posterauthority']>0) {
-                    if ($line['posterauthority']==1) {
-                        $buildthread_output .= ' <span class="admin">##&nbsp;Admin&nbsp;##</span>';
-                    } else if ($line['posterauthority']==2) {
-                        $buildthread_output .= ' <span class="mod">##&nbsp;Mod&nbsp;##</span>';
-                    }
-                }
-                $buildthread_output .= ' '.date("y/m/d(D)H:i",$line['postedat']).'</label> <span class="reflink"><a href="'.TC_BOARDSFOLDER.$this->board_dir.'/res/'.$thread_id.'.html#'.$thread_id.'">No.</a><a href="'.TC_BOARDSPATH.'/'.$this->board_dir.'/res/'.$thread_id.'.html#i'.$thread_id.'"';
-                if (!$page) {
-                    $buildthread_output .= ' onclick="insert(\'>>'.$thread_id.'\');"';
-                }
-                //$clock[] = 'BuildThread Line Mark 2.1: '.microtime_float();
-                $buildthread_output .= ">$thread_id</a>";
-                //$clock[] = 'BuildThread Line Mark 2.2: '.microtime_float();
-                if ($line['locked']==1) {
-                    $buildthread_output .= '&nbsp;<img style="border: 0;" src="'.TC_BOARDSPATH.'/locked.gif" alt="locked" />';
-                }
-                if ($line['stickied']==1) {
-                    $buildthread_output .= '<img style="border: 0;" src="'.TC_BOARDSPATH.'/sticky.gif" alt="stickied" />';
-                }
-                $buildthread_output .= '</span>';
-                if ($page) {
-                    $buildthread_output .= '&nbsp;&#91;<a href="'.TC_BOARDSPATH.'/'.$this->board_dir.'/res/'.$thread_id.'.html">Reply</a>&#93;';
-                }
-                //$clock[] = 'BuildThread Line Mark 2.3: '.microtime_float();
-                $buildthread_output .= $this->DeleteAndBanLinks($thread_id,true);
-                //$clock[] = 'BuildThread Line Mark 2.4: '.microtime_float();
-                $buildthread_output .= '<blockquote><p>';
-                if ($line['imagetype']=='you'||$line['imagetype']=='goo') {
-                    $buildthread_output .= '<span style="float: left;">';
-                    if ($line['imagetype']=='you') {
-                        $buildthread_output .= '<object width="200" height="164"><param name="movie" value="http://www.youtube.com/v/'.$line['image'].'"></param><param name="wmode" value="transparent"></param><embed src="http://www.youtube.com/v/'.$line['image'].'" type="application/x-shockwave-flash" wmode="transparent" width="200" height="164"></embed></object>';
-                    } elseif ($line['imagetype']=='goo') {
-                        $buildthread_output .= '<embed style="width:200px; height:164px;" id="VideoPlayback" type="application/x-shockwave-flash" src="http://video.google.com/googleplayer.swf?docId='.$line['image'].'&hl=en" flashvars=""></embed>';
-                    }
-                    $buildthread_output .= '</span>&nbsp;';
-                }
-                if (count(explode(chr(10), $line['message']))>15&&$page) {
-                    $message_exploded = explode(chr(10), stripslashes($line['message']));
-                    $message_shortened = '';
-                    for ($i = 0; $i <= 14; $i++) {
-                        $message_shortened .= $message_exploded[$i];
-                    }
-                    $message_shortened = preg_replace('/<a href="'.preg_quote(TC_BOARDSFOLDER).$this->board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="'.TC_BOARDSFOLDER.$this->board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;', $message_shortened);
-                    $message_shortened = closeOpenTags($message_shortened);
-                    //$clock[] = 'BuildThread Line Mark 2.5: '.microtime_float();
-                    $buildthread_output .= $message_shortened;
-                    $buildthread_output .= '<div class="abbrev">Comment too long. Click <a href="'.TC_BOARDSFOLDER.$this->board_dir.'/res/'.$thread_id.'.html">here</a> to view the full text.</div>';
-                } else {
-                    $buildthread_output .= stripslashes($line['message']);
-                }
-                //$clock[] = 'BuildThread Line Mark 4: '.microtime_float();
-                $buildthread_output .= '</blockquote>';
+                $buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line['id'], $line['threadid'], $line['user'], $line['tripcode'], $line['email'], $line['subject'], $line['message'], $line['image'], $line['imagetype'], $line['image_w'], $line['image_h'], $line['image_size'], $line['thumb_w'], $line['thumb_h'], $line['postedat'], $line['stickied'], $line['locked'], $line['posterauthority']);
                 if ($numReplies>0) {
                     if (!$page) {
-                        $results = $tc_db->CacheGetAll('SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' ORDER BY `postedat` ASC');
+                        $results = $tc_db->GetAll('SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' ORDER BY `postedat` ASC');
                     } else {
                         if ($line['stickied']==0) {
-                            $numrepliesdisplayed = $this->config_numrepliesdisplayed;
+                            $numrepliesdisplayed = TC_REPLIES;
                         } else {
-                            $numrepliesdisplayed = $this->config_numrepliesdisplayedsticky;
+                            $numrepliesdisplayed = TC_REPLIESSTICKY;
                         }
                         if ($numReplies>$numrepliesdisplayed) {
                             $buildthread_output .= '<span class="omittedposts"> '.($numReplies-$numrepliesdisplayed).' post';
@@ -435,275 +350,48 @@ class Board {
                                 $buildthread_output .= ' and '.$numImageReplies.' image';
                                 $buildthread_output .= ($numImageReplies!=1) ? 's' : '';
                             }
-                            $buildthread_output .= ' omitted. Click Reply to view.  </span>';
+                            $buildthread_output .= ' omitted. '._('Click Reply to view.').'</span>';
                         }
-                        $results = array_reverse($tc_db->CacheGetAll('SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' ORDER BY `postedat` DESC LIMIT '.$numrepliesdisplayed)); /* Retrieves the three newest posts from the thread in descending order, which is backwards for what we want, so we apply array_reverse on the result */
+                        /* Retrieves the three newest posts from the thread in descending order, which is backwards for what we want, so we apply array_reverse on the result */
+                        $query = 'SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' ORDER BY `postedat` DESC LIMIT '.$numrepliesdisplayed;
+                        $results = (TC_DBUSECACHE) ? array_reverse($tc_db->CacheGetAll($query)) : array_reverse($tc_db->GetAll($query));
                     }
-                    //$clock[] = 'BuildThread Line Mark 5: '.microtime_float();
                     foreach($results AS $line_reply) {
-                        //$clock[] = 'BuildThread Line Mark 5 Reply 1: '.microtime_float();
-                        if ($line_reply['image']!='') {
-                            if ($resurrect==false) {
-                                if ($line_reply['image']=='removed') {
-                                    $reply_imgWidth = '0';
-                                    $reply_imgHeight = '0';
-                                    $reply_imgWidth_thumb = '189';
-                                    $reply_imgHeight_thumb = '16';
-                                } else if ($line_reply['imagetype']=='swf') {
-                                    $reply_imgWidth = '0';
-                                    $reply_imgHeight = '0';
-                                    $reply_imgWidth_thumb = '86';
-                                    $reply_imgHeight_thumb = '86';
-                                } else if ($line_reply['image']!='') {
-                                    $reply_imgWidth = $line_reply['image_w'];
-                                    $reply_imgHeight = $line_reply['image_h'];
-                                    $reply_imgWidth_thumb = $line_reply['thumb_w'];
-                                    $reply_imgHeight_thumb = $line_reply['thumb_h'];
-                                }
-                            }
-                        }
-                        //$clock[] = 'BuildThread Line Mark 5 Reply 2: '.microtime_float();
-                        $buildthread_output .= '<table><tbody><tr>
-                        <td class="doubledash">&gt;&gt;</td>
-                        <td class="reply" id="reply'.$line_reply['id'].'"><a name="'.$line_reply['id'].'"></a>
-                        <label><input type="checkbox" name="delete" value="'.$line_reply['id'].'" />&nbsp;';
-                        if ($line_reply['subject']!='') { $buildthread_output .= '<span class="filetitle">'.stripslashes($line_reply['subject']).'</span>&nbsp;'; }
-                        $buildthread_output .= '<span class="commentpostername">';
-                        if ($line_reply['email']!='') {
-                            $buildthread_output .= '<a href="';
-                            if (strtolower($line_reply['email'])!="age"&&strtolower($line_reply['email'])!="sage") {
-                                $buildthread_output .= 'mailto:';
-                            }
-                            $buildthread_output .= stripslashes($line_reply['email']).'">';
-                        }
-                        //$clock[] = 'BuildThread Line Mark 5 Reply 3: '.microtime_float();
-                        if (stripslashes($line_reply['user'])==''&&$line_reply['tripcode']=='') {
-                            $buildthread_output .= 'Anonymous';
-                        } else if (stripslashes($line_reply['user'])==''&&$line['tripcode']!='') {
-                            // If they have a tripcode, just display the tripcode
-                        } else {
-                            $buildthread_output .= stripslashes($line_reply['user']);
-                        }
-                        if (stripslashes($line_reply['email'])!='') {
-                            $buildthread_output .= '</a>';
-                        }
-                        //$clock[] = 'BuildThread Line Mark 5 Reply 4: '.microtime_float();
-                        $buildthread_output .= '</span>';
-                        if ($line_reply['tripcode']!='') {
-                            $buildthread_output .= '<span class="postertrip">!'.$line_reply['tripcode'].'</span>';
-                        }
-                        if ($line_reply['posterauthority']) {
-                            if ($line_reply['posterauthority']==1) {
-                                $buildthread_output .= ' <span class="admin">##&nbsp;Admin&nbsp;##</span>';
-                            } else if ($line_reply['posterauthority']==2) {
-                                $buildthread_output .= ' <span class="mod">##&nbsp;Mod&nbsp;##</span>';
-                            }
-                        }
-                        $buildthread_output .= ' '.date('y/m/d(D)H:i',$line_reply['postedat']);
-                        $buildthread_output .= '</label> <span class="reflink"><a href="'.TC_BOARDSFOLDER.$this->board_dir.'/res/'.$thread_id.'.html#'.$line_reply['id'].'">No.</a><a href="'.TC_BOARDSFOLDER.$this->board_dir.'/res/'.$thread_id.'.html#i'.$line_reply['id'].'"';
-                        if (!$page) {
-                            $buildthread_output .= ' onclick="insert(\'>>'.$line_reply['id'].'\');"';
-                        }
-                        //$clock[] = 'BuildThread Line Mark 5 Reply 5: '.microtime_float();
-                        $buildthread_output .= '>'.$line_reply['id'].'</a></span>'.$this->DeleteAndBanLinks($line_reply['id'],false).'&nbsp;<br>';
-                        if ($line_reply['image']!=''&&!$resurrect&&$line_reply['imagetype']!='you'&&$line_reply['imagetype']!='goo') {
-                            //$clock[] = 'BuildThread Line Mark 5 Reply 6: '.microtime_float();
-                            $buildthread_output .= '<span class="filesize">File: <a ';
-                            if ($this->config_imagesinnewwindow==1) {
-                                $buildthread_output .= 'target="_blank" ';
-                            }
-                            $buildthread_output .= 'href="';
-                            if ($line_reply['image']=='removed') {
-                                $buildthread_output .= TC_BOARDSFOLDER.'imageremoved.png">imageremoved.png';
-                            } else {
-                                $buildthread_output .= TC_BOARDSFOLDER.$this->board_dir.'/src/'.$line_reply['image'].'.'.$line_reply['imagetype'].'">'.$line_reply['image'].'.'.$line_reply['imagetype'];
-                            }
-                            $buildthread_output .= '</a> -(<em>';
-                            if ($line_reply['image']=='removed') {
-                                $buildthread_output .= '&nbsp';
-                            } else {
-                                $buildthread_output .= round($line_reply['image_size']/1024)." KB, {$reply_imgWidth}x$reply_imgHeight";
-                            }
-                            //$clock[] = 'BuildThread Line Mark 5 Reply 7: '.microtime_float();
-                            $buildthread_output .= '</em>)</span> <span class="thumbnailmsg">Thumbnail displayed, click image for full size.</span><br><a ';
-                            if ($this->config_imagesinnewwindow==1)
-                            {
-                                $buildthread_output .= 'target="_blank" ';
-                            }
-                            $buildthread_output .= 'href="';
-                            if ($line_reply['image']=='removed') {
-                                $buildthread_output .= TC_BOARDSFOLDER.'imageremoved.png"><img src="'.TC_BOARDSFOLDER.'imageremoved.png';
-                            } else if ($line_reply['imagetype']=='swf') {
-                                $buildthread_output .= TC_BOARDSPATH.'/'.$this->board_dir.'/src/'.$line_reply['image'].'.'.$line_reply['imagetype'].'"><img src="'.TC_BOARDSPATH.'/flash.png';
-                            } else {
-                                $buildthread_output .= TC_BOARDSPATH.'/'.$this->board_dir.'/src/'.$line_reply['image'].'.'.$line_reply['imagetype'].'"><img src="'.TC_BOARDSPATH.'/'.$this->board_dir.'/thumb/'.$line_reply['image'].'s.'.$line_reply['imagetype'];
-                            }
-                            $buildthread_output .= '" width="'.$reply_imgWidth_thumb.'" height="'.$reply_imgHeight_thumb.'" alt="'.$line_reply['id'].'" class="thumb" /></a>';
-                        }
-                        //$clock[] = 'BuildThread Line Mark 5 Reply 8: '.microtime_float();
-                        $buildthread_output .= '<blockquote><p>';
-                        if ($line_reply['imagetype']=='you'||$line_reply['imagetype']=='goo') {
-                            $buildthread_output .= '<span style="float: left;">';
-                            if ($line_reply['imagetype']=='you') {
-                                $buildthread_output .= '<object width="200" height="164"><param name="movie" value="http://www.youtube.com/v/'.$line_reply['image'].'"></param><param name="wmode" value="transparent"></param><embed src="http://www.youtube.com/v/'.$line_reply['image'].'" type="application/x-shockwave-flash" wmode="transparent" width="200" height="164"></embed></object>';
-                            } elseif ($line_reply['imagetype']=='goo') {
-                                $buildthread_output .= '<embed style="width:200px; height:164px;" id="VideoPlayback" type="application/x-shockwave-flash" src="http://video.google.com/googleplayer.swf?docId='.$line_reply['image'].'&hl=en" flashvars=""></embed>';
-                            }
-                            $buildthread_output .= '</span>&nbsp;';
-                        }
-                        if (count(explode(chr(10), stripslashes($line_reply['message'])))>15&&$page) {
-                            $message_exploded = explode(chr(10), stripslashes($line_reply['message']));
-                            $message_shortened = '';
-                            for ($i = 0; $i <= 14; $i++) {
-                                $message_shortened .= $message_exploded[$i];
-                            }
-                            $message_shortened = preg_replace('/<a href="'.preg_quote(TC_BOARDSFOLDER).$this->board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="'.TC_BOARDSFOLDER.$this->board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;', $message_shortened);
-                            $message_shortened = closeOpenTags($message_shortened);
-                            $buildthread_output .= $message_shortened;
-                            $buildthread_output .= '<div class="abbrev">Comment too long. Click <a href="'.TC_BOARDSFOLDER.$this->board_dir.'/res/'.$thread_id.'.html">here</a> to view the full text.</div>';
-                        } else {
-                            //$buildthread_output .= '/[\<a href\="\/b\/res\/'.$thread_id.'\.html#i]([0-9]+)["\>&gt;&gt;]/'.'<br><br>'.'<a href="/'.$this->board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;\\1</a>'.'<br><br>';
-                            if ($page==true) {
-                                $buildthread_output .= preg_replace('/<a href="\/'.$this->board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$this->board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;', stripslashes($line_reply['message']));
-                            } else {
-                                $buildthread_output .= preg_replace('/<a href="\/'.$this->board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$this->board_dir.'/res/'.$thread_id.'.html#\\1" onclick="highlight(\'\\1\');">&gt;&gt;', stripslashes($line_reply['message']));
-                            }
-                            //$buildthread_output .= preg_replace('/'.preg_quote('<a href="\/b\/res\/'.$thread_id.'.html#i').'([0-9]+)'.preg_quote('">&gt;&gt;').'/', '<a href="/b/res/'.$thread_id.'.html#\\1">&gt;&gt;',stripslashes($line['message']));
-                        }
-                        //$clock[] = 'BuildThread Line Mark 5 Reply 9: '.microtime_float();
-                        $buildthread_output .= '</blockquote></td></tr></tbody></table>';
+                        $buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line_reply['id'], $line_reply['threadid'], $line_reply['user'], $line_reply['tripcode'], $line_reply['email'], $line_reply['subject'], $line_reply['message'], $line_reply['image'], $line_reply['imagetype'], $line_reply['image_w'], $line_reply['image_h'], $line_reply['image_size'], $line_reply['thumb_w'], $line_reply['thumb_h'], $line_reply['postedat'], $line_reply['stickied'], $line_reply['locked'], $line_reply['posterauthority']);
                     }
                 }
-                $buildthread_output .= '<br clear="left" /><hr />';
+                $buildthread_output .= '<br clear="left"><hr>';
             } else {
-                if ($page) {
-                    $buildthread_output .= '<div class="border"><div class="thread">';
-                } else {
-                    $buildthread_output .= '<hr>';
-                }
-                $buildthread_output .= '<a name="'.$thread_relative_id.'"></a>';
-                if ($page) {
-                    $buildthread_output .= '<span class="navlinks"><a href="#';
-                    if (($thread_relative_id-1)==-1) {
-                        $buildthread_output .= ($num_threads_onfrontpage-1);
-                    } else {
-                        $buildthread_output .= ($thread_relative_id-1);
-                    }
-                    $buildthread_output .= '">&uarr;</a>&nbsp;<a href="#';
-                    if (($thread_relative_id+1)==$num_threads_onfrontpage) {
-                        $buildthread_output .= '0';
-                    } else {
-                        $buildthread_output .= ($thread_relative_id+1);
-                    }
-                    $buildthread_output .= '">&darr;</a>&nbsp;<a href="#menu">&#9632;</a></span>';
-                }
-                if ($page) {
-                    $buildthread_output .= '<h2>';
-                    $buildthread_output .= '<a href="res/'.$thread_id.'.html">';
-                } else {
-                    $buildthread_output .= '<h3>';
-                }
-                $buildthread_output .= $line['subject'];
-                if ($page) {
-                    $buildthread_output .= '</a>';
-                }
-                if ($page) {
-                    $buildthread_output .= '<span class="replies">&nbsp;('.$numReplies.')</span></h2>';
-                    if ($thread_relative_id%2==0) {
-                        $buildthread_output .= '<div class="post even">';
-                    } else {
-                        $buildthread_output .= '<div class="post odd">';
-                    }
-                } else {
-                    $buildthread_output .= '<span class="replies">&nbsp;('.$numReplies.')</span></h3>';
-                    $buildthread_output .= '<div class="post even">';
-                }
-                $buildthread_output .= '<span class="postnum"><a href="javascript:quote(1,\'post'.$line['id'].'\');"';
-                if (!$page)
-                {
-                    $buildthread_output .= ' name="1"';
-                }
-                $buildthread_output .= '>1</a></span>&nbsp;';
-                $buildthread_output .= '<span class="postinfo">Name:&nbsp;<span class="postername">';
-                if ($line['user']==''&&$line['tripcode']=='') {
-                    $buildthread_output .= 'Anonymous';
-                } else if ($line['user']==''&&$line['tripcode']!='') {
-                    $buildthread_output .= ''; // If they have a tripcode, just display the tripcode
-                } else {
-                    $buildthread_output .= stripslashes($line['user']);
-                }
-                $buildthread_output .= '</span><span class="postertrip">';
-                if ($line['tripcode']!='') {
-                    $buildthread_output .= '!'.stripslashes($line['tripcode']);
-                }
-                $buildthread_output .= '</span> @ ';
-                $buildthread_output .= date('Y-m-d H:i',$line['postedat']);
-                $buildthread_output .= $this->DeleteAndBanLinks($thread_id,true);
-                $buildthread_output .= '<span class="id"></span></span><blockquote>';
-                $buildthread_output .= stripslashes($line['message']);
-                $buildthread_output .= '</blockquote></div>';
-                $is_even = false;
-                if ($page) {
-                    $query .= ' LIMIT '.max(0,$numReplies-5).',5';
-                }
+                $buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line['id'], $line['threadid'], $line['user'], $line['tripcode'], $line['email'], $line['subject'], $line['message'], $line['image'], $line['imagetype'], $line['image_w'], $line['image_h'], $line['image_size'], $line['thumb_w'], $line['thumb_h'], $line['postedat'], $line['stickied'], $line['locked'], $line['posterauthority'], false, $thread_relative_id, 1, $numReplies, $num_threads_onfrontpage);
                 if ($numReplies>5&&$page) {
                     $buildthread_output .= '<p class="hidden">The 5 newest replies are shown below.<br/><a href="res/'.$line['id'].'.html">Read this thread from the beginning</a></p>';
-                    $reply_relative_id = $numReplies-4;
+                    $reply_relative_id = $numReplies-3;
                 } else {
                     $reply_relative_id = 1;
                 }
                 if ($page) {
-                    $query = 'SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' ORDER BY `postedat` DESC LIMIT 5';
+                    $query = 'SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `threadid` = '.mysql_real_escape_string($thread_id).' ORDER BY `postedat` DESC LIMIT 5';
                     $results2 = array_reverse($tc_db->GetAll($query));
                 } else {
-                    $query = 'SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' ORDER BY `postedat` ASC';
+                    $query = 'SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `threadid` = '.mysql_real_escape_string($thread_id).' ORDER BY `postedat` ASC';
                     $results2 = $tc_db->GetAll($query);
                 }
-                //$results2 = $tc_db->GetAll('SELECT * FROM `'.TC_DBPREFIX.'posts_'.$this->board_dir.'` WHERE `IS_DELETED` = '.$isdeleted_check.' AND `threadid` = '.mysql_real_escape_string($thread_id).' ORDER BY `postedat` ASC');
                 foreach($results2 AS $line2) {
                     $reply_relative_id++;
-                    if ($is_even) {
-                        $buildthread_output .= '<div class="post even">';
-                    } else {
-                        $buildthread_output .= '<div class="post odd">';
-                    }
-                    $buildthread_output .= '<span class="postnum"><a href="javascript:quote('.$reply_relative_id.',\'post'.$line['id'].'\');"';
-                    if (!$page) {
-                        $buildthread_output .= ' name="'.$reply_relative_id.'"';
-                    }
-                    $buildthread_output .= '>'.$reply_relative_id.'</a></span>&nbsp;
-                    <span class="postinfo">Name:&nbsp;<span class="postername">';
-                    if ($line2['user']==''&&$line2['tripcode']=='') {
-                        $buildthread_output .= 'Anonymous';
-                    } else if ($line2['user']==''&&$line2['tripcode']!='') {
-                        $buildthread_output .= ''; // If they have a tripcode, just display the tripcode
-                    } else {
-                        $buildthread_output .= stripslashes($line2['user']);
-                    }
-                    $buildthread_output .= '</span><span class="postertrip">';
-                    if ($line2['tripcode']!='') {
-                        $buildthread_output .= '!'.stripslashes($line2['tripcode']);
-                    }
-                    $buildthread_output .= '</span> @ ';
-                    $buildthread_output .= date('Y-m-d H:i',$line2['postedat']);
-                    $buildthread_output .= $this->DeleteAndBanLinks($line2['id'],false);
-                    $buildthread_output .= '<span class="id"></span></span><blockquote>';
-                    $buildthread_output .= stripslashes($line2['message']);
-                    $buildthread_output .= '</blockquote></div>';
-                    $is_even = !$is_even;
+                    $buildthread_output .= $this->BuildPost($page, $this->board_dir, $this->board_type, $line2['id'], $line2['threadid'], $line2['user'], $line2['tripcode'], $line2['email'], $line2['subject'], $line2['message'], $line2['image'], $line2['imagetype'], $line2['image_w'], $line2['image_h'], $line2['image_size'], $line2['thumb_w'], $line2['thumb_h'], $line2['postedat'], $line2['stickied'], $line2['locked'], $line2['posterauthority'], $line2['IS_DELETED'], $thread_relative_id, $reply_relative_id, $numReplies, $num_threads_onfrontpage);
                 }
                 $buildthread_output .= '
-                <form name="post'.$line['id'].'" action="'.TC_BOARDSFOLDER.'board.php" method="post">
-                <input type="hidden" name="board" value="'.$this->board_dir.'" />
-                <input type="hidden" name="replythread" value="'.$thread_id.'" />
-                <input name="email" size="25" value="" style="display: none;" />
+                <form name="post'.$line['id'].'" id="post'.$line['id'].'" action="'.TC_BOARDSFOLDER.'board.php" method="post">
+                <input type="hidden" name="board" value="'.$this->board_dir.'">
+                <input type="hidden" name="replythread" value="'.$thread_id.'">
+                <input name="email" size="25" value="" style="display: none;">
                 <table class="postform">
                 <tr>
                 <td class="label">Name:</td>
-                <td><input name="name" size="25" /></td>
+                <td><input name="name" size="25"></td>
                 <td class="label">Email:</td>
-                <td><input name="em" size="25" /></td>
-                <td><input type="submit" value="Reply" class="submit" /></td>
+                <td><input name="em" size="25"></td>
+                <td><input type="submit" value="Reply" class="submit"></td>
                 </tr>';
                 if ($this->board_enablecaptcha==1) {
                     $buildthread_output .= '<tr>
@@ -720,7 +408,9 @@ class Board {
                 <td></td>
                 </tr>
                 </table>
-                </form>';
+                <input type="hidden" name="postpassword" value="">
+                </form>
+                <script type="text/javascript">set_inputs(\'post'.$line['id'].'\')</script>';
                 if ($page) {
                     $buildthread_output .= '</div></div>';
                 } else {
@@ -728,34 +418,271 @@ class Board {
                 }
             }
             $thread_relative_id++;
-            //$clock[] = 'BuildThread Line 3: '.microtime_float();
         }
         if (!$page&&$this->board_type!=1) {
-            $buildthread_output .= '<table class="userdelete"><tbody><tr><td>Delete Post [<label><input type="checkbox" name="fileonly" value="on" />File Only</label>]<br>Password <input type="password" name="postpassword" size="8" />&nbsp;<input name="deletepost" value="Delete" type="submit" />';
+            $buildthread_output .= '<table class="userdelete"><tbody><tr><td>Delete Post [<label><input type="checkbox" name="fileonly" value="on">File Only</label>]<br>Password <input type="password" name="postpassword" size="8">&nbsp;<input name="deletepost" value="Delete" type="submit">';
             if ($this->board_enablereporting==1) {
-                $buildthread_output .= '<input name="reportpost" value="Report" type="submit" />';
+                $buildthread_output .= '<input name="reportpost" value="Report" type="submit">';
             }
             $buildthread_output .= '</td></tr></tbody></table></form>';
         }
-        //$clock[] = 'BuildThread end: '.microtime_float();
         return $buildthread_output;
     }
+    
+    function BuildPost($page, $post_board, $post_board_type, $post_id, $post_threadid, $post_user, $post_tripcode, $post_email, $post_subject, $post_message, $post_image, $post_imagetype, $post_image_w, $post_image_h, $post_image_size, $post_thumb_w, $post_thumb_h, $post_postedat, $post_stickied, $post_locked, $post_posterauthority, $post_is_deleted=false, $thread_relative_id=0, $reply_relative_id=0, $thread_replies=0, $threads_on_front_page=0) {
+        $buildpost_output = '';
+        $post_thread_start_id = ($post_threadid==0) ? $post_id : $post_threadid;
+        $post_is_thread = ($post_threadid==0) ? true : false;
+        $post_is_standard = true;
+        if ($post_board_type!=1) {
+            /* Build a post imageboard style */
+            $info_file = '';
+            $info_post = '';
+            $info_image = '';
+            if ($post_image==''&&$post_imagetype==''&&$post_is_thread) {
+                $post_is_nofile = true;
+            } else {
+                $post_is_nofile = false;
+                if ($post_image=='removed') {
+                    $post_image_w = '0';
+                    $post_image_h = '0';
+                    $post_thumb_w = '189';
+                    $post_thumb_h = '16';
+                    $post_thumb = TC_BOARDSFOLDER.'imageremoved.png';
+                } else {
+                    /* Check if the filetype is not a default type */
+                    if ($post_imagetype!='jpg'&&$post_imagetype!='gif'&&$post_imagetype!='png'&&$post_imagetype!='you'&&$post_imagetype!='goo') {
+                        $post_is_standard = false;
+                        $filetype_info = getfiletypeinfo($post_imagetype);
+                        $post_thumb = TC_WEBPATH.'/inc/filetypes/'.$filetype_info[0];
+                        $post_thumb_w = $filetype_info[1];
+                        $post_thumb_h = $filetype_info[2];
+                    } else {
+                        /* It is a default format, calculate the thumbnail location */
+                        $post_thumb = TC_BOARDSFOLDER.$post_board.'/thumb/'.$post_image.'s.'.$post_imagetype;
+                    }
+                }
+            }
+            /* Build the "File: ..." line */
+            if (!$post_is_nofile&&($post_imagetype!='you'&&$post_imagetype!='goo'&&$post_image!='')) {
+                $info_file .= '<span class="filesize">'._('File:').' <a ';
+                if (TC_NEWWINDOW) {
+                    $info_file .= 'target="_blank" ';
+                }
+                $info_file .= 'href="';
+                if ($post_image=='removed') {
+                    $info_file .= TC_BOARDSFOLDER.'imageremoved.png">imageremoved.png';
+                } else {
+                    $info_file .= TC_BOARDSFOLDER.$post_board.'/src/'.$post_image.'.'.$post_imagetype.'">'.$post_image.'.'.$post_imagetype;
+                }
+                $info_file .= '</a> -(<em>';
+                if ($post_image=='removed') {
+                    $info_file .= '&nbsp';
+                } else {
+                    $info_file .= round($post_image_size/1024).' KB, '.$post_image_w.'x'.$post_image_h;
+                }
+                $info_file .= '</em>)</span><span class="thumbnailmsg"> ';
+                if ($post_is_standard) {
+                    $info_file .= _('Thumbnail displayed, click image for full size.');
+                } else {
+                    $info_file .= _('Extension icon displayed, click image to open file.');
+                }
+                $info_file .= '</span>';
+            }
+            /* Build the "[checkbox] (Poster name)..." line */
+            if ($post_imagetype!='you'&&$post_imagetype!='goo'&&$post_image!=''&&!$post_is_nofile) {
+                $info_image .= '<a ';
+                if (TC_NEWWINDOW) {
+                    $info_image .= 'target="_blank" ';
+                }
+                $info_image .= 'href="'.TC_BOARDSPATH.'/'.$post_board.'/src/'.$post_image.'.'.$post_imagetype.'"><img src="'.$post_thumb;
+                $info_image .= '" width="'.$post_thumb_w.'" height="'.$post_thumb_h.'" alt="'.$post_id.'" class="thumb"></a>';
+            }
+            $info_post .= '<a name="'.$post_id.'"></a><label><input type="checkbox" name="delete" value="'.$post_id.'">&nbsp;';
+            if ($post_subject!='') {
+                $info_post .= '<span class="filetitle">'.stripslashes($post_subject).'</span> ';
+            }
+            $info_post .= '<span class="postername">';
+            if ($post_email!='') {
+                $info_post .= '<a href="mailto:'.$post_email.'">';
+            }
+            if ($post_user==''&&$post_tripcode=='') {
+                $info_post .= _('Anonymous');
+            } else if ($post_user==''&&$post_tripcode!='') {
+                /* Just display the tripcode, no added html */
+                $info_post .= '';
+            } else {
+                $info_post .= stripslashes($post_user);
+            }
+            if ($post_email!='') {
+                $info_post .= '</a>';
+            }
+            $info_post .= '</span>';
+            if ($post_tripcode!='') {
+                $info_post .= '<span class="postertrip">!'.$post_tripcode.'</span>';
+            }
+            if ($post_posterauthority>0) {
+                if ($post_posterauthority==1) {
+                    $info_post .= ' <span class="admin">##&nbsp;'._('Admin').'&nbsp;##</span>';
+                } else if ($post_posterauthority==2) {
+                    $info_post .= ' <span class="mod">##&nbsp;'._('Mod').'&nbsp;##</span>';
+                }
+            }
+            $info_post .= ' '.date("y/m/d(D)H:i", $post_postedat).'</label> <span class="reflink"><a href="'.TC_BOARDSFOLDER.$post_board.'/res/'.$post_thread_start_id.'.html#'.$post_id.'">No.</a><a href="'.TC_BOARDSPATH.'/'.$post_board.'/res/'.$post_thread_start_id.'.html#i'.$post_id.'"';
+            if (!$page) {
+                $info_post .= ' onclick="insert(\'>>'.$post_id.'\');"';
+            }
+            $info_post .= '>'.$post_id.'</a>';
+            if ($post_locked==1) {
+                $info_post .= '&nbsp;<img style="border: 0;" src="'.TC_BOARDSPATH.'/locked.gif" alt="'._('Locked').'">';
+            }
+            if ($post_stickied==1) {
+                $info_post .= '<img style="border: 0;" src="'.TC_BOARDSPATH.'/sticky.gif" alt="'._('Stickied').'">';
+            }
+            $info_post .= '</span>';
+            if ($page&&$post_is_thread) {
+                $info_post .= '&nbsp;&#91;<a href="'.TC_BOARDSPATH.'/'.$post_board.'/res/'.$post_thread_start_id.'.html">'._('Reply').'</a>&#93;';
+            }
+            $info_post .= $this->DeleteAndBanLinks($post_id, $post_is_thread);
+            if (!$post_is_thread) {
+                $buildpost_output .= '<table><tbody><tr>
+                <td class="doubledash">&gt;&gt;</td>
+                <td class="reply" id="reply'.$post_id.'"><a name="'.$post_id.'"></a>'.$info_post;
+                /* Make sure the file line is actually in use to prevent an unwanted <br> */
+                if ($info_file!='') {
+                    $buildpost_output .= '<br>'.$info_file;
+                }
+                /* Another check for an unwanted <br> */
+                if ($info_image!='') {
+                    $buildpost_output .= '<br>'.$info_image;
+                }
+            } else {
+                /* And another check for an unwanted <br> */
+                if ($info_file!='') {
+                    $buildpost_output .= $info_file.'<br>';
+                }
+                $buildpost_output .= $info_image.$info_post;
+            }
+            $buildpost_output .= '<blockquote><p>';
+            if ($post_imagetype=='you'||$post_imagetype=='goo') {
+                $buildpost_output .= '<span style="float: left;">';
+                if ($post_imagetype=='you') {
+                    $buildpost_output .= '<object width="200" height="164"><param name="movie" value="http://www.youtube.com/v/'.$post_image.'"></param><param name="wmode" value="transparent"></param><embed src="http://www.youtube.com/v/'.$post_image.'" type="application/x-shockwave-flash" wmode="transparent" width="200" height="164"></embed></object>';
+                } elseif ($post_imagetype=='goo') {
+                    $buildpost_output .= '<embed style="width:200px; height:164px;" id="VideoPlayback" type="application/x-shockwave-flash" src="http://video.google.com/googleplayer.swf?docId='.$post_image.'&hl=en" flashvars=""></embed>';
+                }
+                $buildpost_output .= '</span>&nbsp;';
+            }
+            if (count(explode('<br>', $post_message))>15&&$page) {
+                $message_exploded = explode('<br>', stripslashes($post_message));
+                $message_shortened = '';
+                for ($i = 0; $i <= 14; $i++) {
+                    $message_shortened .= $message_exploded[$i].'<br>';
+                }
+                $message_shortened = preg_replace('/<a href="\/'.$post_board.'\/res\/'.$post_thread_start_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$post_board.'/res/'.$post_thread_start_id.'.html#\\1">&gt;&gt;', $message_shortened);
+                $message_shortened = closeOpenTags($message_shortened);
+                $buildpost_output .= $message_shortened;
+                $buildpost_output .= '<div class="abbrev">'.sprintf(_('Comment too long. Click %shere%s to view the full text.'), '<a href="'.TC_BOARDSFOLDER.$post_board.'/res/'.$post_thread_start_id.'.html">', '</a>').'</div>';
+            } else {
+                $buildpost_output .= stripslashes($post_message);
+            }
+            $buildpost_output .= '</p></blockquote>';
+            if (!$post_is_thread) {
+                $buildpost_output .= '</td></tr></tbody></table>';
+            }
+        } else {
+            /* Build a post text-board style */
+            if ($post_is_deleted) {
+                $post_user = '';
+                $post_email = '';
+                $post_tripcode = 'Deleted';
+                $post_message = '<font color="gray">'._('This post has been deleted.').'</font>';
+            }
+            if ($post_is_thread) {
+                if ($page) {
+                    $buildpost_output .= '<div class="border"><div class="thread">';
+                } else {
+                    $buildpost_output .= '<hr>';
+                }
+            }
+            $buildpost_output .= '<a name="'.$thread_relative_id.'"></a>';
+            if ($post_is_thread) {
+                if ($page) {
+                    $buildpost_output .= '<span class="navlinks"><a href="#';
+                    if (($thread_relative_id-1)==-1) {
+                        $buildpost_output .= ($threads_on_front_page-1);
+                    } else {
+                        $buildpost_output .= ($thread_relative_id-1);
+                    }
+                    $buildpost_output .= '">&uarr;</a>&nbsp;<a href="#';
+                    if (($thread_relative_id+1)==$threads_on_front_page) {
+                        $buildpost_output .= '0';
+                    } else {
+                        $buildpost_output .= ($thread_relative_id+1);
+                    }
+                    $buildpost_output .= '">&darr;</a>&nbsp;<a href="#menu">&#9632;</a></span>';
+                }
+                $buildpost_output .= '<h2>';
+                if ($page) {
+                    $buildpost_output .= '<a href="res/'.$post_thread_start_id.'.html">';
+                }
+                $buildpost_output .= $post_subject;
+                if ($page) {
+                    $buildpost_output .= '</a>';
+                }
+                if ($page) {
+                    $buildpost_output .= '<span class="replies">&nbsp;('.$thread_replies.')</span></h2>';
+                    if ($thread_relative_id%2==0) {
+                        $buildpost_output .= '<div class="post even">';
+                    } else {
+                        $buildpost_output .= '<div class="post odd">';
+                    }
+                } else {
+                    $buildpost_output .= '<span class="replies">&nbsp;('.$thread_replies.')</span></h3>';
+                    $buildpost_output .= '<div class="post even">';
+                }
+            } else {
+                if ($thread_relative_id%2==0) {
+                    $buildpost_output .= '<div class="post even">';
+                } else {
+                    $buildpost_output .= '<div class="post odd">';
+                }
+            }
+            $buildpost_output .= '<h3><span class="postnum"><a href="javascript:quote('.$reply_relative_id.', \'post'.$post_thread_start_id.'\');"';
+            if (!$page) {
+                $buildpost_output .= ' name="'.$reply_relative_id.'"';
+            }
+            $buildpost_output .= '>'.$reply_relative_id.'</a></span>&nbsp;';
+            $buildpost_output .= '<span class="postinfo">Name:&nbsp;<span class="postername">';
+            if ($post_user==''&&$post_tripcode=='') {
+                $buildpost_output .= _('Anonymous');
+            } else if ($post_user==''&&$post_tripcode!='') {
+                $buildpost_output .= '';
+            } else {
+                $buildpost_output .= stripslashes($post_user);
+            }
+            $buildpost_output .= '</span><span class="postertrip">';
+            if ($post_tripcode!='') {
+                $buildpost_output .= '!'.stripslashes($post_tripcode);
+            }
+            $buildpost_output .= '</span> @ ';
+            $buildpost_output .= date('Y-m-d H:i', $post_postedat);
+            $buildpost_output .= $this->DeleteAndBanLinks($post_id, $post_is_thread);
+            $buildpost_output .= '<span class="id"></span></span></h3><blockquote>';
+            $buildpost_output .= stripslashes($post_message);
+            $buildpost_output .= '</blockquote></div>';
+        }
+        
+        return $buildpost_output;
+    }
 
-    function PageHeader($replythread = '0',$liststart = '0',$listpage = '-1',$liststooutput = '-1') {
-        global $tc_db, $tc_config, $clock;
-        //$clock[] = 'Pageheader 1: '.microtime_float();
+    function PageHeader($replythread = '0', $liststart = '0', $listpage = '-1', $liststooutput = '-1') {
+        global $tc_db, $tc_config;
         $output = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
         <html>
         <head>
-        <title>';
-        if ($tc_config['is_7chan']) {
-          $output .= $this->board_desc.' @ 7chan';
-        } else {
-          $output .= '/'.$this->board_dir.'/ - '.$this->board_desc;
-        }
-        $output .= '</title><script type="text/javascript">var style_cookie="tcstyle";</script>
-        <script type="text/javascript" src="'.TC_BOARDSFOLDER.'javascript.js">
-        </script>';
+        <title>/'.$this->board_dir.'/ - '.$this->board_desc.'</title>';
+        
         if ($this->board_type==0||$this->board_type==2) {
             $output .= '
             <style type="text/css">
@@ -763,16 +690,27 @@ class Board {
             .admin { color: purple;    font-weight:normal; }
             .mod { color: red; font-weight:normal; }
             </style>';
-            if ($tc_config['is_7chan']) {
-             $output .= '<link rel="stylesheet" type="text/css" href="'.TC_BOARDSPATH.'/css/burichan.css" title="Burichan">';
+            if ($this->board_defaultstyle!='') {
+                $output .= print_stylesheets($this->board_defaultstyle);
             } else {
-             $output .= print_stylesheets('Futaba');
+                $output .= print_stylesheets('Futaba');
             }
         } else {
-            $output .= '<link rel="stylesheet" href="'.TC_BOARDSFOLDER.'css/global.css">';
-            $output .= '<link rel="stylesheet" href="'.TC_BOARDSFOLDER.'css/0ch.css" title="Pseud0ch" media="screen">';
-            $output .= '<style type="text/css">body.board {background-image: url('.TC_BOARDSFOLDER.'ba.gif);}</style>';
+            $output .= '<link rel="stylesheet" href="'.TC_BOARDSFOLDER.'css/txt_global.css">';
+            $output .= '<link rel="stylesheet" href="'.TC_BOARDSFOLDER.'css/txt_pseud0ch.css" title="Pseud0ch" media="screen">';
+            $output .= '<link rel="alternate stylesheet" href="'.TC_BOARDSFOLDER.'css/txt_yotsuba.css" title="Yotsuba" media="screen">';
         }
+        $output .= '<script type="text/javascript">var style_cookie';
+        if ($this->board_type==1) {
+            $output .= '_txt';
+        }
+        $output .= '="tcstyle';
+        if ($this->board_type==1) {
+            $output .= '_txt';
+        }
+        $output .= '";</script>
+        <script type="text/javascript" src="'.TC_BOARDSFOLDER.'javascript.js">
+        </script>';
         $output .= '<link rel="shortcut icon" href="'.TC_WEBPATH.'/favicon.ico">
         <meta http-equiv="cache-control" content="no-cache">
         <meta http-equiv="pragma" content="no-cache">
@@ -787,35 +725,14 @@ class Board {
         } else {
             $output .= '<body>';
         }
-        //$clock[] = 'Pageheader 2: '.microtime_float();
         if ($this->board_type==0||$this->board_type==2) {
-            $output .= '<div class="adminbar">';
-            if (!$tc_config['is_7chan']) {
-                $output .= '[<a href="javascript:set_stylesheet(\'Burichan\')">Burichan</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Futaba\')">Futaba</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Gurochan\')">Gurochan</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Photon\')">Photon</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Fuhrerchan\')">Fuhrerchan</a>]&nbsp;-&nbsp;';
-            }
-            $output .= '[<a href="'.TC_WEBPATH.'" target="_top">Home</a>]&nbsp;';
-            if (!$tc_config['is_7chan']) {
-                $output .= '[<a href="'.TC_BOARDSPATH.'/manage.php">Manage</a>]';
-            }
-            $output .= '</div>';
+            $output .= '<div class="adminbar">[<a href="javascript:set_stylesheet(\'Burichan\')">Burichan</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Futaba\')">Futaba</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Gurochan\')">Gurochan</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Photon\')">Photon</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Fuhrerchan\')">Fuhrerchan</a>]&nbsp;-&nbsp;';
+            $output .= '[<a href="'.TC_WEBPATH.'" target="_top">Home</a>]&nbsp;[<a href="'.TC_BOARDSPATH.'/manage.php">Manage</a>]</div>';
             $output .= display_boardlist(false);
         } else {
             $output .= display_boardlist(true);
         }
-        if ($tc_config['is_7chan']) {
-            $ad_top = '195';
-            if ($replythread!='0') {
-                $ad_top += '50';
-            }
-            if ($this->board_type != 1) {
-                if ($this->board_type != 2) {
-                    // Linjutsu Ad
-                    $output .= '<!-- Begin: Linjutsu --><div id="linjutsu-ad" style="top:'.$ad_top.'px;left:5px;"><a href="http://www.linjutsu.net" target="_new"><img src="http://www.7chan.org/donotblock/linjutsu.jpg" border="0" alt="Linjutsu Hosting"></a></div><!-- End: Linjutsu -->';
-                }
-                // Adbrite Ads
-                $output .= '<!-- Begin: AdBrite --><div id="ad" style="top:'.$ad_top.'px;"> <div class="ad-title">Advertisements</div><script type="text/javascript" src="http://ads.adbrite.com/mb/text_group.php?sid=195242&amp;br=1&amp;dk=72656c6174696f6e73686970735f335f325f776562"></script><div><a class="adHeadline" target="_top" href="http://www.adbrite.com/mb/commerce/purchase_form.php?opid=195242&amp;afsid=1">Advertise Here</a></div></div><!-- End: AdBrite -->';
-            }
-        } elseif ($tc_config['is_trevorchan']) {
+        if (isset($tc_config['is_trevorchan'])) {
             $ad_top = 185;
             $ad_right = 25;
             if ($this->board_type==1)  {
@@ -853,28 +770,32 @@ class Board {
             $output .= '<div class="logo">';
             if ($this->board_image=='') {
                 if (TC_HEADERURL!='') {
-                    $output .= '<img src="'.TC_HEADERURL.'" alt="Logo" /><br />';
+                    $output .= '<img src="'.TC_HEADERURL.'" alt="Logo"><br>';
                 }
             } else if ($this->board_image!=''&&$this->board_image!="none") {
-                $output .= '<img src="'.$this->board_image.'" alt="Logo" /><br />';
+                $output .= '<img src="'.$this->board_image.'" alt="Logo"><br>';
             }
-            if ($tc_config['is_7chan']) {
-                $output .= $this->board_desc.' @ 7chan';
-            } else {
-                $output .= '/'.$this->board_dir.'/ - '.$this->board_desc;
-            }
+            $output .= '/'.$this->board_dir.'/ - '.$this->board_desc;
             $output .= '</div>';
             $output .= stripslashes($this->board_includeheader);
-            $output .= '<hr />';
+            $output .= '<hr>';
         } else if ($this->board_type==1&&$replythread==0) {
-            //Text board - header
-            $output .= '<div class="hborder"><div class="head">';
+            /* Text board header */
+            $output .= '<div class="hborder">
+            <div class="head">
+            <a name="menu" rev="contents"></a>';
             if ($listpage<0||$liststooutput<0) {
                 $output .= '<span class="navlinks"><a href="#0">&darr;</a>&nbsp;<a href="#menu">&#9632;</a></span>';
             }
-            $output .= '<h1>'.$this->board_desc.'</h1>
+            $output .= '<h1 align="center">'.$this->board_desc.'</h1>
             </div>
+            </div>
+            <div class="hborder">
+                <div class="head midhead">
+                    <b>Style:</b> <a href="#" onclick="javascript:set_stylesheet(\'Yotsuba\',true);return false;">Yotsuba</a> <a href="#" onclick="javascript:set_stylesheet(\'Pseud0ch\',true);return false;">Pseud0ch</a>
+                </div>
             </div>';
+            
             if ($listpage>=0&&$liststooutput>=0) {
                 $output .= 'Pages:&nbsp;<a href="board.html">Front</a>';
                 for ($i = 0; $i <= $liststooutput; $i++) {
@@ -887,27 +808,23 @@ class Board {
                 $output .= '<br>';
             }
             $is_page = ($listpage<0||$liststooutput<0) ? false : true;
-            $output .= display_textboard_threadlist($this->board_dir,$liststart,$liststooutput,$is_page);
+            $output .= display_textboard_threadlist($this->board_dir, $liststart, $liststooutput, $is_page);
         }
-        //$clock[] = 'Pageheader 3: '.microtime_float();
         return $output;
     }
 
     function CachePostbox() {
         if (!isset($this->postbox_noreply)&&!isset($this->postbox_isreply)) {
             $this->postbox_noreply = $this->Postbox();
-            $this->postbox_noreply = $this->Postbox(1);
+            $this->postbox_isreply = $this->Postbox(1);
         }
     }
 
-    function Postbox($replythread = 0,$oekaki = '',$postboxnotice = '') {
+    function Postbox($replythread = 0, $oekaki = '', $postboxnotice = '') {
         global $tc_db;
-        global $clock;
-        //$clock[] = 'Postbox 1: '.microtime_float();
+        
         $output = '';
-        if ($this->board_type==1&&$replythread!=0) {
-            //Do nothing
-        } else {
+        if (!($this->board_type==1&&$replythread!=0)) {
             if ($this->board_type==0||$this->board_type==2) {
                 $output .= '<div class="postarea">';
                 $label_class = 'postblock';
@@ -937,23 +854,23 @@ class Board {
             }
             if (($this->board_type==2&&$oekaki!=''&&$replythread==0)||($this->board_type==2&&$replythread!=0)||($this->board_type==0||$this->board_type==1)) {
                 $output .= '<form id="postform" action="'.TC_BOARDSPATH.'/board.php" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="board" value="'.$this->board_dir.'" />';
+                <input type="hidden" name="board" value="'.$this->board_dir.'">';
                 if ($replythread!=0) {
                     $output .= '
-                    <input type="hidden" name="replythread" value="'.$replythread.'" />';
+                    <input type="hidden" name="replythread" value="'.$replythread.'">';
                 }
-                $output .= '<input type="text" name="email" size="28" maxlength="75" value="" style="display: none;" /><p>
+                $output .= '<input type="text" name="email" size="28" maxlength="75" value="" style="display: none;"><p>
                 <table class="postform"><tbody>';
                 if ($this->board_forcedanon!=1) {
                     $output .= '<tr>
-                    <td class="'.$label_class.'">Name</td><td><input type="text" name="name" size="28" maxlength="75" /></td>
+                    <td class="'.$label_class.'">Name</td><td><input type="text" name="name" size="28" maxlength="75"></td>
                     </tr>';
                 }
                 $output .= '<tr>
-                <td class="'.$label_class.'">E-mail</td><td><input type="text" name="em" size="28" maxlength="75" /></td>
+                <td class="'.$label_class.'">E-mail</td><td><input type="text" name="em" size="28" maxlength="75"></td>
                 </tr>
                 <tr>
-                <td class="'.$label_class.'">Subject</td><td><input type="text" name="subject" size="35" maxlength="75" />&nbsp;<input type="submit" value="Submit" /></td>
+                <td class="'.$label_class.'">Subject</td><td><input type="text" name="subject" size="35" maxlength="75">&nbsp;<input type="submit" value="Submit"></td>
                 </tr>
                 <tr>
                 <td class="'.$label_class.'">Message</td><td><textarea name="message" cols="48" rows="4"></textarea></td>
@@ -963,9 +880,12 @@ class Board {
                         $output .= '<tr>
                         <td class="'.$label_class.'">File<a href="#" onclick="togglePassword();" style="text-decoration: none;">&nbsp;</a></td><td>';
                         if ($oekaki=='') {
-                            $output .= '<input type="file" name="imagefile" size="35" />';
+                            $output .= '<input type="file" name="imagefile" size="35">';
+                            if ($replythread==0&&$this->board_enablenofile==1) {
+                                $output .= ' [<label><input type="checkbox" name="nofile"> '._('No File').'</label>]';
+                            }
                         } else {
-                            $output .= 'Shown Below<input type="hidden" name="oekaki" value="'.$oekaki.'" />';
+                            $output .= 'Shown Below<input type="hidden" name="oekaki" value="'.$oekaki.'">';
                         }
                         $output .= '</td>
                         </tr>';
@@ -974,7 +894,7 @@ class Board {
                         $output .= '<tr><td class="'.$label_class.'">Embed</td><td><input type="text" name="embed" size="28" maxlength="75">&nbsp;<select name="embedtype"><option value="youtube">YouTube</option></select></td></tr>';
                     }
                     $output .= '<tr>
-                    <td class="'.$label_class.'">Password</td><td><input type="password" name="postpassword" size="8" />&nbsp;(for post and file deletion)</td>
+                    <td class="'.$label_class.'">Password</td><td><input type="password" name="postpassword" size="8">&nbsp;(for post and file deletion)</td>
                     </tr>';
                 }
                 if ($this->board_enablecaptcha==1) {
@@ -988,53 +908,52 @@ class Board {
                     <td colspan="2"><div class="rules">'.$postboxnotice .'</div></td>
                     </tr>';
                 }
-                $output .= '</tbody></table></form>';
+                $output .= '</tbody></table>';
+                if ($this->board_type==1) {
+                    $output .= '<input type="hidden" name="postpassword" value="">';
+                }
+                $output .= '</form>';
                 if ($this->board_type==0||$this->board_type==2) {
                     $output .= '<hr>';
                 }
             }
             $output .= '</div><script type="text/javascript">set_inputs("postform")</script>';
         }
-        //$clock[] = 'Postbox 2: '.microtime_float();
         return $output;
     }
 
+    /* Have javascript add the [D & B] links on the page if the tcmod cookie is set to yes */
     function DeleteAndBanLinks($post_id, $is_thread) {
         global $tc_db;
-        if ($is_thread==true) {
-            $post_threadorpost = 'thread';
-        } else {
-            $post_threadorpost = 'post';
-        }
-        return "<script type=\"text/javascript\">
-        if (getCookie(\"tcmod\")==\"yes\") {
-            document.write('&nbsp;&#91;<a href=\"".TC_BOARDSFOLDER."manage.php?action=delposts&boarddir=".$this->board_dir."&del".$post_threadorpost."id=".$post_id."\" title=\"Delete\" onclick=\"return confirm(\\'Are you sure you want to delete this ".$post_threadorpost."?\\');\">D<\/a>&nbsp;<a href=\"".TC_BOARDSFOLDER."manage.php?action=delposts&boarddir=".$this->board_dir."&del".$post_threadorpost."id=".$post_id."&postid=".$post_id."\" title=\"Delete &amp; Ban\" onclick=\"return confirm(\\'Are you sure you want to delete and ban the poster of this ".$post_threadorpost."?\\');\">&amp;<\/a>&nbsp;<a href=\"".TC_BOARDSFOLDER."manage.php?action=bans&banboard=".$this->board_dir."&banpost=".$post_id."\" title=\"Ban\">B<\/a>&#93;');
-        }
-        </script>";
+        $is_thread_jsfriendly = ($is_thread) ? 'true' : 'false';
+        return '<span id="dnb'.$post_id.'"><script type="text/javascript">delandbanlinks(\'dnb'.$post_id.'\', \''.$this->board_dir.'\', '.$post_id.', '.$is_thread_jsfriendly.');</script></span>';
     }
 
     /* The name is deceiving, this function will trim the threads to the page limit AND delete posts which are older than limited */
     function TrimToPageLimit() {
         global $tc_db;
-        if ($this->board_maxage!=0) { //If the maximum thread age setting is not zero (do not delete old threads), find posts which are older than the limit, and delete them
-            $results = $tc_db->GetAll("SELECT `id`,`postedat` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = 0 AND `stickied` = 0"); //Fetch all non-deleted thread-starting posts from the selected board
+        if ($this->board_maxage!=0) {
+            /* If the maximum thread age setting is not zero (do not delete old threads), find posts which are older than the limit, and delete them */
+            $results = $tc_db->GetAll("SELECT `id`, `postedat` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = 0 AND `stickied` = 0");
             foreach($results AS $line) {
-                if ($line['postedat']+($this->board_maxage*3600)<time()) { //If it is older than the limit
-                    $post_class = new Post($line['id'],$this->board_dir);
+                if ($line['postedat']+($this->board_maxage*3600)<time()) {
+                    /* If it is older than the limit */
+                    $post_class = new Post($line['id'], $this->board_dir);
                     $post_class->Delete();
                 }
             }
         }
-        if ($this->board_maxpages!='0') { //If the maximum pages setting is not zero (do not limit pages), find posts which are over the limit, and delete them
-            $results = $tc_db->GetAll("SELECT `id`,`stickied` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND  `threadid` = 0"); //Fetch all non-deleted thread-starting posts from the selected board
-            if (calculatenumpages($this->board_type,count($results))>=$this->board_maxpages) {
-                $this->board_maxthreads = $this->board_maxpages * $this->config_numthreadsdisplayed;
+        if ($this->board_maxpages!='0') {
+            /* If the maximum pages setting is not zero (do not limit pages), find posts which are over the limit, and delete them */
+            $results = $tc_db->GetAll("SELECT `id`, `stickied` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND  `threadid` = 0");
+            if (calculatenumpages($this->board_type, count($results))>=$this->board_maxpages) {
+                $this->board_maxthreads = $this->board_maxpages * TC_THREADS;
                 $numthreadsover = count($results) - $this->board_maxthreads;
                 if ($numthreadsover>0) {
-                    $resultspost = $tc_db->SelectLimit("SELECT `id`,`stickied` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND  `threadid` = '0' AND `stickied` = '0' ORDER BY `lastbumped` ASC",$numthreadsover);
+                    $resultspost = $tc_db->SelectLimit("SELECT `id`, `stickied` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND  `threadid` = '0' AND `stickied` = '0' ORDER BY `lastbumped` ASC", $numthreadsover);
                     foreach($resultspost AS $linepost) {
                         if ($linepost['stickied']==0) {
-                            $post_class = new Post($linepost['id'],$this->board_dir);
+                            $post_class = new Post($linepost['id'], $this->board_dir);
                             $post_class->Delete();
                         }
                     }
@@ -1043,11 +962,11 @@ class Board {
         }
     }
 
-    function Footer($noboardlist = false,$executiontime = '',$hide_extra = false) {
+    function Footer($noboardlist = false, $executiontime = '', $hide_extra = false) {
         global $tc_db;
         if (!$hide_extra) {
             if ($noboardlist==false) {
-                $output = '<br />'.display_boardlist();
+                $output = '<br>'.display_boardlist();
             } else {
                 $output = '';
             }
@@ -1059,7 +978,7 @@ class Board {
         }
         $output .= '- <a href="http://www.trevorchan.org/" target="_top">Trevorchan</a> v'.TC_VERSION.' + Created by <a href="http://www.tj9991.com/" target="_top">tj9991</a> -';
         if ($executiontime!='') {
-            $output .= '<br>Took '.round($executiontime,2).'s';
+            $output .= '<br>Took '.round($executiontime, 2).'s';
         }
         if ($hide_extra) {
             $output .= '<br><a href="'.TC_BOARDSPATH.'/manage.php">Manage Boards</a></div>';
@@ -1073,7 +992,16 @@ class Board {
 }
 
 class Post extends Board {
-    function Post($postid,$board,$is_inserting = false) {
+    /* Declare the public variables */
+    var $post_id;
+    var $post_threadid;
+    var $post_image;
+    var $post_imagetype;
+    var $post_password;
+    var $post_isreported;
+    var $post_isthread;
+    
+    function Post($postid, $board, $is_inserting = false) {
         global $tc_db;
         $results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."posts_".$board."` WHERE `id` = ".mysql_real_escape_string($postid)." LIMIT 1");
         if (count($results)==0&&!$is_inserting) {
@@ -1115,13 +1043,13 @@ class Post extends Board {
         global $tc_db;
         $i = 0;
         if ($this->post_isthread==true) {
-            $results = $tc_db->GetAll("SELECT `id`,`image`,`imagetype` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = ".mysql_real_escape_string($this->post_id));
+            $results = $tc_db->GetAll("SELECT `id`, `image`, `imagetype` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = ".mysql_real_escape_string($this->post_id));
             foreach($results AS $line) {
                 $i++;
                 $tc_db->Execute("UPDATE `".TC_DBPREFIX."posts_".$this->board_dir."` SET `IS_DELETED` = 1 WHERE `id` = ".$line['id']." AND `threadid` = ".mysql_real_escape_string($this->post_id)." LIMIT 1");
             }
             unlink(TC_BOARDSDIR.$this->board_dir.'/res/'.$this->post_id.'.html');
-            $this->DeleteImage(false,true);
+            $this->DeleteImage(false, true);
             $tc_db->Execute("UPDATE `".TC_DBPREFIX."posts_".$this->board_dir."` SET `IS_DELETED` = 1 WHERE `id` = ".mysql_real_escape_string($this->post_id)." LIMIT 1");
             return $i.' ';
         } else {
@@ -1134,7 +1062,7 @@ class Post extends Board {
     function DeleteImage($update_to_removed = true, $whole_thread = false) {
         global $tc_db;
         if ($whole_thread&&$this->post_isthread) {
-            $results = $tc_db->GetAll("SELECT `id`,`image`,`imagetype` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = ".mysql_real_escape_string($this->post_id)." LIMIT 1");
+            $results = $tc_db->GetAll("SELECT `id`, `image`, `imagetype` FROM `".TC_DBPREFIX."posts_".$this->board_dir."` WHERE `IS_DELETED` = 0 AND `threadid` = ".mysql_real_escape_string($this->post_id)." LIMIT 1");
             if (count($results)>0) {
                 foreach($results AS $line) {
                     if ($line['image']!=''&&$line['image']!="removed") {
@@ -1158,10 +1086,10 @@ class Post extends Board {
         }
     }
 
-    function Insert($threadid,$user,$tripcode,$email,$subject,$message,$image,$imagetype,$imagemd5,$image_w,$image_h,$image_size,$thumb_w,$thumb_h,$password,$postedat,$lastbumped,$ip,$posterauthority,$stickied,$locked) {
+    function Insert($threadid, $user, $tripcode, $email, $subject, $message, $image, $imagetype, $imagemd5, $image_w, $image_h, $image_size, $thumb_w, $thumb_h, $password, $postedat, $lastbumped, $ip, $posterauthority, $stickied, $locked) {
         global $tc_db;
         require_once(TC_ROOTDIR."inc/encryption.php");
-        $query = "INSERT INTO `".TC_DBPREFIX."posts_".$this->board_dir."` ( `threadid` , `user` , `tripcode` , `email` , `subject` , `message` , `image` , `imagetype` , `imagemd5` , `image_w` , `image_h` , `image_size` , `thumb_w` , `thumb_h` , `password` , `postedat` , `lastbumped` , `ip` , `ipmd5` , `posterauthority` , `stickied` , `locked` ) VALUES ( '".mysql_real_escape_string($threadid)."','".mysql_real_escape_string($user)."','".mysql_real_escape_string($tripcode)."','".mysql_real_escape_string($email)."','".mysql_real_escape_string($subject)."','".mysql_real_escape_string($message)."','".mysql_real_escape_string($image)."','".mysql_real_escape_string($imagetype)."','".mysql_real_escape_string($imagemd5)."','".mysql_real_escape_string($image_w)."','".mysql_real_escape_string($image_h)."','".mysql_real_escape_string($image_size)."','".mysql_real_escape_string($thumb_w)."','".mysql_real_escape_string($thumb_h)."','".mysql_real_escape_string($password)."','".mysql_real_escape_string($postedat)."','".mysql_real_escape_string($lastbumped)."','".mysql_real_escape_string(md5_encrypt($ip,TC_RANDOMSEED))."','".md5($ip)."','".mysql_real_escape_string($posterauthority)."','".mysql_real_escape_string($stickied)."','".mysql_real_escape_string($locked)."' )";
+        $query = "INSERT INTO `".TC_DBPREFIX."posts_".$this->board_dir."` ( `threadid` , `user` , `tripcode` , `email` , `subject` , `message` , `image` , `imagetype` , `imagemd5` , `image_w` , `image_h` , `image_size` , `thumb_w` , `thumb_h` , `password` , `postedat` , `lastbumped` , `ip` , `ipmd5` , `posterauthority` , `stickied` , `locked` ) VALUES ( '".mysql_real_escape_string($threadid)."', '".mysql_real_escape_string($user)."', '".mysql_real_escape_string($tripcode)."', '".mysql_real_escape_string($email)."', '".mysql_real_escape_string($subject)."', '".mysql_real_escape_string($message)."', '".mysql_real_escape_string($image)."', '".mysql_real_escape_string($imagetype)."', '".mysql_real_escape_string($imagemd5)."', '".mysql_real_escape_string($image_w)."', '".mysql_real_escape_string($image_h)."', '".mysql_real_escape_string($image_size)."', '".mysql_real_escape_string($thumb_w)."', '".mysql_real_escape_string($thumb_h)."', '".mysql_real_escape_string($password)."', '".mysql_real_escape_string($postedat)."', '".mysql_real_escape_string($lastbumped)."', '".mysql_real_escape_string(md5_encrypt($ip, TC_RANDOMSEED))."', '".md5($ip)."', '".mysql_real_escape_string($posterauthority)."', '".mysql_real_escape_string($stickied)."', '".mysql_real_escape_string($locked)."' )";
         $tc_db->Execute($query);
         return $tc_db->Insert_Id();
     }
@@ -1169,7 +1097,7 @@ class Post extends Board {
     function Report() {
         global $tc_db;
         require_once(TC_ROOTDIR."inc/encryption.php");
-        return $tc_db->Execute("INSERT INTO `".TC_DBPREFIX."reports` ( `board` , `postid` , `when` , `ip` ) VALUES ( '".mysql_real_escape_string($this->board_dir)."' , ".mysql_real_escape_string($this->post_id)." , ".time()." , '".md5_encrypt($_SERVER['REMOTE_ADDR'],TC_RANDOMSEED)."' )");
+        return $tc_db->Execute("INSERT INTO `".TC_DBPREFIX."reports` ( `board` , `postid` , `when` , `ip` ) VALUES ( '".mysql_real_escape_string($this->board_dir)."' , ".mysql_real_escape_string($this->post_id)." , ".time()." , '".md5_encrypt($_SERVER['REMOTE_ADDR'], TC_RANDOMSEED)."' )");
     }
 }
 

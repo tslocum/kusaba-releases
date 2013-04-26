@@ -1,12 +1,26 @@
 <?php
-/*
-* +------------------------------------------------------------------------------+
-* News display, which is the first page shown when a user visits a chan's index
-* +------------------------------------------------------------------------------+
-* Any news added by an administrator in the manage panel will show here, with the
-* newest entry on the top.
-* +------------------------------------------------------------------------------+
-*/
+  /*
+   * This file is part of Trevorchan.
+   *
+   * Trevorchan is free software; you can redistribute it and/or modify it under the
+   * terms of the GNU General Public License as published by the Free Software
+   * Foundation; either version 2 of the License, or (at your option) any later
+   * version.
+   *
+   * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+   * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+   * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   *
+   * You should have received a copy of the GNU General Public License along with
+   * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+   * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   * +------------------------------------------------------------------------------+
+   * News display,which is the first page shown when a user visits a chan's index
+   * +------------------------------------------------------------------------------+
+   * Any news added by an administrator in the manage panel will show here,with the
+   * newest entry on the top.
+   * +------------------------------------------------------------------------------+
+   */
 require("config.php");
 
 ?>
@@ -18,7 +32,7 @@ require("config.php");
 <style type="text/css">
 body { font-family: sans-serif; font-size: 75%; background: #ffe }
 a { text-decoration: none; color: #550 }
-h1,h2 { margin: 0px; background: #fca }
+h1, h2 { margin: 0px; background: #fca }
 h1 { font-size: 150% }
 h2 { font-size: 100%; margin-top: 1em }
 .hl { font-style: italic }
@@ -38,22 +52,34 @@ li a { display: block; width: 100%; }
 
 News | <a href="#">Blog</a> | <a href="#">FAQ</a> | <a href="#">Rules</a></div>
 <?php
+
+/* Get all of the news entries,ordered with the newest one placed on top */
 $results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."news` ORDER BY `postedat` DESC");
 foreach($results AS $line) {
+    echo '<div class="content">
+    <h2>'.stripslashes($line['subject']).' by ';
+    /* If the message had an email attached to it,add the proper html to link to it */
+    if ($line['postedemail']!="") {
+        echo '<a href="mailto:'.stripslashes($line['postedemail']).'">';
+    }
+    echo stripslashes($line['postedby']);
+    if ($line['postedemail']!="") {
+        echo '</a>';
+    }
+    echo ' - '.date("n/j/y @ g:iA T", $line['postedat']);
+    echo '</h2>
+    '.stripslashes($line['message']).'</div>';
+}
+
+/* Don't worry about this,it only applies to my personal installation of Trevorchan */
+if ($tc_config['is_trevorchan']) {
+    echo '<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+    _uacct = "UA-71983-7";
+    urchinTracker();
+    </script>';
+}
 ?>
-<div class="content">
-<h2><?php echo stripslashes($line['subject']); ?> by <?php if ($line['postedemail']!="") { echo '<a href="mailto:'.stripslashes($line['postedemail']).'">'; } echo stripslashes($line['postedby']); if ($line['postedemail']!="") { echo '</a>'; } ?> - <?php echo date("n/j/y @ g:iA T",$line['postedat']); ?></h2>
-
-<?php echo stripslashes($line['message']); ?></div>
-<?php } ?>
-
-<!--Remove from release-->
-<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
-</script>
-<script type="text/javascript">
-_uacct = "UA-71983-7";
-urchinTracker();
-</script>
-
 </body>
 </html>

@@ -43,17 +43,23 @@ if (file_exists("config.php")) {
 		if (TC_RANDOMSEED!="ENTER RANDOM LETTERS/NUMBERS HERE"&&TC_RANDOMSEED!="") {
 			echo 'Configuration appears correct.';
 			echo '<h2>Checking database...</h2>';
-			$reqiredtables = array("banlist","boards","config","iplist","loginattempts","modlog","news","passcache","reports","sections","staff","wordfilter");
+			$reqiredtables = array("banlist","boards","filetypes","iplist","loginattempts","modlog","news","passcache","reports","sections","staff","wordfilter");
 			foreach ($reqiredtables as $tablename) {
 				if (!mysql_table_exists(TC_DBDATABASE,TC_DBPREFIX.$tablename)) {
-					die("Couldn't find the table <b>".TC_DBPREFIX.$tablename."</b> in the database.  Please <a href=\"install-mysql.php\">insert the mySQL dump</a>.");
+					die("Couldn't find the table <b>".TC_DBPREFIX.$tablename."</b> in the database.  Please <a href=\"install-mysql.php\"><b>insert the mySQL dump</b></a>.");
 				}
 			}
 			echo 'Database appears correct.';
 			echo '<h2>Inserting default administrator account...</h2>';
-			$result = $tc_db->Execute("INSERT INTO `".TC_DBPREFIX."staff` ( `username` , `password` , `isadmin` , `addedon` ) VALUES ( 'admin' , '".md5("admin")."' , '1' , '".time()."' )");
+			$result_exists = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."staff` WHERE `username` = 'admin'");
+			if ($result_exists==0) {
+                $result = $tc_db->Execute("INSERT INTO `".TC_DBPREFIX."staff` ( `username` , `password` , `isadmin` , `addedon` ) VALUES ( 'admin' , '".md5("admin")."' , '1' , '".time()."' )");
+                echo 'Account inserted.';
+            } else {
+                echo 'There is already an administrator account inserted.';
+                $result = true;
+            }
 			if ($result) {
-				echo 'Account inserted.';
 				echo '<h2>Done!</h2>Installation has finished!  The default administrator account is <b>admin</b> with the password of <b>admin</b>.<br /><br />Delete this and the install-mysql.php file from the server, then <a href="manage.php">add some boards</a>!';
 				echo '<br /><br /><br /><h1><font color="red">DELETE THIS AND install-mysql.php RIGHT NOW!</font></h1>';
 			} else {

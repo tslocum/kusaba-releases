@@ -57,7 +57,6 @@ Before running this script, make sure that:<br>
 </ul>
 <form action="install-mysql.php" method="post">
 <br>
-
 <input type="checkbox" name="confirm"> By clicking this check box I agree that the author of this script cannot be held responsible for my own stupidity if something goes wrong.<br><br><br>
 <input type="submit" value="Import the MySQL batch file">
 </form>
@@ -79,6 +78,7 @@ Before running this script, make sure that:<br>
 	$sqlfile = fopen('trevorchan_freshinstall.sql', 'r');
 	echo 'File opened.<br>';
 	$readdata = fread($sqlfile, filesize('trevorchan_freshinstall.sql'));
+	$readdata = str_replace('PREFIX_',TC_DBPREFIX,$readdata);
 	fclose($sqlfile);
 	echo 'Contents read.<br>';
 	}else{

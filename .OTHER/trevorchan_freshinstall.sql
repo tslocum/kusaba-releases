@@ -2,7 +2,7 @@
 -- Table structure for table `banlist`
 -- 
 
-CREATE TABLE `banlist` (
+CREATE TABLE `PREFIX_banlist` (
   `id` smallint(5) NOT NULL auto_increment,
   `type` tinyint(1) NOT NULL default '0',
   `allowread` tinyint(1) NOT NULL default '1',
@@ -15,7 +15,7 @@ CREATE TABLE `banlist` (
   `until` int(20) NOT NULL,
   `reason` text NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM;
+) ENGINE=MyISAM AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -23,7 +23,7 @@ CREATE TABLE `banlist` (
 -- Table structure for table `boards`
 -- 
 
-CREATE TABLE `boards` (
+CREATE TABLE `PREFIX_boards` (
   `id` tinyint(5) NOT NULL auto_increment,
   `order` tinyint(5) NOT NULL default '0',
   `name` varchar(75) NOT NULL,
@@ -43,21 +43,27 @@ CREATE TABLE `boards` (
   `includeheader` text NOT NULL,
   `redirecttothread` tinyint(1) NOT NULL default '0',
   `forcedanon` tinyint(1) NOT NULL default '0',
+  `defaultstyle` varchar(50) NOT NULL default 'Futaba',
   `enablereporting` tinyint(1) NOT NULL default '1',
   `enablecaptcha` tinyint(1) NOT NULL default '0',
+  `enablenofile` tinyint(1) NOT NULL default '0',
   KEY `id` (`id`)
-) ENGINE=MyISAM;
+) ENGINE=MyISAM AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `config`
+-- Table structure for table `filetypes`
 -- 
 
-CREATE TABLE `config` (
-  `key` varchar(255) NOT NULL,
-  `value` text NOT NULL
-) ENGINE=MyISAM;
+CREATE TABLE `PREFIX_filetypes` (
+  `id` mediumint(5) NOT NULL auto_increment,
+  `filetype` varchar(255) NOT NULL,
+  `image` varchar(255) NOT NULL,
+  `image_w` int(7) NOT NULL default '0',
+  `image_h` int(7) NOT NULL default '0',
+  UNIQUE KEY `id` (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -65,7 +71,7 @@ CREATE TABLE `config` (
 -- Table structure for table `iplist`
 -- 
 
-CREATE TABLE `iplist` (
+CREATE TABLE `PREFIX_iplist` (
   `ip` varchar(200) NOT NULL,
   `ipmd5` varchar(200) NOT NULL,
   `lastpost` int(20) NOT NULL
@@ -77,7 +83,7 @@ CREATE TABLE `iplist` (
 -- Table structure for table `loginattempts`
 -- 
 
-CREATE TABLE `loginattempts` (
+CREATE TABLE `PREFIX_loginattempts` (
   `username` varchar(255) NOT NULL,
   `ip` varchar(20) NOT NULL,
   `timestamp` int(20) NOT NULL
@@ -89,7 +95,7 @@ CREATE TABLE `loginattempts` (
 -- Table structure for table `modlog`
 -- 
 
-CREATE TABLE `modlog` (
+CREATE TABLE `PREFIX_modlog` (
   `entry` text NOT NULL,
   `user` varchar(255) NOT NULL,
   `category` tinyint(2) NOT NULL default '0',
@@ -102,7 +108,7 @@ CREATE TABLE `modlog` (
 -- Table structure for table `news`
 -- 
 
-CREATE TABLE `news` (
+CREATE TABLE `PREFIX_news` (
   `id` tinyint(5) NOT NULL auto_increment,
   `subject` varchar(255) NOT NULL,
   `message` text NOT NULL,
@@ -110,7 +116,7 @@ CREATE TABLE `news` (
   `postedby` varchar(75) NOT NULL,
   `postedemail` varchar(75) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM;
+) ENGINE=MyISAM AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -118,7 +124,7 @@ CREATE TABLE `news` (
 -- Table structure for table `passcache`
 -- 
 
-CREATE TABLE `passcache` (
+CREATE TABLE `PREFIX_passcache` (
   `md5` varchar(100) NOT NULL,
   `name` varchar(75) NOT NULL,
   `tripcode` varchar(10) NOT NULL
@@ -130,7 +136,7 @@ CREATE TABLE `passcache` (
 -- Table structure for table `reports`
 -- 
 
-CREATE TABLE `reports` (
+CREATE TABLE `PREFIX_reports` (
   `id` int(5) NOT NULL auto_increment,
   `cleared` tinyint(1) NOT NULL default '0',
   `board` varchar(255) NOT NULL,
@@ -138,7 +144,7 @@ CREATE TABLE `reports` (
   `when` int(20) NOT NULL,
   `ip` varchar(75) NOT NULL,
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM;
+) ENGINE=MyISAM AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -146,14 +152,14 @@ CREATE TABLE `reports` (
 -- Table structure for table `sections`
 -- 
 
-CREATE TABLE `sections` (
+CREATE TABLE `PREFIX_sections` (
   `id` int(5) NOT NULL auto_increment,
   `order` tinyint(3) NOT NULL default '0',
   `hidden` tinyint(1) NOT NULL default '0',
   `name` varchar(255) NOT NULL,
   `abbreviation` char(4) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM;
+) ENGINE=MyISAM AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -161,7 +167,7 @@ CREATE TABLE `sections` (
 -- Table structure for table `staff`
 -- 
 
-CREATE TABLE `staff` (
+CREATE TABLE `PREFIX_staff` (
   `id` tinyint(5) NOT NULL auto_increment,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
@@ -169,7 +175,7 @@ CREATE TABLE `staff` (
   `boards` text,
   `addedon` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM;
+) ENGINE=MyISAM AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -177,26 +183,11 @@ CREATE TABLE `staff` (
 -- Table structure for table `wordfilter`
 -- 
 
-CREATE TABLE `wordfilter` (
+CREATE TABLE `PREFIX_wordfilter` (
   `id` tinyint(5) NOT NULL auto_increment,
   `word` varchar(75) NOT NULL,
   `replacedby` varchar(75) NOT NULL,
   `boards` text NOT NULL,
   `time` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM;
-
--- 
--- Dumping data for table `config`
--- 
-
-INSERT INTO `config` (`key`, `value`) VALUES ('imagesinnewwindow', '1'),
-('postboxnotice', '<ul><li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.</li></ul>'),
-('modlogmaxdays', '7'),
-('maxthumbwidth', '200'),
-('maxthumbheight', '200'),
-('numrepliesdisplayed', '3'),
-('numrepliesdisplayedsticky', '1'),
-('numthreadsdisplayed', '10'),
-('makeurlsclickable', '1'),
-('ircinfo', '<a href="irc://irc.fukt.us/trevorchan" title="#trevorchan IRC">#trevorchan @ irc.fukt.us</a>');
+) ENGINE=MyISAM AUTO_INCREMENT=1 ;

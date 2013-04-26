@@ -1,3 +1,76 @@
+var style_cookie;
+var style_cookie_txt;
+var tcmod_set = false;
+
+/**
+*
+*  UTF-8 data encode / decode
+*  http://www.webtoolkit.info/
+*
+**/
+
+var Utf8 = {
+
+	// public method for url encoding
+	encode : function (string) {
+		string = string.replace(/\r\n/g,"\n");
+		var utftext = "";
+
+		for (var n = 0; n < string.length; n++) {
+
+			var c = string.charCodeAt(n);
+
+			if (c < 128) {
+				utftext += String.fromCharCode(c);
+			}
+			else if((c > 127) && (c < 2048)) {
+				utftext += String.fromCharCode((c >> 6) | 192);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+			else {
+				utftext += String.fromCharCode((c >> 12) | 224);
+				utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+
+		}
+
+		return utftext;
+	},
+
+	// public method for url decoding
+	decode : function (utftext) {
+		var string = "";
+		var i = 0;
+		var c = c1 = c2 = 0;
+
+		while ( i < utftext.length ) {
+
+			c = utftext.charCodeAt(i);
+
+			if (c < 128) {
+				string += String.fromCharCode(c);
+				i++;
+			}
+			else if((c > 191) && (c < 224)) {
+				c2 = utftext.charCodeAt(i+1);
+				string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+				i += 2;
+			}
+			else {
+				c2 = utftext.charCodeAt(i+1);
+				c3 = utftext.charCodeAt(i+2);
+				string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+				i += 3;
+			}
+
+		}
+
+		return string;
+	}
+
+}
+
 function replaceAll( str, from, to ) {
 	var idx = str.indexOf( from );
 	while ( idx > -1 ) {
@@ -101,7 +174,7 @@ function getCookie(name)
 	{
 		var regexp=new RegExp("(^|;\\s+)"+name+"=(.*?)(;|$)");
 		var hit=regexp.exec(document.cookie);
-		if(hit&&hit.length>2) return unescape(replaceAll(hit[2],'+','%20'));
+		if(hit&&hit.length>2) return Utf8.decode(unescape(replaceAll(hit[2],'+','%20')));
 		else return '';
 	}
 }
@@ -118,9 +191,13 @@ function set_cookie(name,value,days)
 	document.cookie=name+"="+value+expires+"; path=/";
 }
 
-function set_stylesheet(styletitle,norefresh)
+function set_stylesheet(styletitle,txt)
 {
-	set_cookie("tcstyle",styletitle,365);
+    if (txt) {
+        set_cookie("tcstyle_txt",styletitle,365);
+    } else {
+        set_cookie("tcstyle",styletitle,365);
+	}
 
 	var links=document.getElementsByTagName("link");
 	var found=false;
@@ -128,6 +205,7 @@ function set_stylesheet(styletitle,norefresh)
 	{
 		var rel=links[i].getAttribute("rel");
 		var title=links[i].getAttribute("title");
+		
 		if(rel.indexOf("style")!=-1&&title)
 		{
 			links[i].disabled=true; // IE needs this to work. IE needs to die.
@@ -172,6 +250,26 @@ function get_preferred_stylesheet()
 	return null;
 }
 
+function delandbanlinks(spanid,board,postid,isthread) {
+    if (!tcmod_set) { return; }
+    var dnbspan = document.getElementById(spanid);
+    var newhtml = '';
+    newhtml += '&nbsp;&#91;<a href="/manage.php?action=delposts&boarddir=' + board + '&del';
+    if (isthread) {
+        newhtml += 'thread';
+    } else {
+        newhtml += 'post';
+    }
+    newhtml += 'id=' + postid + '" title="Delete" onclick="return confirm(\'Are you sure you want to delete this post/thread?\');">D<\/a>&nbsp;<a href="/manage.php?action=delposts&boarddir=' + board + '&del';
+    if (isthread) {
+        newhtml +='thread';
+    } else {
+        newhtml += 'post';
+    }
+    newhtml +='id=' + postid + '&postid=' + postid + '" title="Delete &amp; Ban" onclick="return confirm(\'Are you sure you want to delete and ban the poster of this post/thread?\');">&amp;<\/a>&nbsp;<a href="/manage.php?action=bans&banboard=' + board + '&banpost=' + postid + '" title="Ban">B<\/a>&#93;';
+    dnbspan.innerHTML = newhtml;
+}
+
 function set_inputs(id) { with(document.getElementById(id)) {if(!name.value) name.value=getCookie("name"); if(!em.value) em.value=getCookie("email"); if(!postpassword.value) postpassword.value=get_password("postpassword"); } }
 function set_delpass(id) { with(document.getElementById(id)) postpassword.value=getCookie("postpassword"); }
 
@@ -181,6 +279,12 @@ window.onunload=function(e)
 	{
 		var title=get_active_stylesheet();
 		set_cookie(style_cookie,title,365);
+	}
+	
+	if(style_cookie_txt)
+	{
+		var title=get_active_stylesheet();
+		set_cookie(style_cookie_txt,title,365);
 	}
 }
 
@@ -200,5 +304,17 @@ window.onload=function(e)
 if(style_cookie) {
 	var cookie=getCookie(style_cookie);
 	var title=cookie?cookie:get_preferred_stylesheet();
+
 	set_stylesheet(title);
+}
+
+if(style_cookie_txt) {
+	var cookie=getCookie(style_cookie_txt);
+	var title=cookie?cookie:get_preferred_stylesheet();
+
+	set_stylesheet(title);
+}
+
+if (getCookie('tcmod')=='yes') {
+    tcmod_set = true;
 }

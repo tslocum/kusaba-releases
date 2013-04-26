@@ -1,20 +1,33 @@
 <?php
-/*
-* +------------------------------------------------------------------------------+
-* Save script for oekaki uploads
-* +------------------------------------------------------------------------------+
-* This will accept the image sent from the shi-painter app, and save it into the
-* drawings folder (/tcdrawings/) temporarily, until the user makes their post with
-* it.  When posted, it will be used as if the image had been uploaded by the user,
-* and the temporary image will be deleted.
-* +------------------------------------------------------------------------------+
-*/
+  /*
+   * This file is part of Trevorchan.
+   *
+   * Trevorchan is free software; you can redistribute it and/or modify it under the
+   * terms of the GNU General Public License as published by the Free Software
+   * Foundation; either version 2 of the License, or (at your option) any later
+   * version.
+   *
+   * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+   * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+   * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   *
+   * You should have received a copy of the GNU General Public License along with
+   * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+   * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   * +------------------------------------------------------------------------------+
+   * Save script for oekaki uploads
+   * +------------------------------------------------------------------------------+
+   * This will accept the image sent from the shi-painter app, and save it into the
+   * drawings folder (/tcdrawings/) temporarily, until the user makes their post with
+   * it.  When posted, it will be used as if the image had been uploaded by the user, 
+   * and the temporary image will be deleted.
+   * +------------------------------------------------------------------------------+
+   */
 require("config.php");
 require(TC_ROOTDIR.'inc/OekakiInput.php');
 
-if(!function_exists('file_put_contents')) {
-    function file_put_contents($filename, $data)
-    {
+if (!function_exists('file_put_contents')) {
+    function file_put_contents($filename, $data) {
         $fp = @fopen($filename, 'w');
         fwrite($fp, $data);
         fclose($fp);
@@ -34,7 +47,16 @@ do {
     $save_id = basename($_GET['saveid']);
     $save_dir = 'tcdrawings/';
 
-    @mkdir($save_dir, 0777);
+    /* Check if the drawings directory exists */
+    if (!file_exists($save_dir)) {
+        /* If not, try to make it */
+        if (mkdir($save_dir, 0777)) {
+            /* We successfully created the drawings directory, proceed */
+        } else {
+            /* We couldn't create the drawings directory, stop the user and tell them why we can't save their drawing */
+            die('Error: The directory ./'.$save_dir.' was not found and could not be created.  Please notify the sites administrator with a copy of this error.');
+        }
+    }
 
     if(!is_writable($save_dir)) {
         $error = 'CANNOT_WRITE';
@@ -63,28 +85,22 @@ do {
     elseif($image_info[2] == 3) {
         rename($save_dir . 'image', $save_dir . $save_id.'.png');
     }
-    
-    //file_put_contents($save_dir . 'appletinfo', $applet);
-    /*if($data['ANIMATION'])
-    {
-        file_put_contents($save_dir . 'animation.' . $anim_ext, $data['ANIMATION']);
-    }*/
 }
 while(FALSE);
 
-    header("Content-type: {$response_mimetype}");
-    if($error) {
-        $errors = array(
-            'INVALID_APPLET'    => 'An invalid applet was specified. Save a screenshot of your work in case of continued failure.',
-            'NO_IMAGE_DATA'     => 'There was no image data sent. Please reattempt your save (and save a screenshot just in case of continued failure).',
-            'INVALID_DATA'      => 'Invalid image data was sent. The error may be that the applet you are using is configured incorrectly (POO compatibility was be enabled). Save a screenshot of your work in case of continued failure.',
-            // Following errors introduced by the script
-            'CANNOT_WRITE'      => 'The server has encountered an error saving your image. Save a screenshot of your work in case of continued failure.',
-            'NOT_IMAGE'         => 'The data sent was not an image. Please reattempt your save (and save a screenshot just in case of continued failure).',
-            'INVALID_FILETYPE'  => 'The data sent was not a JPG or PNG file. Please reattempt your save (and save a screenshot just in case of continued failure).',
-           );
-        echo(($print_error_prefix ? "error\n" : '') . $errors[ $error ]);
-    } elseif($print_ok) {
-        echo "ok";
-    }
+header("Content-type: {$response_mimetype}");
+if ($error) {
+    $errors = array(
+        'INVALID_APPLET'    => 'An invalid applet was specified. Save a screenshot of your work in case of continued failure.', 
+        'NO_IMAGE_DATA'     => 'There was no image data sent. Please reattempt your save (and save a screenshot just in case of continued failure).', 
+        'INVALID_DATA'      => 'Invalid image data was sent. The error may be that the applet you are using is configured incorrectly (POO compatibility was be enabled). Save a screenshot of your work in case of continued failure.', 
+        // Following errors introduced by the script
+        'CANNOT_WRITE'      => 'The server has encountered an error saving your image. Save a screenshot of your work in case of continued failure.', 
+        'NOT_IMAGE'         => 'The data sent was not an image. Please reattempt your save (and save a screenshot just in case of continued failure).', 
+        'INVALID_FILETYPE'  => 'The data sent was not a JPG or PNG file. Please reattempt your save (and save a screenshot just in case of continued failure).', 
+        );
+    echo (($print_error_prefix ? "error\n" : '') . $errors[ $error ]);
+} elseif($print_ok) {
+    echo "ok";
+}
 ?>

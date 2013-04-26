@@ -1,13 +1,27 @@
 <?php
-/*
-* +------------------------------------------------------------------------------+
-* Paint page for oekaki
-* +------------------------------------------------------------------------------+
-* This is the page displayed when a user clicks the "Paint" button on an oekaki
-* board.  It displays the painter app, configured to send the finished image to
-* paint_save.php, which will be processed for posting.
-* +------------------------------------------------------------------------------+
-*/
+  /*
+   * This file is part of Trevorchan.
+   *
+   * Trevorchan is free software; you can redistribute it and/or modify it under the
+   * terms of the GNU General Public License as published by the Free Software
+   * Foundation; either version 2 of the License, or (at your option) any later
+   * version.
+   *
+   * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+   * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+   * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   *
+   * You should have received a copy of the GNU General Public License along with
+   * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+   * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+   * +------------------------------------------------------------------------------+
+   * Paint page for oekaki
+   * +------------------------------------------------------------------------------+
+   * This is the page displayed when a user clicks the "Paint" button on an oekaki
+   * board.  It displays the painter app, configured to send the finished image to
+   * paint_save.php, which will be processed for posting.
+   * +------------------------------------------------------------------------------+
+   */
 if (!isset($_POST['width'])||!isset($_POST['height'])||!isset($_POST['board'])) {
     die();
 }
@@ -46,6 +60,9 @@ padding: 0
 
 
 $applet = $_POST['applet'];
+
+$use_animation = false;
+
     //$use_animation = $_GET['useanim'] ? TRUE : FALSE;
     
     /*if( $use_animation )
@@ -126,7 +143,7 @@ $OekakiApplet = new OekakiApplet;
         }*/
 if (isset($_POST['replyimage'])) {
     if ($_POST['replyimage']!='0') {
-        $results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."posts_".$board_dir."` WHERE `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'");
+        $results = $tc_db->GetAll("SELECT `image`, `imagetype` FROM `".TC_DBPREFIX."posts_".$board_dir."` WHERE `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'");
         if (count($results)==0) {
             die("Invalid reply image.");
         } else {
