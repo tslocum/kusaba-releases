@@ -7,7 +7,9 @@
 CREATE TABLE `banlist` (
   `id` tinyint(5) NOT NULL auto_increment,
   `type` tinyint(1) NOT NULL default '0',
+  `allowread` tinyint(1) NOT NULL default '1',
   `ip` varchar(255) NOT NULL,
+  `ipmd5` varchar(200) NOT NULL,
   `globalban` tinyint(1) NOT NULL default '0',
   `boards` varchar(255) NOT NULL,
   `by` varchar(75) NOT NULL,
@@ -15,7 +17,7 @@ CREATE TABLE `banlist` (
   `until` int(20) NOT NULL,
   `reason` text NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -42,8 +44,9 @@ CREATE TABLE `boards` (
   `includeheader` text NOT NULL,
   `redirecttothread` tinyint(1) NOT NULL default '0',
   `forcedanon` tinyint(1) NOT NULL default '0',
+  `enablereporting` tinyint(1) NOT NULL default '1',
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -54,7 +57,7 @@ CREATE TABLE `boards` (
 CREATE TABLE `config` (
   `key` varchar(255) NOT NULL,
   `value` text NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -64,8 +67,9 @@ CREATE TABLE `config` (
 
 CREATE TABLE `iplist` (
   `ip` varchar(200) NOT NULL,
+  `ipmd5` varchar(200) NOT NULL,
   `lastpost` int(20) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -77,7 +81,7 @@ CREATE TABLE `loginattempts` (
   `username` varchar(255) NOT NULL,
   `ip` varchar(20) NOT NULL,
   `timestamp` int(20) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -90,7 +94,7 @@ CREATE TABLE `modlog` (
   `user` varchar(255) NOT NULL,
   `category` tinyint(2) NOT NULL default '0',
   `timestamp` int(20) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -106,7 +110,7 @@ CREATE TABLE `news` (
   `postedby` varchar(75) NOT NULL,
   `postedemail` varchar(75) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -125,19 +129,42 @@ CREATE TABLE `posts` (
   `message` text NOT NULL,
   `image` varchar(20) NOT NULL,
   `imagetype` varchar(5) NOT NULL,
-  `imagemd5` text,
+  `imagemd5` text NOT NULL,
+  `image_w` smallint(5) NOT NULL default '0',
+  `image_h` smallint(5) NOT NULL default '0',
+  `image_size` int(10) NOT NULL default '0',
+  `thumb_w` smallint(5) NOT NULL default '0',
+  `thumb_h` smallint(5) NOT NULL default '0',
   `password` varchar(255) NOT NULL,
   `postedat` int(20) NOT NULL,
   `lastbumped` int(20) NOT NULL default '0',
   `ip` varchar(75) NOT NULL,
+  `ipmd5` varchar(200) NOT NULL,
   `stickied` tinyint(1) NOT NULL default '0',
   `locked` tinyint(1) NOT NULL default '0',
   `posterauthority` tinyint(1) NOT NULL default '0',
   `IS_DELETED` tinyint(1) NOT NULL default '0',
   KEY `id` (`id`),
   KEY `threadid` (`threadid`),
-  KEY `boardid` (`boardid`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+  KEY `boardid` (`boardid`),
+  KEY `lastbumped` (`lastbumped`)
+) ENGINE=MyISAM;
+
+-- --------------------------------------------------------
+
+-- 
+-- Table structure for table `reports`
+-- 
+
+CREATE TABLE `reports` (
+  `id` int(5) NOT NULL auto_increment,
+  `cleared` tinyint(1) NOT NULL default '0',
+  `boardid` int(5) NOT NULL,
+  `postid` int(20) NOT NULL,
+  `when` int(20) NOT NULL,
+  `ip` varchar(15) NOT NULL,
+  UNIQUE KEY `id` (`id`)
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -149,8 +176,9 @@ CREATE TABLE `sections` (
   `id` int(5) NOT NULL auto_increment,
   `order` tinyint(3) NOT NULL default '0',
   `name` varchar(255) NOT NULL,
+  `abbreviation` char(4) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -166,7 +194,7 @@ CREATE TABLE `staff` (
   `boards` text,
   `addedon` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -181,5 +209,20 @@ CREATE TABLE `wordfilter` (
   `boards` text NOT NULL,
   `time` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
+
+-- 
+-- Dumping data for table `config`
+-- 
+
+INSERT INTO `config` (`key`, `value`) VALUES ('imagesinnewwindow', '1'),
+('postboxnotice', '<ul><li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.</li></ul>'),
+('modlogmaxdays', '7'),
+('maxthumbwidth', '200'),
+('maxthumbheight', '200'),
+('numrepliesdisplayed', '3'),
+('numrepliesdisplayedsticky', '1'),
+('numthreadsdisplayed', '10'),
+('makeurlsclickable', '1'),
+('ircinfo', '<a href="irc://irc.fukt.us/trevorchan" title="#trevorchan IRC">#trevorchan @ irc.fukt.us</a>');

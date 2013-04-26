@@ -32,16 +32,25 @@ function bbcode($string){
 	
 	return $string;
 }
-function colored_quote($buffer) {
+function colored_quote($buffer,$boardtype) {
 	if (substr($buffer,strlen($buffer)-1)!="\n") {
 		$buffer .= "\n";
 	}
-	$buffer = preg_replace('/^(&gt;[^>](.*))\n/m', '<blockquote class="unkfunc">\\1</blockquote>', $buffer);
-	$buffer = str_replace('<blockquote class="unkfunc">>','<blockquote class="unkfunc">&gt;',$buffer);
+	if ($boardtype=='1') {
+		$class = 'quote';
+		$buffer = preg_replace('/^(&gt;[^>](.*))\n/m', '<blockquote class="'.$class.'">\\1</blockquote>', $buffer);
+		$buffer = str_replace('<blockquote class="'.$class.'">&gt;','<blockquote class="'.$class.'">',$buffer);
+	} else {
+		$class = 'unkfunc';
+		$buffer = preg_replace('/^(&gt;[^>](.*))\n/m', '<blockquote class="'.$class.'">\\1</blockquote>', $buffer);
+		$buffer = str_replace('<blockquote class="'.$class.'">>','<blockquote class="'.$class.'">&gt;',$buffer);
+	}
+	$buffer = preg_replace('/^(&gt;[^>](.*))\n/m', '<blockquote class="'.$class.'">\\1</blockquote>', $buffer);
+	$buffer = str_replace('<blockquote class="'.$class.'">>','<blockquote class="'.$class.'">&gt;',$buffer);
 	
 	return $buffer;
 }
-function clickable_quote($buffer,$board,$threadid,$ispage = false) {
+function clickable_quote($buffer,$board,$boardtype,$threadid,$ispage = false) {
 	//require_once("dbconnection.php");
 	if ($ispage==false) {
 		$buffer = preg_replace('/&gt;&gt;([0-9]+)/', '<a href="/'.$board.'/res/'.$threadid.'.html#i\\1">&gt;&gt;\\1</a>', $buffer);
@@ -65,8 +74,8 @@ function clickable_quote($buffer,$board,$threadid,$ispage = false) {
 	return $buffer;
 }
 function parse_wordfilter($buffer,$board) {
-	require("config.php");
-	$result = mysql_query("SELECT * FROM `".$chan_prefix."wordfilter`",$dblink);
+	global $tc_config;
+	$result = mysql_query("SELECT * FROM `".$tc_config['dbprefix']."wordfilter`",$tc_config['dblink']);
 	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 		$array_boards = explode('|',$line['boards']);
 		if (in_array($board,$array_boards)) {
@@ -85,6 +94,7 @@ function replace_brackets($buffer) {
 function check_notempty($buffer) {
 	$buffer_temp = str_replace("\n","",$buffer);
 	$buffer_temp = str_replace("<br />","",$buffer_temp);
+	$buffer_temp = str_replace("<br>","",$buffer_temp);
 	$buffer_temp = str_replace(" ","",$buffer_temp);
 	if ($buffer_temp=="") {
 		return "";
@@ -122,20 +132,20 @@ function cut_word($txt, $where) {
    }
    return implode("", $d);
 }
-function parse_post($message,$board,$threadid,$ispage = false) {
-	$message = str_replace("&","&amp;",$message);
+function parse_post($message,$board,$boardtype,$threadid,$ispage = false) {
+	$message = str_replace('&','&amp;',$message);
 	$message = replace_brackets($message);
 	$message = trim($message);
 	//$message = str_replace(chr(9),"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",$message);
 	$message = cut_word($message, 100);
-	if ($threadid!='0') {
-		$message = clickable_quote($message,$board,$threadid,$ispage);
-		$message = colored_quote($message);
+	if ($threadid!=0) {
+		$message = clickable_quote($message,$board,$boardtype,$threadid,$ispage);
+		$message = colored_quote($message,$boardtype);
 	}
 	if (config_getvalue('makeurlsclickable')=='1') {
 		$message = make_clickable($message);
 	}
-	$message = nl2br($message);
+	$message = str_replace('<br />','<br>',nl2br($message));
 	$message = bbcode($message);
 	$message = parse_wordfilter($message,$board);
 	$message = check_notempty($message);

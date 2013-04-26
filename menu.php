@@ -1,7 +1,7 @@
 <?php
 
 require('config.php');
-require($chan_rootdir.'/inc/functions.php');
+require($tc_config['rootdir'].'/inc/functions.php');
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -26,43 +26,50 @@ li a { display: block; width: 100%; }
 <link rel="shortcut icon" href="/favicon.ico" />
 <script type="text/javascript">
 function toggle(button,area) {
-	var tog=document.getElementById(area);
-	if(tog.style.display)	{
-		tog.style.display="";
-	}	else {
-		tog.style.display="none";
-	}
-	button.innerHTML=(tog.style.display)?'+':'&minus;';
-	createCookie('nav_show_'+area, tog.style.display?'0':'1', 365);
+    var tog=document.getElementById(area);
+    if(tog.style.display)    {
+        tog.style.display="";
+    }    else {
+        tog.style.display="none";
+    }
+    button.innerHTML=(tog.style.display)?'+':'&minus;';
+    createCookie('nav_show_'+area, tog.style.display?'0':'1', 365);
 }
 </script>
 <base target="main" />
 </head>
 <body>
-<h1><?php echo $chan_name; ?></h1>
+<h1><?php echo $tc_config['name']; ?></h1>
 <ul>
-<li><a href="<?php echo $chan_webpath; ?>" target="_top">Front Page</a></li>
+<li><a href="<?php echo $tc_config['webpath']; ?>" target="_top">Front Page</a></li>
  
 </ul>
 
-<h2><span class="plus" onclick="toggle(this,'img');" title="Click to show/hide">&minus;</span>Image Boards</h2>
-<div id="img" style="">
-<ul><?php
-$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` ORDER BY `order` ASC",$dblink);
-$rows = mysql_num_rows($result);
-if ($rows>0) {
-	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-		echo '<li><a href="'.$chan_boardspath.'/'.$line['name'].'/board.html">'.$line['desc'];
-		if ($line['locked']=="1") {
-			echo ' <img src="'.$chan_boardspath.'/locked.gif" border="0" alt="Locked" />';
-		}
-		echo '</a></li>';
-	}
+<?php
+$result_boardsexist = mysql_query("SELECT `id` FROM `".$tc_config['dbprefix']."boards` LIMIT 1",$tc_config['dblink']);
+if (mysql_num_rows($result_boardsexist)==0) {
+    echo '<ul><li>No visible boards</li></ul>';
 } else {
-	echo '<li>No visible boards</li>';
+    $result = mysql_query("SELECT `id`,`name`,`abbreviation` FROM `".$tc_config['dbprefix']."sections` ORDER BY `order` ASC",$tc_config['dblink']);
+    while ($line = mysql_fetch_assoc($result)) {
+        echo '<h2><span class="plus" onclick="toggle(this,\''.$line['abbreviation'].'\');" title="Click to show/hide">&minus;</span>'.$line['name'].'</h2><div id="'.$line['abbreviation'].'" style=""><ul>';
+        $resultboard = mysql_query("SELECT `name`,`desc`,`locked` FROM `".$tc_config['dbprefix']."boards` WHERE `section` = ".$line['id']." ORDER BY `order` ASC",$tc_config['dblink']);
+        $rows = mysql_num_rows($resultboard);
+        if ($rows>0) {
+            while ($lineboard = mysql_fetch_assoc($resultboard)) {
+                echo '<li><a href="'.$tc_config['boardspath'].'/'.$lineboard['name'].'/board.html">'.$lineboard['desc'];
+                if ($lineboard['locked']=="1") {
+                    echo ' <img src="'.$tc_config['boardspath'].'/locked.gif" border="0" alt="Locked" />';
+                }
+                echo '</a></li>';
+            }
+        } else {
+            echo '<li>No visible boards</li>';
+        }
+        echo '</ul></div>';
+    }
 }
 ?>
-</ul></div>
 
 <?php if (config_getvalue('ircinfo')!='') { ?>
 <h2>IRC</h2>

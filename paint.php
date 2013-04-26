@@ -9,8 +9,8 @@
 		die("Please enter a width/height less than or equal to 750.");
 	}
 	require("config.php");
-	require($chan_rootdir."/inc/OekakiApplet.php");
-	$result = mysql_query("SELECT * FROM `".$chan_prefix."boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'",$dblink);
+	require($tc_config['rootdir']."/inc/OekakiApplet.php");
+	$result = mysql_query("SELECT * FROM `".$tc_config['dbprefix']."boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'",$tc_config['dblink']);
 	$rows = mysql_num_rows($result);
 	if ($rows==0) {
 		die();
@@ -118,7 +118,7 @@ EOB;*/
         }*/
 	if (isset($_POST['replyimage'])) {
 		if ($_POST['replyimage']!='0') {
-			$result = mysql_query("SELECT * FROM `".$chan_prefix."posts` WHERE `boardid` = '".$board_id."' AND `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'",$dblink);
+			$result = mysql_query("SELECT * FROM `".$tc_config['dbprefix']."posts` WHERE `boardid` = '".$board_id."' AND `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'",$tc_config['dblink']);
 			$rows = mysql_num_rows($result);
 			if ($rows==0) {
 				die("Invalid reply image.");
@@ -126,8 +126,8 @@ EOB;*/
 				while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 					$post_image = $line['image'].'.'.$line['imagetype'];
 				}
-				if (is_file($chan_boardsdir.'/'.$_POST['board'].'/src/'.$post_image)) {
-					$imageDim = getimagesize($chan_boardsdir.'/'.$_POST['board'].'/src/'.$post_image);
+				if (is_file($tc_config['boardsdir'].'/'.$_POST['board'].'/src/'.$post_image)) {
+					$imageDim = getimagesize($tc_config['boardsdir'].'/'.$_POST['board'].'/src/'.$post_image);
 					$imgWidth = $imageDim[0];
 					$imgHeight = $imageDim[1];
 					$_POST['width'] = $imgWidth;

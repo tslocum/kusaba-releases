@@ -9,7 +9,7 @@ require("config.php");
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pl" lang="pl">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title><?php echo $chan_name; ?></title>
+<title><?php echo $tc_config['name']; ?></title>
 <style type="text/css">
 body { font-family: sans-serif; font-size: 75%; background: #ffe }
 a { text-decoration: none; color: #550 }
@@ -28,12 +28,12 @@ li a { display: block; width: 100%; }
 </head>
 
 <body>
-<div style="text-align:center;"><h1><?php echo $chan_fancyname; ?></h1></div>
+<div style="text-align:center;"><h1><?php echo $tc_config['fancyname']; ?></h1></div>
 <div class="menu">
 
 News | <a href="#">Blog</a> | <a href="#">FAQ</a> | <a href="#">Rules</a></div>
 <?php
-$result = mysql_query("SELECT * FROM `".$chan_prefix."news` ORDER BY `postedat` DESC",$dblink);
+$result = mysql_query("SELECT * FROM `{$tc_config['dbprefix']}news` ORDER BY `postedat` DESC",$tc_config['dblink']);
 while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 ?>
 <div class="content">
@@ -41,6 +41,14 @@ while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 
 <?php echo stripslashes($line['message']); ?></div>
 <?php } ?>
+
+<!--Remove from release-->
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-71983-7";
+urchinTracker();
+</script>
 
 </body>
 </html>

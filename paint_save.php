@@ -1,7 +1,7 @@
 <?php
 
 	require("config.php");
-	require($chan_rootdir."/inc/OekakiInput.php");
+	require($tc_config['rootdir']."/inc/OekakiInput.php");
 
     if( !function_exists( 'file_put_contents' ) )
     {

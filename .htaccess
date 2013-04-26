@@ -9,3 +9,6 @@ Header add Cache-Control "max-age=0; must-revalidate; no-cache"
 Header unset Vary
 </Files>
 </IfModule>
+
+# Warning: Contents below this line may be erased, please place all .htaccess rules above this line
+## !TC_BANS:
