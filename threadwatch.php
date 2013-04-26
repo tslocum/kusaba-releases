@@ -31,7 +31,8 @@ require_once(TC_ROOTDIR . 'inc/classes/board-post.class.php');
 $output = '';
 
 if (isset($_GET['do'])) {
-	if ($_GET['do'] == 'addthread') {
+	switch($_GET['do']) {
+		case 'addthread':
 		$viewing_thread_is_watched = $tc_db->GetOne("SELECT COUNT(*) FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
 		if ($viewing_thread_is_watched == 0) {
 			$newestreplyid = $tc_db->GetOne('SELECT `id` FROM `'.TC_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `parentid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` DESC LIMIT 1');
@@ -41,13 +42,19 @@ if (isset($_GET['do'])) {
 			
 			if (TC_APC) apc_delete('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
 		}
-	} elseif ($_GET['do'] == 'removethread') {
+		break;
+		
+	case 'removethread':
 		$viewing_thread_is_watched = $tc_db->GetOne("SELECT COUNT(*) FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
 		if ($viewing_thread_is_watched > 0) {
 			$tc_db->Execute("DELETE FROM `" . TC_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
 			
 			if (TC_APC) apc_delete('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
 		}
+		break;
+		
+	default:
+		$output .= 'Invalid operation';
 	}
 } else {
 	/* If the user is sending this request while viewing a thread, check if it is a thread they are watching, and if so, update it to show they have viewed all current replies */

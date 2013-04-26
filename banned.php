@@ -21,9 +21,9 @@
 * viewing the boards.
 * +------------------------------------------------------------------------------+
 */
-require('config.php');
-require(TC_ROOTDIR . 'inc/functions.php');
-require_once(TC_ROOTDIR . 'inc/classes/bans.class.php');
+require 'config.php';
+require TC_ROOTDIR . 'inc/functions.php';
+require TC_ROOTDIR . 'inc/classes/bans.class.php';
 
 $bans_class = new Bans();
 

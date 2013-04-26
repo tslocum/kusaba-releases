@@ -1,6 +1,7 @@
 <?php
 session_start();
-require('config.php');
+$preconfig_db_unnecessary = true;
+require 'config.php';
 
 /*
 * File: CaptchaSecurityImages.php
@@ -25,24 +26,17 @@ require('config.php');
 */
 
 class CaptchaSecurityImages {
-
-	function generateCode($characters) {
-		/* list all possible characters, similar looking characters and vowels have been removed */
-		$possible = '345789cfkmnpstwxyz';
-		$code = '';
-		$i = 0;
-		while ($i < $characters) { 
-			$code .= substr($possible, mt_rand(0, strlen($possible)-1), 1);
-			$i++;
-		}
-		return $code;
-	}
-
+	
 	function CaptchaSecurityImages($width='120',$height='40',$characters='6',$font) {
 		global $font,$font_ballback;
-		$code = $this->generateCode($characters);
+		
+		require_once TC_ROOTDIR . 'inc/classes/randword.class.php';
+		$randword_class = new Rand_Word;
+		
+		$code = $randword_class->rand_word($characters);
+		
 		/* font size will be 75% of the image height */
-		$font_size = $height * 0.75;
+		$font_size = $height * 0.85;
 		$image = @imagecreate($width, $height) or die('Cannot initialize new GD image stream');
 		/* set the colours */
 		$background_color = imagecolorallocate($image, 255, 255, 255);

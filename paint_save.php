@@ -83,8 +83,7 @@ do {
 
 	if($image_info[2] == 2) {
 		rename($save_dir . 'image', $save_dir . 'image.jpg');
-	}
-	elseif($image_info[2] == 3) {
+	} elseif($image_info[2] == 3) {
 		rename($save_dir . 'image', $save_dir . $save_id.'.png');
 	}
 	

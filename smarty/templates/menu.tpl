@@ -21,11 +21,11 @@ function toggle(button, area) {
 }
 function hidedirs() {
 	set_cookie('tcshowdirs', '', 30);
-	window.location = '{/literal}{$tc_webpath}{literal}/menu.html';
+	window.location = '{/literal}{$tc_webpath}/{$menu_file_nodirs}';{literal}
 }
 function showdirs() {
 	set_cookie('tcshowdirs', 'yes', 30);
-	window.location = '{/literal}{$tc_webpath}{literal}/menu_dirs.html';
+	window.location = '{/literal}{$tc_webpath}/{$menu_file_dirs}';{literal}
 }{/literal}{$redirscript}{literal}
 </script>
 {/literal}

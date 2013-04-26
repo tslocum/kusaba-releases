@@ -50,6 +50,7 @@ h3 {
 }
 .permalink {
 	text-align: right;
+	display: block;
 }
 .permalink a {
 	color: blue;

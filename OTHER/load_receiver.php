@@ -32,23 +32,23 @@ if ($_POST['type'] == 'thumbnail' || $_POST['type'] == 'direct') {
 			
 			if (($_POST['isreply'] == '0' && ($imgw > TC_THUMBWIDTH || $imgh > TC_THUMBHEIGHT)) || ($_POST['isreply'] == '1' && ($imgw > TC_REPLYTHUMBWIDTH || $imgh > TC_REPLYTHUMBHEIGHT))) {
 				if ($_POST['isreply'] == '0') {
-					if (!@createthumb($_POST['targetname'], $thumbloc, TC_THUMBWIDTH, TC_THUMBHEIGHT)) {
+					if (!@createThumbnail($_POST['targetname'], $thumbloc, TC_THUMBWIDTH, TC_THUMBHEIGHT)) {
 						@unlink($_POST['targetname']);
 						die('unable to thumbnail');
 					}
 				} else {
-					if (!@createthumb($_POST['targetname'], $thumbloc, TC_REPLYTHUMBWIDTH, TC_REPLYTHUMBHEIGHT)) {
+					if (!@createThumbnail($_POST['targetname'], $thumbloc, TC_REPLYTHUMBWIDTH, TC_REPLYTHUMBHEIGHT)) {
 						@unlink($_POST['targetname']);
 						die('unable to thumbnail');
 					}
 				}
 			} else {
-				if (!@createthumb($_POST['targetname'], $thumbloc, $imgw, $imgh)) {
+				if (!@createThumbnail($_POST['targetname'], $thumbloc, $imgw, $imgh)) {
 					@unlink($_POST['targetname']);
 					die('unable to thumbnail');
 				}
 			}
-			if (!@createthumb($_POST['targetname'], $thumbloc_c, TC_CATTHUMBWIDTH, TC_CATTHUMBHEIGHT)) {
+			if (!@createThumbnail($_POST['targetname'], $thumbloc_c, TC_CATTHUMBWIDTH, TC_CATTHUMBHEIGHT)) {
 				@unlink($_POST['targetname']);
 				die('unable to thumbnail');
 			}
@@ -70,7 +70,7 @@ if ($_POST['type'] == 'thumbnail' || $_POST['type'] == 'direct') {
 	die("\n" . 'finished');
 }
 
-function createthumb($name, $filename, $new_w, $new_h) {
+function createThumbnail($name, $filename, $new_w, $new_h) {
 	$system=explode(".", $filename);
 	$system = array_reverse($system);
 	if (preg_match("/jpg|jpeg/", $system[0])) {

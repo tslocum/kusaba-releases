@@ -18,7 +18,7 @@
  * Load balancer class
  * +------------------------------------------------------------------------------+
  */
-class LoadBalancer {
+class Load_Balancer {
 	var $url;
 	var $password;
 	

@@ -94,7 +94,7 @@ class Manage {
 				$this->SetModerationCookies();
 				$action = 'posting_rates';
 				management_addlogentry(_gettext('Logged in'), 1);
-				die('<script type="text/javascript">top.location.href = \'' . $cf['TC_CGIPATH'] . '/manage.php\';</script>');
+				die('<script type="text/javascript">top.location.href = \'' . TC_CGIPATH . '/manage.php\';</script>');
 			} else {
 				$tc_db->Execute("INSERT HIGH_PRIORITY INTO `" . TC_DBPREFIX . "loginattempts` ( `username` , `ip` , `timestamp` ) VALUES ( '" . mysql_real_escape_string($_POST['username']) . "' , '" . $_SERVER['REMOTE_ADDR'] . "' , '" . time() . "' )");
 				die(_gettext('Incorrect username/password.'));
@@ -160,7 +160,7 @@ class Manage {
 				if (isset($_POST['name'])) {
 					if ($_POST['name'] != '' && $_POST['abbreviation'] != '') {
 						$tc_db->Execute("INSERT HIGH_PRIORITY INTO `" . TC_DBPREFIX . "sections` ( `name` , `abbreviation` , `order` , `hidden` ) VALUES ( '" . mysql_real_escape_string($_POST['name']) . "' , '" . mysql_real_escape_string($_POST['abbreviation']) . "' , '" . mysql_real_escape_string($_POST['order']) . "' , '" . (isset($_POST['hidden']) ? '1' : '0') . "' )");
-						require_once(TC_ROOTDIR . 'inc/classes/menu.class.php');
+						require_once TC_ROOTDIR . 'inc/classes/menu.class.php';
 						$menu_class = new Menu();
 						$menu_class->Generate();
 						$tpl_page .= _gettext('Section added.');
@@ -180,7 +180,7 @@ class Manage {
 				if (isset($_POST['name'])) {
 					if ($_POST['name'] != '' && $_POST['abbreviation'] != '') {
 						$tc_db->Execute("UPDATE `" . TC_DBPREFIX . "sections` SET `name` = '" . mysql_real_escape_string($_POST['name']) . "' , `abbreviation` = '" . mysql_real_escape_string($_POST['abbreviation']) . "' , `order` = '" . mysql_real_escape_string($_POST['order']) . "' , `hidden` = '" . (isset($_POST['hidden']) ? '1' : '0') . "' WHERE `id` = '" . $_GET['sectionid'] . "'");
-						require_once(TC_ROOTDIR . 'inc/classes/menu.class.php');
+						require_once TC_ROOTDIR . 'inc/classes/menu.class.php';
 						$menu_class = new Menu();
 						$menu_class->Generate();
 						$tpl_page .= _gettext('Section updated.');
@@ -221,7 +221,7 @@ class Manage {
 			if ($_GET['do'] == 'deletesection' && isset($_GET['sectionid'])) {
 				if ($_GET['sectionid'] > 0) {
 					$tc_db->Execute("DELETE FROM `" . TC_DBPREFIX . "sections` WHERE `id` = '" . mysql_real_escape_string($_GET['sectionid']) . "'");
-					require_once(TC_ROOTDIR . 'inc/classes/menu.class.php');
+					require_once TC_ROOTDIR . 'inc/classes/menu.class.php';
 					$menu_class = new Menu();
 					$menu_class->Generate();
 					$tpl_page .= _gettext('Section deleted.') . '<br><hr>';
@@ -358,7 +358,7 @@ class Manage {
 			unset($board_class);
 			flush();
 		}
-		require_once(TC_ROOTDIR . 'inc/classes/menu.class.php');
+		require_once TC_ROOTDIR . 'inc/classes/menu.class.php';
 		$menu_class = new Menu();
 		$menu_class->Generate();
 		$tpl_page .= 'Regenerated menu pages<br>';
@@ -606,7 +606,7 @@ class Manage {
 							foreach ($filetypes as $filetype) {
 								$tc_db->Execute("INSERT INTO `" . TC_DBPREFIX . "board_filetypes` ( `boardid`, `typeid` ) VALUES ( '" . $boardid . "', '" . mysql_real_escape_string($filetype) . "' )");
 							}
-							require_once(TC_ROOTDIR . 'inc/classes/menu.class.php');
+							require_once TC_ROOTDIR . 'inc/classes/menu.class.php';
 							$menu_class = new Menu();
 							$menu_class->Generate();
 							$tpl_page .= _gettext('Update successful.');
@@ -1151,15 +1151,26 @@ class Manage {
 	
 	/* Run delorphanreplies() verbosely, followed by delunusedimages() verbosely */
 	function cleanup() {
-		global $tpl_page;
+		global $tc_db, $tpl_page;
 		$this->AdministratorsOnly();
 		
 		$tpl_page .= '<h2>' . _gettext('Cleanup') . '</h2><br>';
-		$tpl_page .= '<hr>'._gettext('Deleting non-deleted replies which belond to deleted threads.').'<hr>';
+		$tpl_page .= '<hr>'._gettext('Deleting non-deleted replies which belong to deleted threads.').'<hr>';
 		$this->delorphanreplies(true);
 		$tpl_page .= '<hr>'._gettext('Deleting unused images.').'<hr>';
-		flush();
 		$this->delunusedimages(true);
+		$tpl_page .= '<hr>'._gettext('Removing posts deleted more than one week ago from the database.').'<hr>';
+		$results = $tc_db->GetAll("SELECT `name`, `type` FROM `" . TC_DBPREFIX . "boards`");
+		foreach ($results AS $line) {
+			if ($line['type'] != 1) {
+				$tc_db->Execute("DELETE FROM `" . TC_DBPREFIX . "posts_" . $line['name'] . "` WHERE `IS_DELETED` = 1 AND `deletedat` < " . (time() - 604800) . "");
+			}
+		}
+		$tpl_page .= _gettext('Optimizing all tables in database.').'<hr>';
+		$results = $tc_db->GetAll("SHOW TABLES");
+		foreach ($results AS $line) {
+			$tc_db->Execute("OPTIMIZE TABLE `" . $line[0] . "`");
+		}
 		$tpl_page .= _gettext('Cleanup finished.');
 		management_addlogentry(_gettext('Ran cleanup'), 2);
 	}
@@ -1197,7 +1208,11 @@ class Manage {
 							die(_gettext('Please select a board.'));
 						}
 						$ban_globalban = (isset($_POST['banfromall'])) ? '1' : '0';
-						$ban_allowread = (isset($_POST['allowread'])) ? '1' : '0';
+						if ($_POST['allowread'] == '1' || $_POST['allowread'] == '0') {
+							$ban_allowread = $_POST['allowread'];
+						} else {
+							$ban_allowread = '1';
+						}
 						if ($ban_globalban == '0') {
 							$ban_boards = implode('|', $banning_new_boards);
 							foreach (explode('|', $ban_boards) as $board) {
@@ -1223,11 +1238,11 @@ class Manage {
 							$ban_type = '1';
 						}
 						if ($bans_class->BanUser(mysql_real_escape_string($_POST['ip']), $_SESSION['manageusername'], $ban_globalban, $ban_duration, $ban_boards, mysql_real_escape_string($_POST['reason']), $ban_type, $ban_allowread)) {
-							if (TC_ADDBANMSG && isset($_POST['quickbanpostid'])) {
+							if (TC_BANMSG != '' && isset($_POST['quickbanpostid']) && isset($_POST['addbanmsg'])) {
 								$results = $tc_db->GetAll("SELECT HIGH_PRIORITY `parentid`, `message` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($_POST['quickbanboard'])."` WHERE `id` = ".mysql_real_escape_string($_POST['quickbanpostid'])." LIMIT 1");
 								foreach($results AS $line) {
-									$tc_db->Execute("UPDATE `".TC_DBPREFIX."posts_".mysql_real_escape_string($_POST['quickbanboard'])."` SET `message` = '".mysql_real_escape_string($line['message'].'<br><font color="#FF0000"><b>(USER WAS BANNED FOR THIS POST)</b></font>')."' WHERE `id` = ".mysql_real_escape_string($_POST['quickbanpostid'])." LIMIT 1");
-									clearpostcache($_POST['quickbanpostid'], $_POST['quickbanboard']);
+									$tc_db->Execute("UPDATE `".TC_DBPREFIX."posts_".mysql_real_escape_string($_POST['quickbanboard'])."` SET `message` = '".mysql_real_escape_string($line['message'] . TC_BANMSG)."' WHERE `id` = ".mysql_real_escape_string($_POST['quickbanpostid'])." LIMIT 1");
+									clearPostCache($_POST['quickbanpostid'], $_POST['quickbanboard']);
 									$board_class = new Board($_POST['quickbanboard']);
 									if ($line['parentid']==0) {
 										$board_class->RegenerateThread($_POST['quickbanpostid']);
@@ -1329,8 +1344,11 @@ class Manage {
 		flush();
 		
 		$tpl_page .= '<form action="manage_page.php?action=bans" method="post" name="banform">';
+		
+		$isquickban = false;
 		if ($ban_ip != '') {
 			$tpl_page .= '<input type="hidden" name="quickbanboard" value="' . $_GET['banboard'] . '"><input type="hidden" name="quickbanthreadid" value="' . $ban_parentid . '"><input type="hidden" name="quickbanpostid" value="' . $_GET['banpost'] . '">';
+			$isquickban = true;
 		} elseif (isset($_GET['ip'])) {
 			$ban_ip = $_GET['ip'];
 		}
@@ -1346,9 +1364,15 @@ class Manage {
 		
 		<label for="type">Type:</label>
 		<select name="type"><option value="0">Single IP</option><option value="1">IP Range</option></select>
-		<div class="desc">The type of the ban.  A single IP can be banned by providing the full address, or an IP range can be banned by providing the range you wish to ban.</div><br>
+		<div class="desc">The type of the ban.  A single IP can be banned by providing the full address, or an IP range can be banned by providing the range you wish to ban.</div><br>';
 		
-		'._gettext('Ban from').':&nbsp;<label for="banfromall"><b>'._gettext('All boards').'</b></label>
+		if ($isquickban && TC_BANMSG != '') {
+			$tpl_page .= '<label for="addbanmsg">Add ban message:</label>
+			<input type="checkbox" name="addbanmsg" checked>
+			<div class="desc">If checked, the configured ban message will be added to the end of the post.</div><br>';
+		}
+		
+		$tpl_page .= _gettext('Ban from').':&nbsp;<label for="banfromall"><b>'._gettext('All boards').'</b></label>
 		<input type="checkbox" name="banfromall"><br>OR<br>' .
 		$this->MakeBoardListCheckboxes('bannedfrom', $this->BoardList($_SESSION['manageusername'])) .
 		'<br>';
@@ -1913,11 +1937,11 @@ class Manage {
 				}
 				if (count($results) > 0) {
 					if (isset($_POST['confirmation'])) {
-						if (remove_board($board_dir)) {
+						if (removeBoard($board_dir)) {
 							$tc_db->Execute("DROP TABLE `" . TC_DBPREFIX . "posts_" . $board_dir . "`");
 							$tc_db->Execute("DELETE FROM `" . TC_DBPREFIX . "boards` WHERE `id` = '" . $board_id . "'");
 							$tc_db->Execute("DELETE FROM `" . TC_DBPREFIX . "board_filetypes` WHERE `boardid` = '" . $board_id . "'");
-							require_once(TC_ROOTDIR . 'inc/classes/menu.class.php');
+							require_once TC_ROOTDIR . 'inc/classes/menu.class.php';
 							$menu_class = new Menu();
 							$menu_class->Generate();
 							$tpl_page .= _gettext('Board successfully deleted.');

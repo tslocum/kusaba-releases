@@ -22,19 +22,19 @@
  */
 
 class Upload {
-	var $file_name = '';
-	var $original_file_name = '';
-	var $file_type = '';
-	var $file_md5 = '';
-	var $file_location = '';
-	var $file_thumb_location = '';
-	var $file_is_special = false;
-	var $imgWidth = 0;
-	var $imgHeight = 0;
-	var $file_size = 0;
-	var $imgWidth_thumb = 0;
-	var $imgHeight_thumb = 0;
-	var $isreply = false;
+	var $file_name             = '';
+	var $original_file_name    = '';
+	var $file_type             = '';
+	var $file_md5              = '';
+	var $file_location         = '';
+	var $file_thumb_location   = '';
+	var $file_is_special       = false;
+	var $imgWidth              = 0;
+	var $imgHeight             = 0;
+	var $file_size             = 0;
+	var $imgWidth_thumb        = 0;
+	var $imgHeight_thumb       = 0;
+	var $isreply               = false;
 	
 	function HandleUpload() {
 		global $tc_db, $board_class, $is_oekaki, $oekaki;
@@ -84,7 +84,7 @@ class Upload {
 					$this->original_file_name = $this->file_name;
 					$this->file_md5 = md5_file($_FILES['imagefile']['tmp_name']);
 					
-					$exists_thread = check_md5($this->file_md5, $board_class->board_dir);
+					$exists_thread = checkMd5($this->file_md5, $board_class->board_dir);
 					if (is_array($exists_thread)) {
 						die(_gettext('Duplicate file entry detected.') . '<br><br>'.sprintf(_gettext('Already posted %shere%s.'),'<a href="' . TC_BOARDSPATH . '/' . $board_class->board_dir . '/res/' . $exists_thread[0] . '.html#' . $exists_thread[1] . '">','</a>'));
 					}
@@ -116,8 +116,8 @@ class Upload {
 							
 							/* If this board has a load balance url and password configured for it, attempt to use it */
 							if ($board_class->board_loadbalanceurl != '' && $board_class->board_loadbalancepassword != '') {
-								require_once(TC_ROOTDIR . 'inc/classes/loadbalancer.class.php');
-								$loadbalancer = new LoadBalancer;
+								require_once TC_ROOTDIR . 'inc/classes/loadbalancer.class.php';
+								$loadbalancer = new Load_Balancer;
 								
 								$loadbalancer->url = $board_class->board_loadbalanceurl;
 								$loadbalancer->password = $board_class->board_loadbalancepassword;
@@ -147,20 +147,20 @@ class Upload {
 								if ($_FILES['imagefile']['size'] == filesize($this->file_location)) {
 									if ((!$this->isreply && ($this->imgWidth > TC_THUMBWIDTH || $this->imgHeight > TC_THUMBHEIGHT)) || ($this->isreply && ($this->imgWidth > TC_REPLYTHUMBWIDTH || $this->imgHeight > TC_REPLYTHUMBHEIGHT))) {
 										if (!$this->isreply) {
-											if (!createthumb($this->file_location, $this->file_thumb_location, TC_THUMBWIDTH, TC_THUMBHEIGHT)) {
+											if (!createThumbnail($this->file_location, $this->file_thumb_location, TC_THUMBWIDTH, TC_THUMBHEIGHT)) {
 												die(_gettext('Could not create thumbnail.'));
 											}
 										} else {
-											if (!createthumb($this->file_location, $this->file_thumb_location, TC_REPLYTHUMBWIDTH, TC_REPLYTHUMBHEIGHT)) {
+											if (!createThumbnail($this->file_location, $this->file_thumb_location, TC_REPLYTHUMBWIDTH, TC_REPLYTHUMBHEIGHT)) {
 												die(_gettext('Could not create thumbnail.'));
 											}
 										}
 									} else {
-										if (!createthumb($this->file_location, $this->file_thumb_location, $this->imgWidth, $this->imgHeight)) {
+										if (!createThumbnail($this->file_location, $this->file_thumb_location, $this->imgWidth, $this->imgHeight)) {
 											die(_gettext('Could not create thumbnail.'));
 										}
 									}
-									if (!createthumb($this->file_location, $this->file_thumb_cat_location, TC_CATTHUMBWIDTH, TC_CATTHUMBHEIGHT)) {
+									if (!createThumbnail($this->file_location, $this->file_thumb_cat_location, TC_CATTHUMBWIDTH, TC_CATTHUMBHEIGHT)) {
 										die(_gettext('Could not create thumbnail.'));
 									}
 									$imageDim_thumb = getimagesize($this->file_thumb_location);
@@ -186,7 +186,7 @@ class Upload {
 							
 							/* If this board has a load balance url and password configured for it, attempt to use it */
 							if ($board_class->board_loadbalanceurl != '' && $board_class->board_loadbalancepassword != '') {
-								require_once(TC_ROOTDIR . 'inc/classes/loadbalancer.class.php');
+								require_once TC_ROOTDIR . 'inc/classes/loadbalancer.class.php';
 								$loadbalancer = new LoadBalancer;
 								
 								$loadbalancer->url = $board_class->board_loadbalanceurl;
@@ -236,20 +236,27 @@ class Upload {
 					}
 				} elseif (isset($_POST['embed'])) {
 					if ($_POST['embed'] != '') {
-						require_once(TC_ROOTDIR . 'inc/checklink.php');
+						require_once TC_ROOTDIR . 'inc/checklink.php';
 						
 						$video_id = $_POST['embed'];
 						$this->file_name = $video_id;
 						
 						if ($video_id != '' && strpos($video_id, '@') == false && strpos($video_id, '&') == false) {
-							if ($_POST['embedtype'] == 'youtube') {
+							switch ($_POST['embedtype']) {
+							case 'youtube':
 								$videourl_start = 'http://www.youtube.com/watch?v=';
 								$this->file_type = '.you';
-							} elseif ($_POST['embedtype'] == 'google') {
+								break;
+								
+							case 'google':
 								$videourl_start = 'http://video.google.com/videoplay?docid=';
 								$this->file_type = '.goo';
-							} else {
+								break;
+								
+							default:
 								die(_gettext('Invalid video type.'));
+								break;
+								
 							}
 							
 							$results = $tc_db->GetOne("SELECT COUNT(*) FROM `" . TC_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `filename` = '" . mysql_real_escape_string($video_id) . "' AND `IS_DELETED` = 0");
@@ -308,20 +315,20 @@ class Upload {
 			$thumbpath_cat = TC_BOARDSDIR . $board_class->board_dir . '/thumb/' . $this->file_name . 'c' . $this->file_type;
 			if ((!$this->isreply && ($this->imgWidth > TC_THUMBWIDTH || $this->imgHeight > TC_THUMBHEIGHT)) || ($this->isreply && ($this->imgWidth > TC_REPLYTHUMBWIDTH || $this->imgHeight > TC_REPLYTHUMBHEIGHT))) {
 				if (!$this->isreply) {
-					if (!createthumb($oekaki, $thumbpath, TC_THUMBWIDTH, TC_THUMBHEIGHT)) {
+					if (!createThumbnail($oekaki, $thumbpath, TC_THUMBWIDTH, TC_THUMBHEIGHT)) {
 						die(_gettext('Could not create thumbnail.'));
 					}
 				} else {
-					if (!createthumb($oekaki, $thumbpath, TC_REPLYTHUMBWIDTH, TC_REPLYTHUMBHEIGHT)) {
+					if (!createThumbnail($oekaki, $thumbpath, TC_REPLYTHUMBWIDTH, TC_REPLYTHUMBHEIGHT)) {
 						die(_gettext('Could not create thumbnail.'));
 					}
 				}
 			} else {
-				if (!createthumb($oekaki, $thumbpath, $this->imgWidth, $this->imgHeight)) {
+				if (!createThumbnail($oekaki, $thumbpath, $this->imgWidth, $this->imgHeight)) {
 					die(_gettext('Could not create thumbnail.'));
 				}
 			}
-			if (!createthumb($oekaki, $thumbpath_cat, TC_CATTHUMBWIDTH, TC_CATTHUMBHEIGHT)) {
+			if (!createThumbnail($oekaki, $thumbpath_cat, TC_CATTHUMBWIDTH, TC_CATTHUMBHEIGHT)) {
 				die(_gettext('Could not create thumbnail.'));
 			}
 			

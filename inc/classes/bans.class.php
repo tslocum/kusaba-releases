@@ -35,7 +35,7 @@ class Bans {
 	/* Perform a check for a ban record for a specified IP address */
 	function BanCheck($ip, $board = '', $force_display = false) {
 		global $tc_db;
-		require_once(TC_ROOTDIR . 'inc/encryption.php');
+		require_once TC_ROOTDIR . 'inc/encryption.php';
 		
 		if (!isset($_COOKIE['tc_previousip'])) {
 			$_COOKIE['tc_previousip'] = '';
@@ -76,7 +76,7 @@ class Bans {
 	function BanUser($ip, $modname, $globalban, $duration, $boards, $reason, $type=0, $allowread=1) {
 		global $tc_db;
 		
-		require_once(TC_ROOTDIR.'inc/encryption.php');
+		require_once TC_ROOTDIR.'inc/encryption.php';
 		$result = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."banlist` WHERE `type` = '".$type."' AND `ipmd5` = '".md5($ip)."'");
 		if ($result[0]==0) {
 			if ($duration>0) {
@@ -105,7 +105,7 @@ class Bans {
 		/* Set a cookie with the users current IP address in case they use a proxy to attempt to make another post */
 		setcookie('tc_previousip', $_SERVER['REMOTE_ADDR'], (time() + 604800), TC_BOARDSFOLDER);
 		
-		require_once(TC_ROOTDIR . 'lib/smarty.php');
+		require_once TC_ROOTDIR . 'lib/smarty.php';
 		
 		$smarty->assign('title', _gettext('YOU ARE BANNED') . '!');
 		$smarty->assign('youarebanned', _gettext('YOU ARE BANNED') . ' :\'(');
@@ -129,18 +129,23 @@ class Bans {
 	function UpdateHtaccess() {
 		global $tc_db;
 		
-		require_once(TC_ROOTDIR."inc/encryption.php");
+		require_once TC_ROOTDIR . 'inc/encryption.php';
 		$htaccess_contents = file_get_contents(TC_BOARDSDIR.'.htaccess');
 		$htaccess_contents_preserve = substr($htaccess_contents, 0, strpos($htaccess_contents, '## !TC_BANS:')+12)."\n";
 	
 		$htaccess_contents_bans_iplist = '';
 		$results = $tc_db->GetAll("SELECT `ip` FROM `".TC_DBPREFIX."banlist` WHERE `allowread` = 0 AND `type` = 0 ORDER BY `ip` ASC");
-		foreach($results AS $line) {
-				$htaccess_contents_bans_iplist .= "RewriteCond %{REMOTE_ADDR} ".md5_decrypt($line['ip'], TC_RANDOMSEED)."\n";
+		if (count($results) > 0) {
+			$htaccess_contents_bans_iplist .= 'RewriteCond %{REMOTE_ADDR} (';
+			foreach($results AS $line) {
+					$htaccess_contents_bans_iplist .= str_replace('.', '\\.', md5_decrypt($line['ip'], TC_RANDOMSEED)) . '|';
+			}
+			$htaccess_contents_bans_iplist = substr($htaccess_contents_bans_iplist, 0, -1);
+			$htaccess_contents_bans_iplist .= ')$' . "\n";
 		}
 		if ($htaccess_contents_bans_iplist!='') {
 			$htaccess_contents_bans_start = "<IfModule mod_rewrite.c>\nRewriteEngine On\n";
-			$htaccess_contents_bans_end = "RewriteRule !^(banned.php|youarebanned.jpg)$ /banned.php [L]\n</IfModule>";
+			$htaccess_contents_bans_end = "RewriteRule !^(banned.php|youarebanned.jpg)$ " . TC_BOARDSFOLDER . "banned.php [L]\n</IfModule>";
 		} else {
 			$htaccess_contents_bans_start = '';
 			$htaccess_contents_bans_end = '';

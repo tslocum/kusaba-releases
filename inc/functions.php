@@ -44,7 +44,7 @@ function print_page($filename, $contents, $board) {
 	chmod($filename, 0664); /* it was created 0600 */
 }
 
-function print_stylesheets($prefered_stylesheet = TC_DEFAULTSTYLE) {
+function printStylesheets($prefered_stylesheet = TC_DEFAULTSTYLE) {
 	global $tc_db;
 	$output_stylesheets = '';
 	$styles = explode(':', TC_STYLES);
@@ -65,23 +65,20 @@ function print_stylesheets($prefered_stylesheet = TC_DEFAULTSTYLE) {
 }
 
 /* Checks if the supplied md5 file hash is currently recorded inside of the database, attached to a non-deleted post */
-function check_md5($md5, $board) {
+function checkMd5($md5, $board) {
 	global $tc_db;
-
-	$num_matches = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `filemd5` = '".mysql_real_escape_string($md5)."' AND `IS_DELETED` = 0 LIMIT 1");
-	if ($num_matches > 0) {
-		$results = $tc_db->GetAll("SELECT `id`, `parentid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `filemd5` = '".mysql_real_escape_string($md5)."' AND `IS_DELETED` = 0 LIMIT 1");
-		/* We want the first (and only) row */
-		$results = $results[0];
-		$real_parentid = ($results[1]==0) ? $results[0] : $results[1];
+	
+	$matches = $tc_db->GetAll("SELECT `id`, `parentid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `IS_DELETED` = 0 AND `filemd5` = '".mysql_real_escape_string($md5)."' LIMIT 1");
+	if (count($matches) > 0) {
+		$real_parentid = ($matches[0][1] == 0) ? $matches[0][0] : $matches[0][1];
 		
-		return array($real_parentid, $results[0]);
+		return array($real_parentid, $matches[0][0]);
 	} else {
 		return false;
 	}
 }
 
-function clearpostcache($id, $board) {
+function clearPostCache($id, $board) {
 	if (TC_APC) {
 		apc_delete('post|' . $board . '|' . $id);
 	}
@@ -149,6 +146,64 @@ function management_addlogentry($entry, $category = 0, $forceusername = '') {
 		
 		print_page(TC_BOARDSDIR . 'modlogrss.xml', $rss_class->GenerateModLogRSS($entry), '');
 	}
+}
+
+function validateIds($ids) {
+	foreach ($ids AS $id) {
+		if ($id <= 0) {
+			die("error.  parentid <= 0");
+		}
+	}
+}
+
+function formatNameAndTrip($name, $email, $tripcode) {
+	$output = '<span class="postername">' . "\n" . '	';
+			
+	if ($email != '') $output .= '<a href="mailto:' . $email . '">';
+	
+	if ($name == '' && $tripcode == '') {
+		$output .= TC_ANONYMOUS;
+	} else if ($name == '' && $tripcode != '') {
+		/* Just display the tripcode, no added html */
+	} else {
+		$output .= $name;
+	}
+	
+	if ($email != '') $output .= '</a>';
+	
+	$output .= "\n" . '</span>' . "\n";
+	
+	if ($tripcode!='') {
+		$output .= '<span class="postertrip">' . "\n" .
+		'	!' . $tripcode . "\n" .
+		'</span>' . "\n";
+	}
+	
+	return $output;
+}
+
+function formatLongMessage($message, $board, $threadid, $page) {
+	$output = '';
+	if ((strlen($message) > TC_LINELENGTH || count(explode('<br>', $message)) > 15) && $page) {
+		$message_exploded = explode('<br>', $message);
+		$message_shortened = '';
+		for ($i = 0; $i <= 14; $i++) {
+			if (isset($message_exploded[$i])) {
+				$message_shortened .= $message_exploded[$i] . '<br>';
+			}
+		}
+		if (strlen($message_shortened) > TC_LINELENGTH) {
+			$message_shortened = substr($message_shortened, 0, TC_LINELENGTH);
+		}
+		$message_shortened = closeOpenTags($message_shortened);
+		$output = $message_shortened . '<div class="abbrev">' . "\n" .
+		'	' . sprintf(_gettext('Comment too long. Click %shere%s to view the full text.'), '<a href="' . TC_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">', '</a>') . "\n" .
+		'</div>' . "\n";
+	} else {
+		$output .= $message . "\n";
+	}
+	
+	return $output;
 }
 
 /* For PHP4 installations */

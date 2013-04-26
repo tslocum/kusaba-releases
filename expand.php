@@ -21,12 +21,12 @@
  * +------------------------------------------------------------------------------+
  */
 
-require('config.php');
+require 'config.php';
 /* No need to waste effort if expansion is disabled */
 if (!TC_EXPAND) die();
-require(TC_ROOTDIR . 'inc/functions.php');
-require_once(TC_ROOTDIR . 'inc/operations.functions.php');
-require_once(TC_ROOTDIR . 'inc/classes/board-post.class.php');
+require TC_ROOTDIR . 'inc/functions.php';
+require TC_ROOTDIR . 'inc/operations.functions.php';
+require TC_ROOTDIR . 'inc/classes/board-post.class.php';
 
 $board_name = $tc_db->GetOne("SELECT `name` FROM `" . TC_DBPREFIX . "boards` WHERE `name` = '" . mysql_real_escape_string($_GET['board']) . "'");
 if ($board_name != '') {
@@ -39,7 +39,7 @@ $results = $tc_db->GetAll('SELECT * FROM `'.TC_DBPREFIX.'posts_'.$board_class->b
 
 $output = '';
 foreach($results AS $line_reply) {
-	$output .= $board_class->BuildPost(false, $board_class->board_dir, $board_class->board_type, $line_reply);
+	$output .= $board_class->BuildPost(true, $board_class->board_dir, $board_class->board_type, $line_reply);
 }
 
 echo $output;

@@ -32,8 +32,8 @@ if ($_POST['width']>750||$_POST['height']>750) {
 	die('Please enter a width/height less than or equal to 750.');
 }
 
-require('config.php');
-require(TC_ROOTDIR . 'lib/oekaki/OekakiApplet.php');
+require 'config.php';
+require TC_ROOTDIR . 'lib/oekaki/OekakiApplet.php';
 
 $results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'");
 if (count($results)==0) {

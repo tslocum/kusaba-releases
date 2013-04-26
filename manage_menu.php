@@ -1,13 +1,13 @@
 <?php
 session_start();
 
-require('config.php');
-require(TC_ROOTDIR.'lib/smarty.php');
-require_once(TC_ROOTDIR . 'inc/functions.php');
-require_once(TC_ROOTDIR . 'inc/operations.functions.php');
-require_once(TC_ROOTDIR . 'inc/classes/manage.class.php');
-require_once(TC_ROOTDIR . 'inc/encryption.php');
-require_once(TC_ROOTDIR . 'inc/module.php');
+require 'config.php';
+require TC_ROOTDIR.'lib/smarty.php';
+require TC_ROOTDIR . 'inc/functions.php';
+require TC_ROOTDIR . 'inc/operations.functions.php';
+require TC_ROOTDIR . 'inc/classes/manage.class.php';
+require TC_ROOTDIR . 'inc/encryption.php';
+require TC_ROOTDIR . 'inc/module.php';
 
 $manage_class = new Manage();
 $smarty->assign('lang_manageboards', _gettext('Manage boards'));

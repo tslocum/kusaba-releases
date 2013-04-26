@@ -124,7 +124,7 @@ Before running this script, make sure that:<br>
 		}
 	}
 	// All done :)
-	echo '<br>SQL commands have finished. If all is well, proceed to the <a href="install.php">installation file</a> but don\'t forget to delete this file!'; 
+	echo '<br>SQL commands have finished. If all is well, proceed to the <a href="install.php"><b><u>installation file</u></b></a> but don\'t forget to delete this file!'; 
 }
 
 function mysql_table_exists($database, $tableName)

@@ -52,6 +52,29 @@ echo ($_GET['p']=='faq') ? 'FAQ' : '<a href="news.php?p=faq">FAQ</a>';
 echo ' | ';
 echo ($_GET['p']=='rules') ? 'Rules' : '<a href="news.php?p=rules">Rules</a>';
 
+/* Don't worry about this, it only applies to my personal installation of Trevorchan */
+if ($tc_config['is_trevorchan']) {
+	echo '<br><script type="text/javascript"><!--
+	google_ad_client = "pub-6158454562572132";
+	google_ad_width = 728;
+	google_ad_height = 90;
+	google_ad_format = "728x90_as";
+	google_ad_type = "text_image";
+	//2007-08-12: Trevorchan
+	google_ad_channel = "7008956366";
+	google_color_border = "FFFFEE";
+	google_color_bg = "FFFFEE";
+	google_color_link = "800000";
+	google_color_text = "CB7E46";
+	google_color_url = "800000";
+	google_ui_features = "rc:6";
+	//-->
+	</script>
+	<script type="text/javascript"
+	  src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+	</script>';
+}
+
 echo '</div>';
 
 if ($_GET['p']=='faq') {
@@ -59,11 +82,13 @@ if ($_GET['p']=='faq') {
 } else if ($_GET['p']=='rules') {
 	echo file_get_contents(TC_ROOTDIR.'inc/pages/rules.html');
 } else {
+	$entries = 0;
 	/* Get all of the news entries, ordered with the newest one placed on top */
 	$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."news` ORDER BY `postedat` DESC");
 	foreach($results AS $line) {
+		$entries++;
 		echo '<div class="content">
-		<h2><div class="newssub">'.stripslashes($line['subject']).' by ';
+		<h2><span class="newssub">'.stripslashes($line['subject']).' by ';
 		/* If the message had an email attached to it, add the proper html to link to it */
 		if ($line['postedemail']!="") {
 			echo '<a href="mailto:'.stripslashes($line['postedemail']).'">';
@@ -73,8 +98,33 @@ if ($_GET['p']=='faq') {
 			echo '</a>';
 		}
 		echo ' - '.date("n/j/y @ g:iA T", $line['postedat']);
-		echo '</div><div class="permalink"><a href="#' . $line['id'] . '" name="' . $line['id'] . '" title="permalink">#</a></div></h2>
-		'.stripslashes($line['message']).'</div>';
+		echo '</span><span class="permalink"><a href="#' . $line['id'] . '" name="' . $line['id'] . '" title="permalink">#</a></span></h2>
+		'.stripslashes($line['message']).'</div><br>';
+		if ($entries == 8) {
+			if ($tc_config['is_trevorchan']) {
+				echo '<div class="content">
+				<h2><div class="newssub">Advertisement</div><div class="permalink">&nbsp;</div></h2>
+				<div style="text-align: center;">
+				<script type="text/javascript"><!--
+				google_ad_client = "pub-6158454562572132";
+				google_ad_width = 728;
+				google_ad_height = 90;
+				google_ad_format = "728x90_as";
+				google_cpa_choice = "CAEaCGnW6F1dtL5nUDRQLVAMUANQCFAFUARQQw";
+				google_ad_channel = "0185701305";
+				google_color_border = "FFFFEE";
+				google_color_bg = "FFFFEE";
+				google_color_link = "800000";
+				google_color_text = "CB7E46";
+				google_color_url = "800000";
+				//-->
+				</script>
+				<script type="text/javascript" src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+				</script>
+				</div>
+				</div><br>';
+			}
+		}
 	}
 }
 

@@ -28,7 +28,7 @@ if (file_exists("install.php")) {
 if (!isset($_GET['info'])) {
 	$preconfig_db_unnecessary = true;
 }
-require('config.php');
+require 'config.php';
 
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
@@ -51,7 +51,7 @@ if (isset($tc_config)) {
 </head>
 <?php
 if (isset($_GET['info'])) {
-	require_once(TC_ROOTDIR . 'inc/module.php');
+	require_once TC_ROOTDIR . 'inc/module.php';
 	
 	echo '<body>';
 	
@@ -76,9 +76,11 @@ if (isset($_GET['info'])) {
 	
 	die();
 }
+
+$menufile = (TC_STATICMENU) ? 'menu.html' : 'menu.php';
 ?>
 <frameset cols="18%,*" frameborder="0" border="0">
-<frame src="menu.html" name="menu" id="menu">
+<frame src="<?php echo $menufile; ?>" name="menu" id="menu">
 <frame src="news.php" name="main" id="main">
 <noframes>
 Your browser doesn't support frames, which <?php echo TC_NAME; ?> requires.<br>

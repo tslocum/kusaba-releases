@@ -49,6 +49,11 @@ form .trap {
 	text-decoration: none;
 }
 
+.reflink a:hover{
+	color: #800000;
+	font-weight: bold;
+}
+
 .reply .filesize {
 	margin-left: 20px;
 }
@@ -109,4 +114,8 @@ form .trap {
 .spoiler {
 	color: black;
 	background-color: black;
+}
+
+.extrabtns {
+	vertical-align: middle;
 }

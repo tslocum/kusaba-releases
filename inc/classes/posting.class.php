@@ -26,9 +26,9 @@ class Posting {
 		/* If oekaki seems to be in the url... */
 		if (isset($_POST['oekaki'])) {
 			/* See if it checks out and is a valid oekaki id */
-			if ($_POST['oekaki'] != '' && is_file('tcdrawings/' . $_POST['oekaki'] . '.png') && $board_class->board_type == '2') {
+			if ($_POST['oekaki'] != '' && is_file(TC_CGIDIR . 'tcdrawings/' . $_POST['oekaki'] . '.png') && $board_class->board_type == '2') {
 				/* Set the variable to tell the script it is handling an oekaki posting, and the oekaki file which will be posted */
-				return 'tcdrawings/' . $_POST['oekaki'] . '.png';
+				return TC_CGIDIR . 'tcdrawings/' . $_POST['oekaki'] . '.png';
 			}
 		}
 		
@@ -76,10 +76,10 @@ class Posting {
 	function CheckMessageLength() {
 		global $board_class;
 		
-		/* If the length of the message is greater than the board's maxmimum message length... */
+		/* If the length of the message is greater than the board's maximum message length... */
 		if (strlen($_POST['message']) > $board_class->board_messagelength) {
 			/* Kill the script, stopping the posting process */
-			printf(_gettext('Sorry, your message is too long.  Message length: %d, maxmimum allowed length: %d'), strlen($_POST['message']), $board_class->board_messagelength);
+			printf(_gettext('Sorry, your message is too long.  Message length: %d, maximum allowed length: %d'), strlen($_POST['message']), $board_class->board_messagelength);
 			die();
 		}
 	}
@@ -178,7 +178,7 @@ class Posting {
 		$flags = '';
 		
 		if (isset($_POST['modpassword'])) {
-			require(TC_ROOTDIR . 'inc/encryption.php');
+			require TC_ROOTDIR . 'inc/encryption.php';
 			
 			$results = $tc_db->GetAll("SELECT `type`, `boards` FROM `" . TC_DBPREFIX . "staff` WHERE `username` = '" . md5_decrypt($_POST['modpassword'], TC_RANDOMSEED) . "' LIMIT 1");
 			

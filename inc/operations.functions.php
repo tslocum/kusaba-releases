@@ -32,6 +32,19 @@ function calculateNameAndTripcode($post_name) {
 			return array($results[0][0], $results[0][1]);
 		} else {
 			$cap = $regs[2];
+			$cap_full = '#' . $regs[2];
+			
+			// {{{ Special tripcode check
+			
+			$trips = unserialize(TC_TRIPS);
+			if (count($trips) > 0) {
+				if (isset($trips[$cap_full])) {
+					$forcedtrip = $trips[$cap_full];
+					return array(ereg_replace("(#)(.*)", "", $post_name), $forcedtrip);
+				}
+			}
+			
+			// }}}
 			
 			if (function_exists('mb_convert_encoding')) {
 				$recoded_cap = mb_convert_encoding($cap, 'SJIS', 'UTF-8');
@@ -153,7 +166,7 @@ function removeDir($path) {
 	}
 }
 
-function remove_board($dir){
+function removeBoard($dir){
 	global $tc_db;
 	$dir = '/'.$dir;
 
@@ -173,7 +186,7 @@ function remove_board($dir){
 				}
 			} else
 				if(is_dir(TC_BOARDSDIR . $path) && substr($file, 0, 1) != '.'){
-					remove_board($path);
+					removeBoard($path);
 					@rmdir(TC_BOARDSDIR . $path);
 				}
 		}
@@ -191,7 +204,7 @@ function remove_board($dir){
 }
 
 /* Image handling */
-function createthumb($name, $filename, $new_w, $new_h) {
+function createThumbnail($name, $filename, $new_w, $new_h) {
 	$system=explode(".", $filename);
 	$system = array_reverse($system);
 	if (preg_match("/jpg|jpeg/", $system[0])) {
@@ -208,8 +221,8 @@ function createthumb($name, $filename, $new_w, $new_h) {
 		echo '<br>Unable to open the uploaded image for thumbnailing.  Maybe its a different filetype, and has the wrong extension?';
 		return false;
 	}
-	$old_x=imageSX($src_img);
-	$old_y=imageSY($src_img);
+	$old_x = imageSX($src_img);
+	$old_y = imageSY($src_img);
 	if ($old_x > $old_y) {
 		$percent = $new_w / $old_x;
 	} else {
@@ -218,8 +231,8 @@ function createthumb($name, $filename, $new_w, $new_h) {
 	$thumb_w = round($old_x * $percent);
 	$thumb_h = round($old_y * $percent);
 	
-	$dst_img=ImageCreateTrueColor($thumb_w, $thumb_h);
-	fastimagecopyresampled($dst_img, $src_img, 0, 0, 0, 0, $thumb_w, $thumb_h, $old_x, $old_y);
+	$dst_img = ImageCreateTrueColor($thumb_w, $thumb_h);
+	fastImageCopyResampled($dst_img, $src_img, 0, 0, 0, 0, $thumb_w, $thumb_h, $old_x, $old_y);
 	
 	if (preg_match("/png/", $system[0])) {
 		if (!imagepng($dst_img, $filename)) {
@@ -245,7 +258,7 @@ function createthumb($name, $filename, $new_w, $new_h) {
 }
 
 /* Author: Tim Eckel - Date: 12/17/04 - Project: FreeRingers.net - Freely distributable. */
-function fastimagecopyresampled(&$dst_image, &$src_image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h, $quality = 3) {
+function fastImageCopyResampled(&$dst_image, &$src_image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h, $quality = 3) {
 	/*
 	Optional "quality" parameter (defaults is 3).  Fractional values are allowed, for example 1.5.
 	1 = Up to 600 times faster.  Poor results, just uses imagecopyresized but removes black edges.

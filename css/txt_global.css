@@ -1,34 +1,54 @@
-.quote
-{
+.quote {
 	border-left: solid 2px #666;
 	padding: 0px 0px 0px 10px;
 	margin: 3px 0px;
 	display: block;
 }
-.quote .quote
-{
+
+.quote .quote {
 	border-left: solid 2px #888;
 }
-.quote .quote .quote
-{
+
+.quote .quote .quote {
 	border-left: solid 2px #aaa;
 }
-.quote:hover { background: #f0f0e0; }
-.spoiler
-{
-	background: #000;
-	color: #000;
+
+.quote:hover {
+	background: #f0f0e0;
 }
-.spoiler:hover
-{
-	color: #FFF;
+
+.spoiler {
+	color: black;
+	background-color: black;
 }
-.aa
-{
+
+.aa {
 	text-align: left;
 	font: 100% Mona,IPAMonaPGothic,'MS PGothic' !important
 }
-.o {text-decoration: overline}
-tt {font-size: smaller}
-.navlinks {float: right;}
-.navlinks a {text-decoration: none}
+
+.o {
+	text-decoration: overline;
+}
+
+tt {
+	font-size: smaller;
+}
+
+.navlinks {
+	float: right;
+}
+
+.navlinks a {
+	text-decoration: none;
+}
+
+.userdelete {
+	float: right;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.abbrev {
+	color: #707070;
+}

@@ -27,14 +27,14 @@
 session_set_cookie_params(60 * 60 * 24 * 100); /* 100 Days */
 session_start();
 
-require('config.php');
-require(TC_ROOTDIR.'lib/smarty.php');
-require_once(TC_ROOTDIR . 'inc/functions.php');
-require_once(TC_ROOTDIR . 'inc/operations.functions.php');
-require_once(TC_ROOTDIR . 'inc/classes/manage.class.php');
-require_once(TC_ROOTDIR . 'inc/classes/board-post.class.php');
-require_once(TC_ROOTDIR . 'inc/classes/bans.class.php');
-require_once(TC_ROOTDIR . 'inc/encryption.php');
+require 'config.php';
+require TC_ROOTDIR.'lib/smarty.php';
+require TC_ROOTDIR . 'inc/functions.php';
+require TC_ROOTDIR . 'inc/operations.functions.php';
+require TC_ROOTDIR . 'inc/classes/manage.class.php';
+require TC_ROOTDIR . 'inc/classes/board-post.class.php';
+require TC_ROOTDIR . 'inc/classes/bans.class.php';
+require TC_ROOTDIR . 'inc/encryption.php';
 
 $smarty->assign('lang_manageboards', _gettext('Manage boards'));
 

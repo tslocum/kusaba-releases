@@ -21,9 +21,11 @@
 require(TC_ROOTDIR . 'lib/smarty/Smarty.class.php');
 $smarty = new Smarty();
 
-$smarty->template_dir = TC_ROOTDIR . 'smarty/templates';
-$smarty->compile_dir = TC_ROOTDIR . 'smarty/templates_c';
-$smarty->cache_dir = TC_ROOTDIR . 'smarty/cache';
+$smarty->template_dir = TC_TEMPLATEDIR;
+if (TC_CACHEDTEMPLATEDIR != '') {
+	$smarty->compile_dir = TC_CACHEDTEMPLATEDIR;
+	$smarty->cache_dir = TC_CACHEDTEMPLATEDIR;
+}
 $smarty->config_dir = TC_ROOTDIR . 'smarty/configs';
 
 $smarty->assign('tc_name', TC_NAME);
