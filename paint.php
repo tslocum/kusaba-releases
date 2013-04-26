@@ -1,18 +1,18 @@
 <?php
 /*
- * This file is part of Trevorchan.
+ * This file is part of kusaba.
  *
- * Trevorchan is free software; you can redistribute it and/or modify it under the
+ * kusaba is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
  *
- * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+ * kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+ * kusaba; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /** 
@@ -22,7 +22,7 @@
  * board.  It displays the painter app, configured to send the finished image to
  * paint_save.php, which will be processed for posting.
  * 
- * @package Trevorchan  
+ * @package kusaba  
  */  
 
 if (!isset($_POST['width'])||!isset($_POST['height'])||!isset($_POST['board'])) {
@@ -39,9 +39,9 @@ if ($_POST['width']>750||$_POST['height']>750) {
  * Require the configuration file, and the oekaki applet class
  */ 
 require 'config.php';
-require TC_ROOTDIR . 'lib/oekaki/OekakiApplet.php';
+require KU_ROOTDIR . 'lib/oekaki/OekakiApplet.php';
 
-$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'");
+$results = $tc_db->GetAll("SELECT * FROM `".KU_DBPREFIX."boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'");
 if (count($results)==0) {
 	die();
 } else {
@@ -73,7 +73,7 @@ padding: 0
 }
 </style>';
 if ($use_selfy) {
-	echo '<script type="text/javascript" src="'.TC_WEBPATH.'/lib/javascript/palette_selfy.js"></script>';	
+	echo '<script type="text/javascript" src="'.KU_WEBPATH.'/lib/javascript/palette_selfy.js"></script>';	
 }
 echo '</head><body bgcolor="#AEAED9">';
 
@@ -84,20 +84,20 @@ $OekakiApplet = new OekakiApplet;
 
 if (isset($_POST['replyimage'])) {
 	if ($_POST['replyimage']!='0') {
-		$results = $tc_db->GetAll("SELECT `filename`, `filetype` FROM `".TC_DBPREFIX."posts_".$board_dir."` WHERE `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'");
+		$results = $tc_db->GetAll("SELECT `filename`, `filetype` FROM `".KU_DBPREFIX."posts_".$board_dir."` WHERE `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'");
 		if (count($results)==0) {
 			die("Invalid reply image.");
 		} else {
 			foreach($results AS $line) {
 				$post_image = $line['filename'].'.'.$line['filetype'];
 			}
-			if (is_file(TC_BOARDSDIR.$board_dir.'/src/'.$post_image)) {
-				$imageDim = getimagesize(TC_BOARDSDIR.$board_dir.'/src/'.$post_image);
+			if (is_file(KU_BOARDSDIR.$board_dir.'/src/'.$post_image)) {
+				$imageDim = getimagesize(KU_BOARDSDIR.$board_dir.'/src/'.$post_image);
 				$imgWidth = $imageDim[0];
 				$imgHeight = $imageDim[1];
 				$_POST['width'] = $imgWidth;
 				$_POST['height'] = $imgHeight;
-				$OekakiApplet->load_image_url = $board_dir.'/src/'.$post_image;
+				$OekakiApplet->load_image_url = KU_BOARDSPATH . '/' . $board_dir . '/src/'.$post_image;
 			} else {
 				die("Invalid reply image.");
 			}

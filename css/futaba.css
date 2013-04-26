@@ -37,7 +37,14 @@ a:hover {
 .postarea {
 }
 .rules {
-	font-size:0.7em;
+	/*font-size:0.7em;*/
+	width: 468px;
+	font-size: 10px;
+	font-family: sans-serif;
+}
+.rules li {
+	margin-left: 1em;
+	/*text-indent: 0em;*/
 }
 .postblock {
 	background:#EEAA88;

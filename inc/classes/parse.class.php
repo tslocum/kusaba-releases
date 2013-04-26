@@ -1,18 +1,18 @@
 <?php
 /*
-* This file is part of Trevorchan.
+* This file is part of kusaba.
 *
-* Trevorchan is free software; you can redistribute it and/or modify it under the
+* kusaba is free software; you can redistribute it and/or modify it under the
 * terms of the GNU General Public License as published by the Free Software
 * Foundation; either version 2 of the License, or (at your option) any later
 * version.
 *
-* Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+* kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
 * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 *
 * You should have received a copy of the GNU General Public License along with
-* Trevorchan; if not, write to the Free Software Foundation, Inc.,
+* kusaba; if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 * +------------------------------------------------------------------------------+
 * Parse class
@@ -27,7 +27,7 @@ class Parse {
 	
 	function MakeClickable($txt) {
 		/* Make http:// urls in posts clickable */
-		$txt = preg_replace('#(http://)([^(\s<)]*)#', '<a href="\\1\\2">\\1\\2</a>', $txt);
+		$txt = preg_replace('#(http://|https://|ftp://)([^(\s<)]*)#', '<a href="\\1\\2">\\1\\2</a>', $txt);
 		
 		return $txt;
 	} 
@@ -95,7 +95,7 @@ class Parse {
 		global $tc_db, $ispage, $thread_board_return;
 		
 		if ($this->boardtype != 1) {
-			$query = "SELECT `parentid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($thread_board_return)."` WHERE `id` = '".mysql_real_escape_string($matches[1])."'";
+			$query = "SELECT `parentid` FROM `".KU_DBPREFIX."posts_".mysql_real_escape_string($thread_board_return)."` WHERE `id` = '".mysql_real_escape_string($matches[1])."'";
 			$result = $tc_db->GetOne($query);
 			if ($result!='') {
 				if ($result==0) {
@@ -110,7 +110,7 @@ class Parse {
 			$realid = $this->parentid;
 		}
 		
-		$return = '<a href="'.TC_BOARDSFOLDER.$thread_board_return.'/res/'.$realid.'.html#'.$matches[1].'" onclick="javascript:highlight(\'' . $matches[1] . '\', true);">'.$matches[0].'</a>';
+		$return = '<a href="'.KU_BOARDSFOLDER.$thread_board_return.'/res/'.$realid.'.html#'.$matches[1].'" onclick="javascript:highlight(\'' . $matches[1] . '\', true);">'.$matches[0].'</a>';
 		
 		return $return;
 	}
@@ -118,16 +118,16 @@ class Parse {
 	function InterboardQuoteCheck($matches) {
 		global $tc_db;
 
-		$result = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."boards` WHERE `name` = '".mysql_real_escape_string($matches[1])."'");
+		$result = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."boards` WHERE `name` = '".mysql_real_escape_string($matches[1])."'");
 		if ($result==1) {
-			$result2 = $tc_db->GetOne("SELECT `parentid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($matches[1])."` WHERE `id` = '".mysql_real_escape_string($matches[2])."'");
+			$result2 = $tc_db->GetOne("SELECT `parentid` FROM `".KU_DBPREFIX."posts_".mysql_real_escape_string($matches[1])."` WHERE `id` = '".mysql_real_escape_string($matches[2])."'");
 			if ($result2!='') {
 				if ($result2==0) {
 					$realid = $matches[2];
 				} else {
 					$realid = $result2;
 				}
-				return '<a href="'.TC_BOARDSFOLDER.$matches[1].'/res/'.$realid.'.html#'.$matches[2].'">'.$matches[0].'</a>';
+				return '<a href="'.KU_BOARDSFOLDER.$matches[1].'/res/'.$realid.'.html#'.$matches[2].'">'.$matches[0].'</a>';
 			}
 		}
 		
@@ -137,7 +137,7 @@ class Parse {
 	function Wordfilter($buffer, $board) {
 		global $tc_db;
 		
-		$query = "SELECT * FROM `".TC_DBPREFIX."wordfilter`";
+		$query = "SELECT * FROM `".KU_DBPREFIX."wordfilter`";
 		$results = $tc_db->GetAll($query);
 		foreach($results AS $line) {
 			$array_boards = explode('|', $line['boards']);
@@ -221,9 +221,9 @@ class Parse {
 		$this->parentid = $parentid;
 		
 		$message = trim($message);
-		$message = $this->CutWord($message, TC_MAXCHAR, "\n");
+		$message = $this->CutWord($message, KU_MAXCHAR, "\n");
 		$message = htmlspecialchars($message, ENT_QUOTES);
-		if (TC_MAKELINKS) {
+		if (KU_MAKELINKS) {
 			$message = $this->MakeClickable($message);
 		}
 		$message = $this->ClickableQuote($message, $board, $boardtype, $parentid, $ispage);

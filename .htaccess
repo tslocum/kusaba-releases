@@ -1,4 +1,4 @@
-DirectoryIndex trevorchan.php
+DirectoryIndex kusaba.php
 AddCharset UTF-8 .html
 AddCharset UTF-8 .php
 
@@ -12,4 +12,4 @@ Header unset Vary
 </IfModule>
 
 # Warning: Contents below this line may be erased, please place all .htaccess rules above this line
-## !TC_BANS:
+## !KU_BANS:

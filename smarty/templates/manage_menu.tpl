@@ -19,7 +19,7 @@ li:hover { background: #fec; }
 li a { display: block; width: 100%; }
 </style>
 {/literal}
-<link rel="shortcut icon" href="{$tc_webpath}/favicon.ico">
+<link rel="shortcut icon" href="{$ku_webpath}/favicon.ico">
 {literal}
 <script type="text/javascript">
 function toggle(button, area) {

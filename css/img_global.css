@@ -119,3 +119,35 @@ form .trap {
 .extrabtns {
 	vertical-align: middle;
 }
+
+.hidethread {
+	background-image: url('icons/blue/zoom-out.gif');
+}
+
+.unhidethread {
+	background-image: url('icons/blue/zoom-in.gif');
+}
+
+.watchthread {
+	background-image: url('icons/blue/bookmark.gif');
+}
+
+.expandthread {
+	background-image: url('icons/blue/move.gif');
+}
+
+.quickreply {
+	background-image: url('icons/blue/eject.gif');
+}
+
+.hidewatchedthreads {
+	background-image: url('icons/blue/arrow-upleft.gif');
+}
+
+.refreshwatchedthreads {
+	background-image: url('icons/blue/refresh.gif');
+}
+
+.restorewatchedthreads {
+	background-image: url('icons/blue/grow.gif');
+}

@@ -3,7 +3,7 @@
  * @ignore
  */ 
 ################################################################################
-# Trevorchan MySQL Importing Script v1.0 is © 2007 David Steven-Jennings (relixx@gmail.com)
+# kusaba MySQL Importing Script v1.0 is © 2007 David Steven-Jennings (relixx@gmail.com)
 #
 # This work is licensed under the Creative Commons Attribution-ShareAlike 2.5 License. 
 # To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/2.5/ 
@@ -48,7 +48,7 @@ if (!isset($_POST["confirm"])) {
 
 
 <font color="#FF0000"><b>WARNING!</b></font><br><br>
-The purpose of this script is to quickly and easily run the commands contained within the Trevorchan SQL file, and is
+The purpose of this script is to quickly and easily run the commands contained within the kusaba SQL file, and is
 to be used if you are installing the script for the first time or want to recreate the tables, for whatever reason.<br>
 Running this script will delete any related tables and their data (including the admin files). I offer this script as-is and cannot be held 
 responsible for any damages caused or accidental loss of data incurred as a result of running this script.<br>
@@ -69,24 +69,24 @@ Before running this script, make sure that:<br>
 	require('config.php');
 	$reqiredtables = array("banlist","boards","config","iplist","loginattempts","modlog","news","passcache","reports","sections","staff","wordfilter");
         foreach ($reqiredtables as $tablename) {
-                if (mysql_table_exists(TC_DBDATABASE,TC_DBPREFIX.$tablename)) {
-                        die("Table <b>".TC_DBPREFIX.$tablename."</b> already exists in the database!  Drop it, and re run this script.");
+                if (mysql_table_exists(KU_DBDATABASE,KU_DBPREFIX.$tablename)) {
+                        die("Table <b>".KU_DBPREFIX.$tablename."</b> already exists in the database!  Drop it, and re run this script.");
                 }
         }
 	// Lets open the file for reading! :)
 	echo '<h2>SQL Batch File Processing</h2>';
-	echo 'Locating \'trevorchan_freshinstall.sql\'... ';
-	if (file_exists('trevorchan_freshinstall.sql') && (filesize('trevorchan_freshinstall.sql') > 0)) {
+	echo 'Locating \'kusaba_freshinstall.sql\'... ';
+	if (file_exists('kusaba_freshinstall.sql') && (filesize('kusaba_freshinstall.sql') > 0)) {
 	echo 'found.<br>';
-	$sqlfile = fopen('trevorchan_freshinstall.sql', 'r');
+	$sqlfile = fopen('kusaba_freshinstall.sql', 'r');
 	echo 'File opened.<br>';
-	$readdata = fread($sqlfile, filesize('trevorchan_freshinstall.sql'));
-	$readdata = str_replace('PREFIX_',TC_DBPREFIX,$readdata);
+	$readdata = fread($sqlfile, filesize('kusaba_freshinstall.sql'));
+	$readdata = str_replace('PREFIX_',KU_DBPREFIX,$readdata);
 	fclose($sqlfile);
 	echo 'Contents read.<br>';
 	}else{
 	echo '<font color=red>error.</font> ';
-	die('An error occured. trevorchan_freshinstall.sql does not exist in this directory or it is 0 bytes big :( Barring that, do you have read permissions for the directory?');
+	die('An error occured. kusaba_freshinstall.sql does not exist in this directory or it is 0 bytes big :( Barring that, do you have read permissions for the directory?');
 	}
 	
 	// Explodes the array
@@ -105,7 +105,7 @@ Before running this script, make sure that:<br>
 	$sqlarray = explode(';',$readdata);
 	echo 'File contents have been formatted for use with mysql_query.<br>';
 	// Lets drop any existing tables in the database
-	$listoftables = $tc_db->GetAll("show tables from ".TC_DBDATABASE."");
+	$listoftables = $tc_db->GetAll("show tables from ".KU_DBDATABASE."");
 	
 	echo '<h2>Table Creation</h2>';
 	// Lets now loop through the array and create each table 
@@ -134,7 +134,7 @@ function mysql_table_exists($database, $tableName)
 {
     global $tc_db;
     $tables = array();
-    $tablesResults = $tc_db->GetAll("SHOW TABLES FROM $database;");
+    $tablesResults = $tc_db->GetAll("SHOW TABLES FROM `$database`;");
     foreach ($tablesResults AS $row) $tables[] = $row[0];
     return(in_array($tableName, $tables));
 }

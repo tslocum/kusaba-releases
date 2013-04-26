@@ -1,18 +1,18 @@
 <?php
 /*
- * This file is part of Trevorchan.
+ * This file is part of kusaba.
  *
- * Trevorchan is free software; you can redistribute it and/or modify it under the
+ * kusaba is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
  *
- * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+ * kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+ * kusaba; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /** 
@@ -20,7 +20,7 @@
  * 
  * Provides module and hook functionality
  *  
- * @package Trevorchan   
+ * @package kusaba   
  */
 
 function hook_process($hookname, $data) {
@@ -45,7 +45,7 @@ function modules_load_all() {
 function modules_list() {
 	$modules = array();
 	
-	if ($modules_handle = opendir(TC_ROOTDIR . 'inc/modules')) {
+	if ($modules_handle = opendir(KU_ROOTDIR . 'inc/modules')) {
 	    while (false !== ($file = readdir($modules_handle))) {
 	    	/* We don't want hidden files, nor . or .. */
 	    	if ($file != '.' && $file != '..' && !is_dir($file) && strpos($file, '.php') != false) { 
@@ -65,7 +65,7 @@ function module_load($module) {
 
 	if (!in_array($module, $modules_loaded)) {
 		/* Include the module file */
-		include(TC_ROOTDIR . 'inc/modules/' . $module . '.php');
+		include(KU_ROOTDIR . 'inc/modules/' . $module . '.php');
 		
 		/* Call the initialization function */
 		module_call_function($module, 'init');
@@ -96,7 +96,7 @@ function module_call_function($module, $function, $data = null) {
 function module_setting_get($module, $key) {
 	global $tc_db;
 	
-	$query = "SELECT `value` FROM `".TC_DBPREFIX."module_settings` WHERE `module` = '".mysql_real_escape_string($module)."' AND `key` = '".mysql_real_escape_string($key)."' LIMIT 1";
+	$query = "SELECT `value` FROM `".KU_DBPREFIX."module_settings` WHERE `module` = '".mysql_real_escape_string($module)."' AND `key` = '".mysql_real_escape_string($key)."' LIMIT 1";
 	$result = $tc_db->GetOne($query);
 	
 	return $result;
@@ -105,11 +105,11 @@ function module_setting_get($module, $key) {
 function module_setting_set($module, $key, $value, $type = 'string') {
 	global $tc_db;
 	
-	$exists = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."module_settings` WHERE `module` = '".mysql_real_escape_string($module)."' AND `key` = '".mysql_real_escape_string($key)."' LIMIT 1");
+	$exists = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."module_settings` WHERE `module` = '".mysql_real_escape_string($module)."' AND `key` = '".mysql_real_escape_string($key)."' LIMIT 1");
 	if ($exists > 0) {
-		$result = $tc_db->Execute("UPDATE `".TC_DBPREFIX."module_settings` SET `value` = '".mysql_real_escape_string($value)."') WHERE `module` = '".mysql_real_escape_string($module)."' AND `key` = '".mysql_real_escape_string($key)."'");
+		$result = $tc_db->Execute("UPDATE `".KU_DBPREFIX."module_settings` SET `value` = '".mysql_real_escape_string($value)."') WHERE `module` = '".mysql_real_escape_string($module)."' AND `key` = '".mysql_real_escape_string($key)."'");
 	} else {
-		$result = $tc_db->Execute("INSERT INTO `".TC_DBPREFIX."module_settings` (`module` , `key` , `value` , `type`) VALUES ('".mysql_real_escape_string($module)."', '".mysql_real_escape_string($key)."', '".mysql_real_escape_string($value)."', '".mysql_real_escape_string($type)."')");
+		$result = $tc_db->Execute("INSERT INTO `".KU_DBPREFIX."module_settings` (`module` , `key` , `value` , `type`) VALUES ('".mysql_real_escape_string($module)."', '".mysql_real_escape_string($key)."', '".mysql_real_escape_string($value)."', '".mysql_real_escape_string($type)."')");
 	}
 	
 	return $result;

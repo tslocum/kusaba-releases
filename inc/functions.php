@@ -1,18 +1,18 @@
 <?php
 /*
- * This file is part of Trevorchan.
+ * This file is part of kusaba.
  *
- * Trevorchan is free software; you can redistribute it and/or modify it under the
+ * kusaba is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
  *
- * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+ * kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+ * kusaba; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /** 
@@ -21,7 +21,7 @@
  * The functions script has no theme; any and all functions which are used globally
  * will be found in this file.
  * 
- * @package Trevorchan  
+ * @package kusaba  
  */
 
 function microtime_float() {
@@ -32,10 +32,10 @@ function changeLocale($newlocale) {
 	global $CURRENTLOCALE, $EMULATEGETTEXT, $text_domains;
 	$CURRENTLOCALE = $newlocale;
 	$EMULATEGETTEXT = 1;
-	$path = TC_ROOTDIR . 'inc/lang/' . $CURRENTLOCALE . '/' . 'LC_MESSAGES' ."/trevorchan.mo";
-	$text_domains['trevorchan']->path = $path;
+	$path = KU_ROOTDIR . 'inc/lang/' . $CURRENTLOCALE . '/' . 'LC_MESSAGES' ."/kusaba.mo";
+	$text_domains['kusaba']->path = $path;
 	$input = new FileReader($path);
-	$text_domains['trevorchan']->l10n = new gettext_reader($input, false);
+	$text_domains['kusaba']->l10n = new gettext_reader($input, false);
 }
 
 /* <3 coda for this wonderful snippet
@@ -43,7 +43,7 @@ print $contents to $filename by using a temporary file and renaming it */
 function print_page($filename, $contents, $board) {
 	global $tc_db;
 	
-	$tempfile = tempnam(TC_BOARDSDIR . $board . '/res', 'tmp'); /* Create the temporary file */
+	$tempfile = tempnam(KU_BOARDSDIR . $board . '/res', 'tmp'); /* Create the temporary file */
 	$fp = fopen($tempfile, 'w');
 	fwrite($fp, $contents);
 	fclose($fp);
@@ -61,16 +61,16 @@ function print_page($filename, $contents, $board) {
  *
  * Creates a <link> tag for each stylesheet defined in the config
  *  
- * @param string $prefered_stylesheet Prefered stylesheet, which will be given the type "stylesheet" instead of "alternate stylesheet".  Defaults to TC_DEFAULTSTYLE.
+ * @param string $prefered_stylesheet Prefered stylesheet, which will be given the type "stylesheet" instead of "alternate stylesheet".  Defaults to KU_DEFAULTSTYLE.
  * @return string HTML formatted stylesheet <link> tags
  */    
-function printStylesheets($prefered_stylesheet = TC_DEFAULTSTYLE) {
+function printStylesheets($prefered_stylesheet = KU_DEFAULTSTYLE) {
 	global $tc_db;
 	$output_stylesheets = '';
-	$styles = explode(':', TC_STYLES);
+	$styles = explode(':', KU_STYLES);
 	
 	if (!in_array($prefered_stylesheet, $styles)) {
-		$prefered_stylesheet = TC_DEFAULTSTYLE;
+		$prefered_stylesheet = KU_DEFAULTSTYLE;
 	}
 	
 	foreach ($styles as $stylesheet) {
@@ -78,8 +78,40 @@ function printStylesheets($prefered_stylesheet = TC_DEFAULTSTYLE) {
 		if ($stylesheet != $prefered_stylesheet) {
 			$output_stylesheets .= 'alternate ';
 		}
-		$output_stylesheets .= 'stylesheet" type="text/css" href="' . TC_BOARDSPATH . '/css/' . $stylesheet . '.css" title="' . ucfirst($stylesheet) . '">' . "\n";
+		$output_stylesheets .= 'stylesheet" type="text/css" href="' . KU_BOARDSPATH . '/css/' . $stylesheet . '.css" title="' . ucfirst($stylesheet) . '">' . "\n";
 	}
+	
+	return $output_stylesheets;
+}
+
+function printStylesheetsSite($prefered_stylesheet = KU_DEFAULTMENUSTYLE, $menu = false) {
+	global $tc_db;
+	$output_stylesheets = '';
+	$styles = explode(':', KU_MENUSTYLES);
+	
+	if (!in_array($prefered_stylesheet, $styles)) {
+		$prefered_stylesheet = KU_DEFAULTMENUSTYLE;
+	}
+	
+	foreach ($styles as $stylesheet) {
+		$output_stylesheets .= '<link rel="';
+		if ($stylesheet != $prefered_stylesheet) {
+			$output_stylesheets .= 'alternate ';
+		}
+		$output_stylesheets .= 'stylesheet" type="text/css" href="' . KU_BOARDSPATH . '/css/site_' . $stylesheet . '.css" title="' . ucfirst($stylesheet) . '">' . "\n";
+		if ($menu) {
+			$output_stylesheets .= '<link rel="';
+			if ($stylesheet != $prefered_stylesheet) {
+				$output_stylesheets .= 'alternate ';
+			}
+			$output_stylesheets .= 'stylesheet" type="text/css" href="' . KU_BOARDSPATH . '/css/sitemenu_' . $stylesheet . '.css" title="' . ucfirst($stylesheet) . '">' . "\n";
+		}
+	}
+	
+	$output_stylesheets .= '<script type="text/javascript"><!--' . "\n" .
+	'	var style_cookie_site = "kustyle_site";' . "\n" .
+	'//--></script>' . "\n" .
+	'<script type="text/javascript" src="' . KU_WEBPATH . '/lib/javascript/kusaba.js"></script>' . "\n";
 	
 	return $output_stylesheets;
 }
@@ -90,13 +122,145 @@ function printStylesheets($prefered_stylesheet = TC_DEFAULTSTYLE) {
 function checkMd5($md5, $board) {
 	global $tc_db;
 	
-	$matches = $tc_db->GetAll("SELECT `id`, `parentid` FROM `".TC_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `IS_DELETED` = 0 AND `filemd5` = '".mysql_real_escape_string($md5)."' LIMIT 1");
+	$matches = $tc_db->GetAll("SELECT `id`, `parentid` FROM `".KU_DBPREFIX."posts_".mysql_real_escape_string($board)."` WHERE `IS_DELETED` = 0 AND `filemd5` = '".mysql_real_escape_string($md5)."' LIMIT 1");
 	if (count($matches) > 0) {
 		$real_parentid = ($matches[0][1] == 0) ? $matches[0][0] : $matches[0][1];
 		
 		return array($real_parentid, $matches[0][0]);
 	} else {
 		return false;
+	}
+}
+
+function cleanBoardName($board) {
+	return trim(str_replace('/', '', str_replace('|', '', str_replace(' ', '', $board))));
+}
+
+function timeDiff($timestamp,$detailed=false, $max_detail_levels=8, $precision_level='second'){
+    $now = time();
+
+    #If the difference is positive "ago" - negative "away"
+    ($timestamp >= $now) ? $action = '' : $action = 'ago';
+   
+    # Set the periods of time
+    $periods = array("second", "minute", "hour", "day", "week", "month", "year", "decade");
+    $lengths = array(1, 60, 3600, 86400, 604800, 2630880, 31570560, 315705600);
+
+    $diff = ($action == '' ? $timestamp - $now : $now - $timestamp);
+   
+    $prec_key = array_search($precision_level,$periods);
+   
+    # round diff to the precision_level
+    $diff = round(($diff/$lengths[$prec_key]))*$lengths[$prec_key];
+   
+    # if the diff is very small, display for ex "just seconds ago"
+    if ($diff <= 10) {
+        $periodago = max(0,$prec_key-1);
+        $agotxt = $periods[$periodago].'s';
+        return "$agotxt $action";
+    }
+   
+    # Go from decades backwards to seconds
+    $time = "";
+    for ($i = (sizeof($lengths) - 1); $i>=0; $i--) {
+    	if ($i > 0) {
+	        if($diff > $lengths[$i-1] && ($max_detail_levels > 0)) {        # if the difference is greater than the length we are checking... continue
+	            $val = floor($diff / $lengths[$i-1]);    # 65 / 60 = 1.  That means one minute.  130 / 60 = 2. Two minutes.. etc
+	            $time .= $val ." ". $periods[$i-1].($val > 1 ? 's ' : ' ');  # The value, then the name associated, then add 's' if plural
+	            $diff -= ($val * $lengths[$i-1]);    # subtract the values we just used from the overall diff so we can find the rest of the information
+	            if(!$detailed) { $i = 0; }    # if detailed is turn off (default) only show the first set found, else show all information
+	            $max_detail_levels--;
+	        }
+        }
+    }
+ 
+    # Basic error checking.
+    if($time == "") {
+        return "Error-- Unable to calculate time.";
+    } else {
+    	if ($action != '') {
+        	return $time.$action;
+        } else {
+        	return $time;
+		}
+    }
+}
+
+function getBlotter($all = false) {
+	global $tc_db;
+	
+	if (KU_APC) {
+		if ($all) {
+			$cache_blotter = apc_fetch('blotter|all');
+		} else {
+			$cache_blotter = apc_fetch('blotter|last4');
+		}
+		if ($cache_blotter !== false) {
+			return $cache_blotter;
+		}
+	}
+	$output = '';
+	
+	if ($all) {
+		$limit = '';
+	} else {
+		$limit = ' LIMIT 4';
+	}
+	$results = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "blotter` ORDER BY `id` DESC" . $limit);
+	if (count($results) > 0) {
+		if ($all) {
+			$output .= '<pre>';
+		}
+		foreach ($results as $line) {
+			if ($all && $line['important'] == 1) {
+				$output .= '<font style="color: red;">';
+			} elseif (!$all) {
+				$output .= '<li name="blotterentry" style="display: none;">' . "\n";
+				if ($line['important'] == 1) {
+					$output .= '	<span style="color: red;">' . "\n" . '	';
+				}
+				$output .= '	';
+			}
+			$output .= date('m/d/y', $line['at']) . ' - ' . $line['message'];
+			if ($all && $line['important'] == 1) {
+				$output .= '</font>' . "\n";
+			} elseif (!$all) {
+				$output .= "\n";
+				if ($line['important'] == 1) {
+					$output .= '	</span>' . "\n";
+				}
+				$output .= '</li>';
+			} else {
+				$output .= "\n";
+			}
+			$output .= "\n";
+		}
+		if ($all) {
+			$output .= '</pre>';
+		}
+	}
+	
+	if (KU_APC) {
+		if ($all) {
+			apc_store('blotter|all', $output);
+		} else {
+			apc_store('blotter|last4', $output);
+		}
+	}
+	
+	return $output;
+}
+
+function getBlotterLastUpdated() {
+	global $tc_db;
+	
+	return $tc_db->GetOne("SELECT `at` FROM `" . KU_DBPREFIX . "blotter` ORDER BY `id` DESC LIMIT 1");
+}
+
+function clearBlotterCache() {
+	if (KU_APC) {
+		apc_delete('blotter|all');
+		apc_delete('blotter|last4');
 	}
 }
 
@@ -107,7 +271,7 @@ function checkMd5($md5, $board) {
  * @param string $board Board name
  */    
 function clearPostCache($id, $board) {
-	if (TC_APC) {
+	if (KU_APC) {
 		apc_delete('post|' . $board . '|' . $id);
 	}
 }
@@ -121,7 +285,7 @@ function clearPostCache($id, $board) {
 function boardid_to_dir($boardid) {
 	global $tc_db;
 	
-	$query = "SELECT `name` FROM `".TC_DBPREFIX."boards` WHERE `id` = '".mysql_real_escape_string($boardid)."'";
+	$query = "SELECT `name` FROM `".KU_DBPREFIX."boards` WHERE `id` = '".mysql_real_escape_string($boardid)."'";
 	$results = $tc_db->SelectLimit($query, 1);
 	if (count($results)>0) {
 		foreach($results AS $line) {
@@ -141,7 +305,7 @@ function calculatenumpages($boardtype, $numposts) {
 	if ($boardtype==1) {
 		return (floor($numposts/15));
 	} else {
-		return (floor($numposts/TC_THREADS));
+		return (floor($numposts/KU_THREADS));
 	}
 }
 
@@ -154,7 +318,7 @@ function calculatenumpages($boardtype, $numposts) {
 function getfiletypeinfo($filetype) {
 	global $tc_db;
 	
-	$query = "SELECT * FROM `".TC_DBPREFIX."filetypes` WHERE `filetype` = '".mysql_real_escape_string($filetype)."' LIMIT 1";
+	$query = "SELECT * FROM `".KU_DBPREFIX."filetypes` WHERE `filetype` = '".mysql_real_escape_string($filetype)."' LIMIT 1";
 	$results = $tc_db->GetAll($query);
 	foreach($results AS $line) {
 		return array($line['image'],$line['image_w'],$line['image_h']);
@@ -177,13 +341,13 @@ function management_addlogentry($entry, $category = 0, $forceusername = '') {
 	$username = ($forceusername == '') ? $_SESSION['manageusername'] : $forceusername;
 	
 	if ($entry != '') {
-		$tc_db->Execute("INSERT INTO `" . TC_DBPREFIX . "modlog` ( `entry` , `user` , `category` , `timestamp` ) VALUES ( '" . mysql_real_escape_string($entry) . "' , '" . $username . "' , '" . mysql_real_escape_string($category) . "' , '" . time() . "' )");
+		$tc_db->Execute("INSERT INTO `" . KU_DBPREFIX . "modlog` ( `entry` , `user` , `category` , `timestamp` ) VALUES ( '" . mysql_real_escape_string($entry) . "' , '" . $username . "' , '" . mysql_real_escape_string($category) . "' , '" . time() . "' )");
 	}
-	if (TC_RSS) {
-		require_once(TC_ROOTDIR . 'inc/classes/rss.class.php');
+	if (KU_RSS) {
+		require_once(KU_ROOTDIR . 'inc/classes/rss.class.php');
 		$rss_class = new RSS();
 		
-		print_page(TC_BOARDSDIR . 'modlogrss.xml', $rss_class->GenerateModLogRSS($entry), '');
+		print_page(KU_BOARDSDIR . 'modlogrss.xml', $rss_class->GenerateModLogRSS($entry), '');
 	}
 }
 
@@ -201,20 +365,14 @@ function validateIds($ids) {
 }
 
 /**
- * Generate the javascript which creates the post deletion form
+ * Generate the form for post deletion
  * 
  * @param string $board Board directory
- * @return string Generated javascript
+ * @return string Generated Form tag and board element
  */    
-function deletionFormJavascript($board) {
-	return '<script type="text/javascript"><!--' . "\n" .
-	'if (getCookie("tcmod")=="yes") {' . "\n" .
-	'	document.write(\'<form id="delform" action="' . TC_CGIPATH . '/manage_page.php" method="post">\');' . "\n" .
-	'} else {' . "\n" .
-	'	document.write(\'<form id="delform" action="' . TC_CGIPATH . '/board.php" method="post">\');' . "\n" .
-	'}' . "\n" .
-	'//--></script>' . "\n" .
-	'<input type="hidden" name="board" value="' . $board . '">';
+function deletionForm($board) {
+	return '<form id="delform" action="' . KU_CGIPATH . '/board.php" method="post">' . "\n" .
+	'<input type="hidden" name="board" value="' . $board . '">' . "\n";
 }
 
 /**
@@ -226,9 +384,9 @@ function deletionFormJavascript($board) {
  */   
 function unHideThreadSpan($id, $board) {
 	return '<span id="unhidethread' . $id . $board . '" style="display: none;">' . "\n" .
-	'	Thread <a href="' . TC_BOARDSFOLDER . $board . '/res/' . $id . '.html">' . $id . '</a> hidden. ' . "\n" .
+	'	Thread <a href="' . KU_BOARDSFOLDER . $board . '/res/' . $id . '.html">' . $id . '</a> hidden. ' . "\n" .
 	'	<a href="#" onclick="javascript:togglethread(\'' . $id . $board . '\');return false;" title="Un-Hide Thread">' . "\n" .
-	'		<img src="' . TC_WEBPATH . '/lib/icons/zoom-in.gif" border="0" alt="zoom in">' . "\n" .
+	'		<img src="' . KU_BOARDSPATH . '/css/icons/blank.gif" border="0" class="unhidethread" alt="unhide">' . "\n" .
 	'	</a>' . "\n" .
 	'</span>' . "\n";
 }
@@ -247,7 +405,7 @@ function pageList($boardpage, $pages, $board) {
 	if ($boardpage == 0) {
 		$output .= _gettext('Previous');
 	} else {
-		$output .= '<form method="get" action="' . TC_BOARDSFOLDER . $board . '/';
+		$output .= '<form method="get" action="' . KU_BOARDSFOLDER . $board . '/';
 		
 		if ($boardpage-1!=0) {
 			$output .= ($boardpage - 1) . '.html';
@@ -262,7 +420,7 @@ function pageList($boardpage, $pages, $board) {
 		if ($boardpage == $i) {
 			$output .= '&#91;'.$i.'&#93;';
 		} else {
-			$output .= '&#91;<a href="' . TC_BOARDSFOLDER . $board . '/';
+			$output .= '&#91;<a href="' . KU_BOARDSFOLDER . $board . '/';
 			
 			if ($i != 0) {
 				$output .= $i . '.html';
@@ -282,7 +440,7 @@ function pageList($boardpage, $pages, $board) {
 	if ($boardpage == $pages) {
 		$output .= _gettext('Next');
 	} else {
-		$output .= '<form method="get" action="' . TC_BOARDSFOLDER . $board . '/' . ($boardpage + 1) . '.html"><input value="' . _gettext('Next') . '" type="submit"></form>';
+		$output .= '<form method="get" action="' . KU_BOARDSFOLDER . $board . '/' . ($boardpage + 1) . '.html"><input value="' . _gettext('Next') . '" type="submit"></form>';
 	}
 	
 	$output .= '</td></tr></tbody></table>';
@@ -306,7 +464,7 @@ function formatNameAndTrip($name, $email, $tripcode) {
 	}
 	
 	if ($name == '' && $tripcode == '') {
-		$output .= TC_ANONYMOUS;
+		$output .= KU_ANONYMOUS;
 	} else if ($name == '' && $tripcode != '') {
 		/* Just display the tripcode, no added html */
 	} else {
@@ -339,7 +497,7 @@ function formatNameAndTrip($name, $email, $tripcode) {
  */ 
 function formatLongMessage($message, $board, $threadid, $page) {
 	$output = '';
-	if ((strlen($message) > TC_LINELENGTH || count(explode('<br>', $message)) > 15) && $page) {
+	if ((strlen($message) > KU_LINELENGTH || count(explode('<br>', $message)) > 15) && $page) {
 		$message_exploded = explode('<br>', $message);
 		$message_shortened = '';
 		for ($i = 0; $i <= 14; $i++) {
@@ -347,13 +505,13 @@ function formatLongMessage($message, $board, $threadid, $page) {
 				$message_shortened .= $message_exploded[$i] . '<br>';
 			}
 		}
-		if (strlen($message_shortened) > TC_LINELENGTH) {
-			$message_shortened = substr($message_shortened, 0, TC_LINELENGTH);
+		if (strlen($message_shortened) > KU_LINELENGTH) {
+			$message_shortened = substr($message_shortened, 0, KU_LINELENGTH);
 		}
 		$message_shortened = closeOpenTags($message_shortened);
 		
 		$output = $message_shortened . '<div class="abbrev">' . "\n" .
-		'	' . sprintf(_gettext('Comment too long. Click %shere%s to view the full text.'), '<a href="' . TC_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">', '</a>') . "\n" .
+		'	' . sprintf(_gettext('Comment too long. Click %shere%s to view the full text.'), '<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">', '</a>') . "\n" .
 		'</div>' . "\n";
 	} else {
 		$output .= $message . "\n";
@@ -385,7 +543,7 @@ function uploadImageboardPageRow($post, $board, $maxage, $replies) {
 	formatNameAndTrip($post['name'], $post['email'], $post['tripcode']) .
 	'</td>' . "\n" .
 	'<td align="center">' . "\n" .
-	'	[<a href="' . TC_BOARDSFOLDER . $board . '/src/' . $post['filename'] . '.' . $post['filetype'] . '" target="_blank">' . $post['filename'] . '.' . $post['filetype'] . '</a>]' . "\n" .
+	'	[<a href="' . KU_BOARDSFOLDER . $board . '/src/' . $post['filename'] . '.' . $post['filetype'] . '" target="_blank">' . $post['filename'] . '.' . $post['filetype'] . '</a>]' . "\n" .
 	'</td>' . "\n";
 	
 	if ($post['tag'] == '') {
@@ -415,7 +573,7 @@ function uploadImageboardPageRow($post, $board, $maxage, $replies) {
 	'	' . $replies . "\n" .
 	'</td>' . "\n" .
 	'<td align="center">' . "\n" .
-	'	[<a href="' . TC_BOARDSFOLDER . $board . '/res/' . $post['id'] . '.html">Reply</a>]' . "\n" .
+	'	[<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $post['id'] . '.html">Reply</a>]' . "\n" .
 	'</td>' . "\n" .
 	'</tr>';
 	
@@ -471,20 +629,20 @@ function threadLinks($type, $threadid, $board, $boardtype, $modifier_last50, $mo
 	}
 	
 	if ($type == 'return') {
-		$output = $leftbracket . '<a href="' . TC_BOARDSFOLDER . $board . '/">' . _gettext('Return') . '</a>' . $rightbracket;
+		$output = $leftbracket . '<a href="' . KU_BOARDSFOLDER . $board . '/">' . _gettext('Return') . '</a>' . $rightbracket;
 	} elseif ($type == 'page' && $boardtype == 1) {
 		$output = '<p class="hidden">' . _gettext('The 5 newest replies are shown below.') . '<br>';
 	} elseif ($type == 'page' && $boardtype != 1) {
-		$output = $leftbracket . '<a href="' . TC_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">' . _gettext('Reply') . '</a>' . $rightbracket;
+		$output = $leftbracket . '<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">' . _gettext('Reply') . '</a>' . $rightbracket;
 	}
 	
-	if ((TC_FIRSTLAST && $modifier_last50) || $boardtype == 1) {
+	if ((KU_FIRSTLAST && $modifier_last50) || $boardtype == 1) {
 		if ($type == 'return') {
 			$output .= ' ' . $leftbracket;
 		}
 		
 		if ($type == 'return' || ($type == 'page' && $boardtype == 1)) {
-			$output .= '<a href="' . TC_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">';
+			$output .= '<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">';
 			
 			if ($type == 'return') {
 				$output .= _gettext('Entire Thread');
@@ -500,11 +658,11 @@ function threadLinks($type, $threadid, $board, $boardtype, $modifier_last50, $mo
 		}
 		
 		if ($modifier_first100) {
-			$output .= ' ' . $leftbracket . '<a href="' . TC_BOARDSFOLDER . $board . '/res/' . $threadid . '-100.html">' . _gettext('First 100 posts') . '</a>' . $rightbracket;
+			$output .= ' ' . $leftbracket . '<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $threadid . '-100.html">' . _gettext('First 100 posts') . '</a>' . $rightbracket;
 		}
 		
 		if ($modifier_last50) {
-			$output .= ' ' . $leftbracket . '<a href="' . TC_BOARDSFOLDER . $board . '/res/' . $threadid . '+50.html">' . _gettext('Last 50 posts') . '</a>' . $rightbracket;
+			$output .= ' ' . $leftbracket . '<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $threadid . '+50.html">' . _gettext('Last 50 posts') . '</a>' . $rightbracket;
 		}
 	}
 	
@@ -557,23 +715,10 @@ function deletePostBox($boardtype, $enablereporting) {
 	if ($boardtype == 1) {
 		$output .= ':';
 	}
-	$output .= ' <script type="text/javascript"><!--' . "\n" .
-	'if (getCookie("tcmod")=="yes") {' . "\n" .
-	'	document.write(\'[<input type="checkbox" name="multiban" id="multiban" value="on"><label for="multiban">and ban<\/label>]<br>Reason: <input name="reason" size="8" />\');' . "\n" .
-	'} else {' . "\n" .
-	'	document.write(\'';
 	if ($boardtype != 1) {
-		$output .= '[<input type="checkbox" name="fileonly" id="fileonly" value="on"><label for="fileonly">' . _gettext('File Only') . '<\/label>]<br>';
+		$output .= ' [<input type="checkbox" name="fileonly" id="fileonly" value="on"><label for="fileonly">' . _gettext('File Only') . '</label>]<br>' . _gettext('Password');
 	}
-	$output .= _gettext('Password') . ' <input type="password" name="postpassword" size="8" />\');' . "\n" .
-	'}' . "\n" .
-	'//--></script>&nbsp;<script type="text/javascript"><!--' . "\n" .
-	'if (getCookie("tcmod")=="yes") {' . "\n" .
-	'	document.write(\'<input name="action" value="multidel" type="submit" />\');' . "\n" .
-	'} else {' . "\n" .
-	'	document.write(\'<input name="deletepost" value="' . _gettext('Delete') . '" type="submit">\');' . "\n" .
-	'}' . "\n" .
-	'//--></script>' . "\n";
+	$output .= ' <input type="password" name="postpassword" size="8">&nbsp;<input name="deletepost" value="' . _gettext('Delete') . '" type="submit">' . "\n";
 
 	if ($enablereporting == 1) {
 		$output .= '<input name="reportpost" value="' . _gettext('Report') . '" type="submit">' . "\n";
@@ -583,9 +728,7 @@ function deletePostBox($boardtype, $enablereporting) {
 	'</tr>' . "\n" .
 	'</tbody>' . "\n" .
 	'</table>' . "\n" .
-	'<script type="text/javascript"><!--' . "\n" .
-	'	document.write(\'<\/form>\');' . "\n" .
-	'//--></script>' . "\n";
+	'</form>' . "\n";
 	
 	return $output;
 }
@@ -631,7 +774,7 @@ function calculateNameAndTripcode($post_name) {
 	global $tc_db;
 	
 	if(ereg("(#|!)(.*)", $post_name, $regs)){
-		$results = $tc_db->GetAll("SELECT `name`, `tripcode` FROM `".TC_DBPREFIX."passcache` WHERE `md5` = '".md5($post_name)."' LIMIT 1");
+		$results = $tc_db->GetAll("SELECT `name`, `tripcode` FROM `".KU_DBPREFIX."passcache` WHERE `md5` = '".md5($post_name)."' LIMIT 1");
 		if (isset($results[0])) {
 			return array($results[0][0], $results[0][1]);
 		} else {
@@ -640,7 +783,7 @@ function calculateNameAndTripcode($post_name) {
 			
 			// {{{ Special tripcode check
 			
-			$trips = unserialize(TC_TRIPS);
+			$trips = unserialize(KU_TRIPS);
 			if (count($trips) > 0) {
 				if (isset($trips[$cap_full])) {
 					$forcedtrip = $trips[$cap_full];
@@ -689,7 +832,7 @@ function calculateNameAndTripcode($post_name) {
 					$tripcode .= '!';
 				}
 				
-				$secure_tripcode = md5($cap_secure . TC_RANDOMSEED);
+				$secure_tripcode = md5($cap_secure . KU_RANDOMSEED);
 				if (function_exists('base64_encode')) {
 					$secure_tripcode = base64_encode($secure_tripcode);
 				}
@@ -704,12 +847,24 @@ function calculateNameAndTripcode($post_name) {
 			
 			$name = ereg_replace("(" . $cap_delimiter . ")(.*)", "", $post_name);
 			
-			$tc_db->Execute("INSERT INTO `".TC_DBPREFIX."passcache` ( `md5` , `name` , `tripcode` ) VALUES ( '" . md5($post_name) . "' , '" . $name . "' , '" . $tripcode . "' )");
+			$tc_db->Execute("INSERT INTO `".KU_DBPREFIX."passcache` ( `md5` , `name` , `tripcode` ) VALUES ( '" . md5($post_name) . "' , '" . $name . "' , '" . $tripcode . "' )");
 			
 			return array($name, $tripcode);
 		}
 	} else {
 		return $post_name;
+	}
+}
+
+/* Depending on the configuration, use either a meta refresh or a direct header */
+function do_redirect($url) {
+	global $board_class;
+	
+	if (KU_INSTANTREDIRECT) {
+		header('Location: ' . $url);
+		die();
+	} else {
+		echo '---> ---> ---><meta http-equiv="refresh" content="1;url=' . $url . '/">';
 	}
 }
 
@@ -794,27 +949,27 @@ function removeBoard($dir){
 		$GLOBALS['remerror'] = false;
 	}
 
-	if($handle = opendir(TC_BOARDSDIR . $dir)){ /* If the folder exploration is sucsessful, continue */
+	if($handle = opendir(KU_BOARDSDIR . $dir)){ /* If the folder exploration is sucsessful, continue */
 		while (false !== ($file = readdir($handle))){ /* As long as storing the next file to $file is successful, continue */
 			$path = $dir . '/' . $file;
 		
-			if(is_file(TC_BOARDSDIR . $path)){
-				if(!unlink(TC_BOARDSDIR . $path)){
+			if(is_file(KU_BOARDSDIR . $path)){
+				if(!unlink(KU_BOARDSDIR . $path)){
 					echo '<u><font color="red">"' . $path . '" could not be deleted. This may be due to a permissions problem.</u><br>Directory cannot be deleted until all files are deleted.</font><br>';
 					$GLOBALS['remerror'] = true;
 					return false;
 				}
 			} else
-				if(is_dir(TC_BOARDSDIR . $path) && substr($file, 0, 1) != '.'){
+				if(is_dir(KU_BOARDSDIR . $path) && substr($file, 0, 1) != '.'){
 					removeBoard($path);
-					@rmdir(TC_BOARDSDIR . $path);
+					@rmdir(KU_BOARDSDIR . $path);
 				}
 		}
 		closedir($handle); /* Close the folder exploration */
 	}
 	
 	if(!$GLOBALS['remerror']) /* If no errors occured, delete the now empty directory */
-		if(!rmdir(TC_BOARDSDIR . $dir)){
+		if(!rmdir(KU_BOARDSDIR . $dir)){
 			echo '<b><font color="red">Could not remove directory "' . $dir . '". This may be due to a permissions problem.</font></b><br>'.$GLOBALS['remerror'];
 			return false;
 		} else

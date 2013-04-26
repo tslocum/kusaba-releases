@@ -190,3 +190,35 @@ table td {
   	border: 1px solid #CCCCCC !important;
   	-moz-border-radius: 5px;
 }
+
+.hidethread {
+	background-image: url('icons/beige/zoom-out.gif');
+}
+
+.unhidethread {
+	background-image: url('icons/beige/zoom-in.gif');
+}
+
+.watchthread {
+	background-image: url('icons/beige/bookmark.gif');
+}
+
+.expandthread {
+	background-image: url('icons/beige/move.gif');
+}
+
+.quickreply {
+	background-image: url('icons/beige/eject.gif');
+}
+
+.hidewatchedthreads {
+	background-image: url('icons/beige/arrow-upleft.gif');
+}
+
+.refreshwatchedthreads {
+	background-image: url('icons/beige/refresh.gif');
+}
+
+.restorewatchedthreads {
+	background-image: url('icons/beige/grow.gif');
+}

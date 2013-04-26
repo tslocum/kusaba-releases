@@ -49,8 +49,14 @@ a:hover {
 	background:inherit;
 }
 .rules {
-	font-size:10px;
-	font-family:sans-serif;
+	/*font-size:0.7em;*/
+	width: 468px;
+	font-size: 10px;
+	font-family: sans-serif;
+}
+.rules li {
+	margin-left: 1em;
+	/*text-indent: 0em;*/
 }
 .postblock {
 	background:#9988EE;

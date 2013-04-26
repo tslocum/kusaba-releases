@@ -74,7 +74,7 @@ label {
 .desc {
 	text-indent: 5px;
 	font-size : 80%;
-	white-space: nowrap;
+	/*white-space: nowrap;*/
 }
 
 .footer {

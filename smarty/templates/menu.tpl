@@ -2,12 +2,9 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>{$tc_name} Navigation</title>
-<link rel="stylesheet" type="text/css" href="{$tc_boardspath}/css/site.css">
-<link rel="stylesheet" type="text/css" href="{$tc_boardspath}/css/site_menu.css">
-<link rel="shortcut icon" href="{$tc_webpath}/favicon.ico">
+<title>{$ku_name} Navigation</title>
+{$styles}<link rel="shortcut icon" href="{$ku_webpath}/favicon.ico">
 {literal}
-<script type="text/javascript" src="{/literal}{$tc_webpath}{literal}/lib/javascript/trevorchan.js"></script>
 <script type="text/javascript">
 function toggle(button, area) {
 	var tog=document.getElementById(area);
@@ -19,21 +16,30 @@ function toggle(button, area) {
 	button.innerHTML=(tog.style.display)?'+':'&minus;';
 	set_cookie('nav_show_'+area, tog.style.display?'0':'1', 30);
 }
+function showstyleswitcher() {
+	var switcher = document.getElementById('sitestyles');
+	switcher.innerHTML = '{/literal}{$styleswitcher}{literal}';
+}
+function reloadmain() {
+	if (parent.main) {
+		parent.main.location.reload();
+	}
+}
 function hidedirs() {
 	set_cookie('tcshowdirs', '', 30);
-	window.location = '{/literal}{$tc_webpath}/{$menu_file_nodirs}';{literal}
+	window.location = '{/literal}{$ku_webpath}/{$menu_file_nodirs}';{literal}
 }
 function showdirs() {
 	set_cookie('tcshowdirs', 'yes', 30);
-	window.location = '{/literal}{$tc_webpath}/{$menu_file_dirs}';{literal}
+	window.location = '{/literal}{$ku_webpath}/{$menu_file_dirs}';{literal}
 }{/literal}{$redirscript}{literal}
 </script>
 {/literal}
 </head>
 <body>
-<h1>{$tc_name}</h1>
+<h1>{$ku_name}</h1>
 <ul>
-<li><a href="{$tc_webpath}" target="_top">{$lang_frontpage}</a></li>
+<li><a href="{$ku_webpath}" target="_top">{$lang_frontpage}</a></li>
 {$showhidedirs}
 </ul>
 {$boards}

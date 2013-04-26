@@ -1,18 +1,18 @@
 <?php
 /*
- * This file is part of Trevorchan.
+ * This file is part of kusaba.
  *
- * Trevorchan is free software; you can redistribute it and/or modify it under the
+ * kusaba is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
  *
- * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+ * kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License along with
- * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+ * kusaba; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /** 
@@ -21,14 +21,15 @@
  * Boards will be listed, divided up by sections set in the manage panel.  IRC info
  * will also be displayed, if it is set.
  * 
- * @package Trevorchan  
+ * @package kusaba  
  */   
 
 require 'config.php';
-require TC_ROOTDIR . 'inc/classes/menu.class.php';
+require KU_ROOTDIR . 'inc/functions.php';
+require KU_ROOTDIR . 'inc/classes/menu.class.php';
 
-if (TC_STATICMENU) {
-	die('This file is disabled because TC_STATICMENU is set to true.');
+if (KU_STATICMENU) {
+	die('This file is disabled because KU_STATICMENU is set to true.');
 }
 
 $menu_class = new Menu;

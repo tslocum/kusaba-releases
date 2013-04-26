@@ -1,18 +1,18 @@
 <?php
 /*
- * This file is part of Trevorchan.
+ * This file is part of kusaba.
  *
- * Trevorchan is free software; you can redistribute it and/or modify it under the
+ * kusaba is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
  *
- * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+ * kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+ * kusaba; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /** 
@@ -20,7 +20,7 @@
  *
  * Generates a random word and stores it in a session variable, which is later used as a verification that the poster is in fact a human
  * 
- * @package Trevorchan  
+ * @package kusaba  
  */ 
 
 /** 
@@ -60,14 +60,14 @@ require 'config.php';
 /** 
  * Captcha image class
  * 
- * @package Trevorchan  
+ * @package kusaba  
  */
 class CaptchaSecurityImages {
 	
 	function CaptchaSecurityImages($width='120',$height='40',$characters='6',$font) {
 		global $font,$font_ballback;
 		
-		require_once TC_ROOTDIR . 'inc/classes/randword.class.php';
+		require_once KU_ROOTDIR . 'inc/classes/randword.class.php';
 		$randword_class = new Rand_Word;
 		
 		$code = $randword_class->rand_word($characters);
@@ -125,8 +125,8 @@ $width = 90;
 $height = 30;
 $characters = 6;
 
-$font = TC_ROOTDIR.'inc/fonts/monofont.ttf';
-$font_fallback = imageloadfont(TC_ROOTDIR.'inc/fonts/captchafont.gdf');
+$font = KU_ROOTDIR.'inc/fonts/monofont.ttf';
+$font_fallback = imageloadfont(KU_ROOTDIR.'inc/fonts/captchafont.gdf');
 
 $captcha = new CaptchaSecurityImages($width,$height,$characters,$font);
 

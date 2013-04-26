@@ -1,0 +1,1120 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Kusaba v0.9.0\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2007-04-10 20:02-0800\n"
+"Last-Translator: Trevor Slocum <tslocum@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-Country: UNITED STATES\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+msgid "Sorry, a generic error has occurred."
+msgstr ""
+
+msgid "Incorrect password."
+msgstr ""
+
+msgid "Incorrect username/password."
+msgstr ""
+
+msgid "Administrator"
+msgstr ""
+
+msgid "Administrators"
+msgstr ""
+
+msgid "Administration"
+msgstr ""
+
+msgid "Moderator"
+msgstr ""
+
+msgid "Moderators"
+msgstr ""
+
+msgid "Moderation"
+msgstr ""
+
+msgid "translator-credits"
+msgstr ""
+
+msgid "Moderates"
+msgstr ""
+
+msgid "Moderating boards"
+msgstr ""
+
+msgid "Username"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "No boards"
+msgstr ""
+
+msgid "Board"
+msgstr ""
+
+msgid "Boards"
+msgstr ""
+
+msgid "All boards"
+msgstr ""
+
+msgid "Thread"
+msgstr ""
+
+msgid "Threads"
+msgstr ""
+
+msgid "Reply"
+msgstr ""
+
+msgid "Quick Reply"
+msgstr ""
+
+msgid "Replies"
+msgstr ""
+
+msgid "Post"
+msgstr ""
+
+msgid "Posts"
+msgstr ""
+
+msgid "Invalid session."
+msgstr ""
+
+msgid "Log in again."
+msgstr ""
+
+msgid "log out"
+msgstr ""
+
+msgid "Misc"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Subject"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "File"
+msgstr ""
+
+msgid "Submit"
+msgstr ""
+
+msgid "Captcha"
+msgstr ""
+
+msgid "Shown below"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "Yes"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Update"
+msgstr ""
+
+msgid "Update and regenerate board"
+msgstr ""
+
+msgid "Update without regenerating board"
+msgstr ""
+
+msgid "Go"
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "forever"
+msgstr ""
+
+msgid "Sticky"
+msgstr ""
+
+msgid "Unsticky"
+msgstr ""
+
+msgid "Lock"
+msgstr ""
+
+msgid "Unlock"
+msgstr ""
+
+msgid "Next"
+msgstr ""
+
+msgid "Previous"
+msgstr ""
+
+msgid "Error: please wait a moment before posting again."
+msgstr ""
+
+msgid "Error: Incorrect captcha entered."
+msgstr ""
+
+msgid "Sorry, your message is too long.  Message length: %d, maxmimum allowed length: %d"
+msgstr ""
+
+msgid "Invalid MIME type for this filetype."
+msgstr ""
+
+msgid "Invalid thread ID.  This may have been caused by the thread recently being deleted."
+msgstr ""
+
+msgid "An image, or message, is required for a reply."
+msgstr ""
+
+msgid "An image is required for a new thread."
+msgstr ""
+
+msgid "Please select only one image to upload."
+msgstr ""
+
+msgid "Error, it appears your file did not transfer properly.  Please go back and try again."
+msgstr ""
+
+msgid "Duplicate file entry detected."
+msgstr ""
+
+msgid "Please make sure your file is smaller than %dB"
+msgstr ""
+
+msgid "Could not copy uploaded image."
+msgstr ""
+
+msgid "Could not create thumbnail."
+msgstr ""
+
+msgid "File was not fully uploaded.  Please go back and try again."
+msgstr ""
+
+msgid "Improper filetype."
+msgstr ""
+
+msgid "Sorry, that filetype is not allowed on this board."
+msgstr ""
+
+msgid "Image successfully deleted from your post."
+msgstr ""
+
+msgid "Your post already doesn't have an image!"
+msgstr ""
+
+msgid "Post successfully deleted."
+msgstr ""
+
+msgid "There was an error in trying to delete your post"
+msgstr ""
+
+msgid "Sorry, this board is locked and can not be posted in."
+msgstr ""
+
+msgid "Sorry, this thread is locked and can not be replied to."
+msgstr ""
+
+msgid "Thread successfully posted.  You are now being redirected."
+msgstr ""
+
+msgid "Reply successfully posted.  You are now being redirected."
+msgstr ""
+
+msgid "Watched Threads"
+msgstr ""
+
+msgid "Manage"
+msgstr ""
+
+msgid "Manage boards"
+msgstr ""
+
+msgid "Modules"
+msgstr ""
+
+msgid "Module settings"
+msgstr ""
+
+msgid "Welcome"
+msgstr ""
+
+msgid "Sorry, because of your numerous failed logins, you have been locked out from logging in for 20 minutes.  Please wait and then try again."
+msgstr ""
+
+msgid "NOTICE: You are using the default administrator account.  Anyone can log in to this account, so a second administrator account needs to be created.  Create another, log in to it, and delete this one."
+msgstr ""
+
+msgid "You have been successfully logged out."
+msgstr ""
+
+msgid "Rebuild complete.  Took <b>%d</b> seconds."
+msgstr ""
+
+msgid "Query executed successfully"
+msgstr ""
+
+msgid "<h2>Add News Post</h2>This message will be displayed as it is written, so make sure you add the proper HTML."
+msgstr ""
+
+msgid "News entry successfully added."
+msgstr ""
+
+msgid "You must enter a subject."
+msgstr ""
+
+msgid "Maxmimum thumbnail width"
+msgstr ""
+
+msgid "Maxmimum thumbnail height"
+msgstr ""
+
+msgid "Open images in new window"
+msgstr ""
+
+msgid "Days to keep modlog entries"
+msgstr ""
+
+msgid "Postbox notice"
+msgstr ""
+
+msgid "Update successful."
+msgstr ""
+
+msgid "Integer values must be entered correctly."
+msgstr ""
+
+msgid "Unable to locate a board named"
+msgstr ""
+
+msgid "Staff rights"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "Query"
+msgstr ""
+
+msgid "Inject"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Marked for deletion (old)."
+msgstr ""
+
+msgid "Report"
+msgstr ""
+
+msgid "Reports"
+msgstr ""
+
+msgid "Can be left blank."
+msgstr ""
+
+msgid "Can not be left blank."
+msgstr ""
+
+msgid "Global configuration succesfully updated."
+msgstr ""
+
+msgid "Posting rates (past hour)"
+msgstr ""
+
+msgid "Please enter a search query."
+msgstr ""
+
+msgid "Results"
+msgstr ""
+
+msgid "Sorry, your search returned zero results."
+msgstr ""
+
+msgid "You searched for"
+msgstr ""
+
+msgid "That thread has yet to be deleted."
+msgstr ""
+
+msgid "That ID is a reply, not a thread."
+msgstr ""
+
+msgid "Your posting password"
+msgstr ""
+
+msgid "Added on"
+msgstr ""
+
+msgid "Add staff member"
+msgstr ""
+
+msgid "Modify staff member"
+msgstr ""
+
+msgid "A staff member with that id does not appear to exist."
+msgstr ""
+
+msgid "Staff successfully updated"
+msgstr ""
+
+msgid "Staff successfully deleted"
+msgstr ""
+
+msgid "Staff member successfully added."
+msgstr ""
+
+msgid "Invalid staff ID."
+msgstr ""
+
+msgid "A staff member with that ID already exists."
+msgstr ""
+
+msgid "IP"
+msgstr ""
+
+msgid "All threads/posts by that IP in selected boards successfully deleted."
+msgstr ""
+
+msgid "Directory"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Order"
+msgstr ""
+
+msgid "Section"
+msgstr ""
+
+msgid "Locked"
+msgstr ""
+
+msgid "Stickied"
+msgstr ""
+
+msgid "Allowed filetypes"
+msgstr ""
+
+msgid "Maximum image size"
+msgstr ""
+
+msgid "Maximum message length"
+msgstr ""
+
+msgid "Maximum board pages"
+msgstr ""
+
+msgid "Maximum thread age (Hours)"
+msgstr ""
+
+msgid "Maximum thread replies"
+msgstr ""
+
+msgid "Header image"
+msgstr ""
+
+msgid "Include header"
+msgstr ""
+
+msgid "Redirect to thread"
+msgstr ""
+
+msgid "Forced anonymous"
+msgstr ""
+
+msgid "Please select a board."
+msgstr ""
+
+msgid "You can only delete posts from boards you moderate."
+msgstr ""
+
+msgid "Delete posts"
+msgstr ""
+
+msgid "You are not a moderator of this board."
+msgstr ""
+
+msgid "Thread successfully stickied."
+msgstr ""
+
+msgid "Thread successfully un-stickied"
+msgstr ""
+
+msgid "Invalid board directory."
+msgstr ""
+
+msgid "That name is for internal use.  Please pick another."
+msgstr ""
+
+msgid "A board with that name already exists."
+msgstr ""
+
+msgid "A board with that name does not exist."
+msgstr ""
+
+msgid "Please fill in all required fields."
+msgstr ""
+
+msgid "Old password"
+msgstr ""
+
+msgid "New password"
+msgstr ""
+
+msgid "New password again"
+msgstr ""
+
+msgid "The old password you provided did not match the current one."
+msgstr ""
+
+msgid "The second password did not match the first."
+msgstr ""
+
+msgid "Password successfully changed."
+msgstr ""
+
+msgid "That ID does not exist."
+msgstr ""
+
+msgid "A post with that ID does not exist."
+msgstr ""
+
+msgid "Unable to create directories."
+msgstr ""
+
+msgid "Word"
+msgstr ""
+
+msgid "Is replaced by"
+msgstr ""
+
+msgid "Add word"
+msgstr ""
+
+msgid "Board successfully added."
+msgstr ""
+
+msgid "Board successfully deleted."
+msgstr ""
+
+msgid "Unable to delete board."
+msgstr ""
+
+msgid "Are you absolutely sure you want to delete %s?"
+msgstr ""
+
+msgid "Unable to locate that word."
+msgstr ""
+
+msgid "Word successfully added."
+msgstr ""
+
+msgid "Word successfully updated."
+msgstr ""
+
+msgid "Word successfully removed."
+msgstr ""
+
+msgid "Edit word"
+msgstr ""
+
+msgid "That word already exists."
+msgstr ""
+
+msgid "Delete thread"
+msgstr ""
+
+msgid "Delete post"
+msgstr ""
+
+msgid "Thread successfully deleted."
+msgstr ""
+
+msgid "Redirecting"
+msgstr ""
+
+msgid "There are currently no bans."
+msgstr ""
+
+msgid "%s bans not shown."
+msgstr ""
+
+msgid "View all bans"
+msgstr ""
+
+msgid "Ban from"
+msgstr ""
+
+msgid "Seconds"
+msgstr ""
+
+msgid "Reason"
+msgstr ""
+
+msgid "Reason:"
+msgstr ""
+
+msgid "Placed:"
+msgstr ""
+
+msgid "Expires:"
+msgstr ""
+
+msgid "Add ban"
+msgstr ""
+
+msgid "Delete all posts by this IP"
+msgstr ""
+
+msgid "Presets"
+msgstr ""
+
+msgid "Invalid ban ID"
+msgstr ""
+
+msgid "Ban successfully removed."
+msgstr ""
+
+msgid "That IP has already been banned."
+msgstr ""
+
+msgid "Please enter a positive amount of seconds, or zero for a permanent ban."
+msgstr ""
+
+msgid "Ban successfully placed."
+msgstr ""
+
+msgid "You can only make board specific bans to boards which you moderate."
+msgstr ""
+
+msgid "Deleting non-deleted replies which belong to deleted threads."
+msgstr ""
+
+msgid "Deleting unused images."
+msgstr ""
+
+msgid "Cleanup finished."
+msgstr ""
+
+msgid "Thread successfully locked."
+msgstr ""
+
+msgid "Thread successfully unlocked."
+msgstr ""
+
+msgid "Banned from"
+msgstr ""
+
+msgid "Replies displayed per thread (in thread list)"
+msgstr ""
+
+msgid "Replies displayed per stickied thread (in thread list)"
+msgstr ""
+
+msgid "Threads displayed per page (in thread list)"
+msgstr ""
+
+msgid "The directory of the board."
+msgstr ""
+
+msgid "The name of the board."
+msgstr ""
+
+msgid "Order to show board in menu list, in ascending order."
+msgstr ""
+
+msgid "The section the board is in.  This is used for displaying the list of boards on the top and bottom of pages."
+msgstr ""
+
+msgid "Only moderators of the board and admins can make new posts/replies"
+msgstr ""
+
+msgid "What filetypes users are allowed to upload."
+msgstr ""
+
+msgid "Maxmimum size of uploaded images, in <b>bytes</b>."
+msgstr ""
+
+msgid "The number of replies a thread can have before autosaging to the back of the board."
+msgstr ""
+
+msgid "Overrides the header set in the config file.  Leave blank to use configured global header image.  Needs to be a full url including http://.  Set to none to show no header image."
+msgstr ""
+
+msgid "Raw HTML which will be inserted at the top of each page of the board."
+msgstr ""
+
+msgid "If set to yes, users will be redirected to the thread they replied to/posted after posting.  If set to no, users will be redirected to the first page of the board."
+msgstr ""
+
+msgid "If set to yes, users will not be allowed to enter a name, making everyone appear as Anonymous"
+msgstr ""
+
+msgid "Add news"
+msgstr ""
+
+msgid "Global options"
+msgstr ""
+
+msgid "Add board"
+msgstr ""
+
+msgid "Delete board"
+msgstr ""
+
+msgid "Wordfilter"
+msgstr ""
+
+msgid "View deleted thread"
+msgstr ""
+
+msgid "Rebuild all html files"
+msgstr ""
+
+msgid "Cleanup"
+msgstr ""
+
+msgid "Search posts"
+msgstr ""
+
+msgid "Staff"
+msgstr ""
+
+msgid "ModLog"
+msgstr ""
+
+msgid "SQL query"
+msgstr ""
+
+msgid "Board options"
+msgstr ""
+
+msgid "Manage stickies"
+msgstr ""
+
+msgid "Manage locked threads"
+msgstr ""
+
+msgid "Delete thread/post"
+msgstr ""
+
+msgid "View/Add/Remove bans"
+msgstr ""
+
+msgid "Delete all posts by IP"
+msgstr ""
+
+msgid "Get posting password"
+msgstr ""
+
+msgid "Change account password"
+msgstr ""
+
+msgid "Index"
+msgstr ""
+
+msgid "Logged in"
+msgstr ""
+
+msgid "Rebuilt all boards and threads"
+msgstr ""
+
+msgid "Updated global configuration"
+msgstr ""
+
+msgid "Updated board configuration"
+msgstr ""
+
+msgid "Added a news entry"
+msgstr ""
+
+msgid "Added staff member"
+msgstr ""
+
+msgid "Deleted staff member"
+msgstr ""
+
+msgid "Updated staff member"
+msgstr ""
+
+msgid "Deleted posts by ip"
+msgstr ""
+
+msgid "Added board"
+msgstr ""
+
+msgid "Deleted board"
+msgstr ""
+
+msgid "Updated word on wordfilter"
+msgstr ""
+
+msgid "Removed word from wordfilter"
+msgstr ""
+
+msgid "Regular expression"
+msgstr ""
+
+msgid "Deleted thread"
+msgstr ""
+
+msgid "Deleted post"
+msgstr ""
+
+msgid "Banned"
+msgstr ""
+
+msgid "Unbanned"
+msgstr ""
+
+msgid "Ran cleanup"
+msgstr ""
+
+msgid "Locked thread"
+msgstr ""
+
+msgid "Unlocked thread"
+msgstr ""
+
+msgid "Stickied thread"
+msgstr ""
+
+msgid "Unstickied thread"
+msgstr ""
+
+msgid "Show Posting Password"
+msgstr ""
+
+msgid "Front Page"
+msgstr ""
+
+msgid "Show Directories"
+msgstr ""
+
+msgid "Hide Directories"
+msgstr ""
+
+msgid "No visible boards"
+msgstr ""
+
+msgid "Click to show/hide"
+msgstr ""
+
+msgid "File Only"
+msgstr ""
+
+msgid "No File"
+msgstr ""
+
+msgid "Posting mode: Reply"
+msgstr ""
+
+msgid "View catalog"
+msgstr ""
+
+msgid "Catalog Mode"
+msgstr ""
+
+msgid "Click Reply to view."
+msgstr ""
+
+msgid "Click Reply to view, or %sexpand%s."
+msgstr ""
+
+msgid "YOU ARE BANNED"
+msgstr ""
+
+msgid "You are banned from posting on:"
+msgstr ""
+
+msgid "Enable \"no file\" posting"
+msgstr ""
+
+msgid "If set to yes, new threads will not require an image to be posted."
+msgstr ""
+
+msgid "A message is required to post without a file."
+msgstr ""
+
+msgid "File:"
+msgstr ""
+
+msgid "Thumbnail displayed, click image for full size."
+msgstr ""
+
+msgid "Extension icon displayed, click image to open file."
+msgstr ""
+
+msgid "Anonymous"
+msgstr ""
+
+# Short for Administrator
+msgid "Admin"
+msgstr ""
+
+# Short for Moderator
+msgid "Mod"
+msgstr ""
+
+msgid "Comment too long. Click %shere%s to view the full text."
+msgstr ""
+
+msgid "This post has been deleted."
+msgstr ""
+
+msgid "Your Image:"
+msgstr ""
+
+msgid "This board does not allow post reporting."
+msgstr ""
+
+msgid "Unable to report post.  Please go back and try again."
+msgstr ""
+
+msgid "That post has been cleared as not requiring any deletion."
+msgstr ""
+
+msgid "That post is already in the report list."
+msgstr ""
+
+msgid "Invalid ID"
+msgstr ""
+
+msgid "That video ID has already been posted %shere%s."
+msgstr ""
+
+msgid "Unable to connect to:"
+msgstr ""
+
+msgid "Invalid video ID."
+msgstr ""
+
+msgid "Invalid response code:"
+msgstr ""
+
+msgid "Invalid video type."
+msgstr ""
+
+msgid "There is already a file with that name."
+msgstr ""
+
+msgid "Already posted %shere%s."
+msgstr ""
+
+msgid "Posting a blacklisted link."
+msgstr ""
+
+msgid "%s not implemented."
+msgstr ""
+
+msgid "News"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Section added."
+msgstr ""
+
+msgid "Section updated."
+msgstr ""
+
+msgid "Section deleted."
+msgstr ""
+
+msgid "Unable to locate a section with that ID."
+msgstr ""
+
+msgid "There are currently no sections."
+msgstr ""
+
+msgid "ID"
+msgstr ""
+
+msgid "Filetype added."
+msgstr ""
+
+msgid "Filetype updated."
+msgstr ""
+
+msgid "Filetype deleted."
+msgstr ""
+
+msgid "Unable to locate a filetype with that ID."
+msgstr ""
+
+msgid "There are currently no filetypes."
+msgstr ""
+
+msgid "Edit filetypes"
+msgstr ""
+
+msgid "Edit sections"
+msgstr ""
+
+msgid "Regenerated %s"
+msgstr ""
+
+msgid "Cache successfully flushed."
+msgstr ""
+
+msgid "Unable to clear cache: you do not have caching enabled."
+msgstr ""
+
+msgid "Check for new version"
+msgstr ""
+
+msgid "Current version:"
+msgstr ""
+
+msgid "Disk space used"
+msgstr ""
+
+# To go back to where you came from
+msgid "Return"
+msgstr ""
+
+msgid "Entire Thread"
+msgstr ""
+
+msgid "First 100 posts"
+msgstr ""
+
+msgid "Last 50 posts"
+msgstr ""
+
+msgid "All Threads"
+msgstr ""
+
+msgid "New Thread"
+msgstr ""
+
+msgid "Last Post"
+msgstr ""
+
+msgid "There are currently no threads to display."
+msgstr ""
+
+msgid "Never"
+msgstr ""
+
+msgid "Does not expire"
+msgstr ""
+
+msgid "YOU ARE NOT BANNED!"
+msgstr ""
+
+msgid "Unable to find record of your IP being banned."
+msgstr ""
+
+msgid "The 5 newest replies are shown below."
+msgstr ""
+
+msgid "Read this thread from the beginning"
+msgstr ""
+
+msgid "(for post and file deletion)"
+msgstr ""
+
+msgid "Style"
+msgstr ""
+
+msgid "Default style:"
+msgstr ""
+
+msgid "The style which will be set when the user first visits the board."
+msgstr ""
+
+msgid "Trial"
+msgstr ""
+
+msgid "If set to yes, this board will appear in italics in the menu"
+msgstr ""
+
+msgid "Popular"
+msgstr ""
+
+msgid "If set to yes, this board will appear in bold in the menu"
+msgstr ""
+
+msgid "Board type:"
+msgstr ""
+
+msgid "Normal imageboard"
+msgstr ""
+
+msgid "Text board"
+msgstr ""
+
+msgid "Oekaki imageboard"
+msgstr ""
+
+msgid "The type of posts which will be accepted on this board.  A normal imageboard will feature image and extended format posts, a text board will have no images, and an Oekaki board will allow users to draw images and use them in their posts."
+msgstr ""
+
+msgid "Upload type:"
+msgstr ""
+
+msgid "No embedding"
+msgstr ""
+
+msgid "Images and embedding"
+msgstr ""
+
+msgid "Embedding only"
+msgstr ""
+
+msgid "Whether or not to allow embedding of videos."
+msgstr ""
+
+msgid "Enable reporting:"
+msgstr ""
+
+msgid "Reporting allows users to report posts, adding the post to the report list."
+msgstr ""
+
+msgid "Enable captcha:"
+msgstr ""
+
+msgid "Enable/disable captcha system for this board.  If captcha is enabled, in order for a user to post, they must first correctly enter the text on an image."
+msgstr ""
+
+msgid "Ban proxy list"
+msgstr ""
+
+msgid "Proxy list"
+msgstr ""

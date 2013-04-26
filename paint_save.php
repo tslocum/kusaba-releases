@@ -1,37 +1,37 @@
 <?php
 /*
-* This file is part of Trevorchan.
+* This file is part of kusaba.
 *
-* Trevorchan is free software; you can redistribute it and/or modify it under the
+* kusaba is free software; you can redistribute it and/or modify it under the
 * terms of the GNU General Public License as published by the Free Software
 * Foundation; either version 2 of the License, or (at your option) any later
 * version.
 *
-* Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+* kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
 * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 *
 * You should have received a copy of the GNU General Public License along with
-* Trevorchan; if not, write to the Free Software Foundation, Inc.,
+* kusaba; if not, write to the Free Software Foundation, Inc.,
 * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 /** 
  * Save script for oekaki uploads
  *
  * This will accept the image sent from the shi-painter app, and save it into the
- * drawings folder (/tcdrawings/) temporarily, until the user makes their post with
+ * drawings folder (/kusabaoek/) temporarily, until the user makes their post with
  * it.  When posted, it will be used as if the image had been uploaded by the user, 
  * and the temporary image will be deleted.
  * 
- * @package Trevorchan  
+ * @package kusaba  
  */
 
 /** 
  * Require the configuration file, functions file, and oekaki input class
  */ 
 require 'config.php';
-require TC_ROOTDIR . 'inc/functions.php';
-require TC_ROOTDIR . 'lib/oekaki/OekakiInput.php';
+require KU_ROOTDIR . 'inc/functions.php';
+require KU_ROOTDIR . 'lib/oekaki/OekakiInput.php';
 
 $OekakiInput = new OekakiInput;    
 
@@ -46,7 +46,7 @@ do {
 	}
 
 	$save_id = basename($_GET['saveid']);
-	$save_dir = 'tcdrawings/';
+	$save_dir = 'kusabaoek/';
 
 	/* Check if the drawings directory exists */
 	if (!file_exists($save_dir)) {

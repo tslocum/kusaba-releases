@@ -18,19 +18,19 @@
  * Smarty engine initialization and configuration
  * +------------------------------------------------------------------------------+
  */
-require(TC_ROOTDIR . 'lib/smarty/Smarty.class.php');
+require(KU_ROOTDIR . 'lib/smarty/Smarty.class.php');
 $smarty = new Smarty();
 
-$smarty->template_dir = TC_TEMPLATEDIR;
-if (TC_CACHEDTEMPLATEDIR != '') {
-	$smarty->compile_dir = TC_CACHEDTEMPLATEDIR;
-	$smarty->cache_dir = TC_CACHEDTEMPLATEDIR;
+$smarty->template_dir = KU_TEMPLATEDIR;
+if (KU_CACHEDTEMPLATEDIR != '') {
+	$smarty->compile_dir = KU_CACHEDTEMPLATEDIR;
+	$smarty->cache_dir = KU_CACHEDTEMPLATEDIR;
 }
-$smarty->config_dir = TC_ROOTDIR . 'smarty/configs';
+$smarty->config_dir = KU_ROOTDIR . 'smarty/configs';
 
-$smarty->assign('tc_name', TC_NAME);
-$smarty->assign('tc_webpath', TC_WEBPATH);
-$smarty->assign('tc_boardspath', TC_BOARDSPATH);
-$smarty->assign('tc_cgipath', TC_CGIPATH);
+$smarty->assign('ku_name', KU_NAME);
+$smarty->assign('ku_webpath', KU_WEBPATH);
+$smarty->assign('ku_boardspath', KU_BOARDSPATH);
+$smarty->assign('ku_cgipath', KU_CGIPATH);
 
 ?>

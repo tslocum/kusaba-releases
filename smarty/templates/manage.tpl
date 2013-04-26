@@ -2,10 +2,10 @@
 <html>
 <head>
 <title>{$lang_manageboards}</title>
-<!--<link rel="stylesheet" type="text/css" href="{$tc_boardspath}/css/manage.css" title="Manage">-->
-<link rel="stylesheet" type="text/css" href="{$tc_boardspath}/css/manage_basic.css" media="screen">
-<link rel="stylesheet" type="text/css" href="{$tc_boardspath}/css/manage_tabs.css" media="screen">
-<link rel="shortcut icon" href="{$tc_webpath}/favicon.ico">
+<!--<link rel="stylesheet" type="text/css" href="{$ku_boardspath}/css/manage.css" title="Manage">-->
+<link rel="stylesheet" type="text/css" href="{$ku_boardspath}/css/manage_basic.css" media="screen">
+<link rel="stylesheet" type="text/css" href="{$ku_boardspath}/css/manage_tabs.css" media="screen">
+<link rel="shortcut icon" href="{$ku_webpath}/favicon.ico">
 </head>
 <body>
 {$includeheader}
@@ -15,3 +15,5 @@
 	</div>
 </div>	
 {$footer}
+</body>
+</html>

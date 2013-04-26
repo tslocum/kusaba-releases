@@ -1,18 +1,18 @@
 <?php
 /*
- * This file is part of Trevorchan.
+ * This file is part of kusaba.
  *
- * Trevorchan is free software; you can redistribute it and/or modify it under the
+ * kusaba is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
  *
- * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+ * kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+ * kusaba; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /** 
@@ -24,19 +24,19 @@
  * moderators will be restricted to only the boards which they moderate, and cannot
  * perform any actions on the "Administration:" link-line.
  * 
- * @package Trevorchan  
+ * @package kusaba  
  */
 
 session_set_cookie_params(60 * 60 * 24 * 100); /* 100 Days */
 session_start();
 
 require 'config.php';
-require TC_ROOTDIR.'lib/smarty.php';
-require TC_ROOTDIR . 'inc/functions.php';
-require TC_ROOTDIR . 'inc/classes/manage.class.php';
-require TC_ROOTDIR . 'inc/classes/board-post.class.php';
-require TC_ROOTDIR . 'inc/classes/bans.class.php';
-require TC_ROOTDIR . 'inc/encryption.php';
+require KU_ROOTDIR.'lib/smarty.php';
+require KU_ROOTDIR . 'inc/functions.php';
+require KU_ROOTDIR . 'inc/classes/manage.class.php';
+require KU_ROOTDIR . 'inc/classes/board-post.class.php';
+require KU_ROOTDIR . 'inc/classes/bans.class.php';
+require KU_ROOTDIR . 'inc/encryption.php';
 
 $smarty->assign('lang_manageboards', _gettext('Manage boards'));
 
@@ -46,7 +46,7 @@ $bans_class = new Bans();
 if (isset($_GET['graph'])) {
 	$manage_class->ValidateSession();
 	
-	require TC_ROOTDIR . 'lib/graph/phpgraphlib.php';
+	require KU_ROOTDIR . 'lib/graph/phpgraphlib.php';
 	
 	if (isset($_GET['type'])) {
 		if ($_GET['type'] == 'day' || $_GET['type'] == 'week' || $_GET['type'] == 'postnum' || $_GET['type'] == 'unique' || $_GET['type'] == 'posttime') {
@@ -55,11 +55,11 @@ if (isset($_GET['graph'])) {
 			if ($_GET['type'] == 'day') {
 				$graph->setTitle('Posts per board in past 24hrs');
 				
-				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . TC_DBPREFIX . "boards` ORDER BY `name` ASC");
+				$results = $ku_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards` ORDER BY `name` ASC");
 				if (count($results) > 0) {
 					$data = array();
 					foreach ($results as $line) {
-						$posts = $tc_db->GetOne("SELECT HIGH_PRIORITY COUNT(*) FROM `" . TC_DBPREFIX . "posts_" . $line['name'] . "` WHERE `postedat` > " . (time() - 86400) . "");
+						$posts = $tc_db->GetOne("SELECT HIGH_PRIORITY COUNT(*) FROM `" . KU_DBPREFIX . "posts_" . $line['name'] . "` WHERE `postedat` > " . (time() - 86400) . "");
 						
 						$data = array_merge($data, array($line['name'] => $posts));
 					}
@@ -67,11 +67,11 @@ if (isset($_GET['graph'])) {
 			} elseif ($_GET['type'] == 'week') {
 				$graph->setTitle('Posts per board in past week');
 				
-				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . TC_DBPREFIX . "boards` ORDER BY `name` ASC");
+				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards` ORDER BY `name` ASC");
 				if (count($results) > 0) {
 					$data = array();
 					foreach ($results as $line) {
-						$posts = $tc_db->GetOne("SELECT HIGH_PRIORITY COUNT(*) FROM `" . TC_DBPREFIX . "posts_" . $line['name'] . "` WHERE `postedat` > " . (time() - 604800) . "");
+						$posts = $tc_db->GetOne("SELECT HIGH_PRIORITY COUNT(*) FROM `" . KU_DBPREFIX . "posts_" . $line['name'] . "` WHERE `postedat` > " . (time() - 604800) . "");
 						
 						$data = array_merge($data, array($line['name'] => $posts));
 					}
@@ -79,11 +79,11 @@ if (isset($_GET['graph'])) {
 			} elseif ($_GET['type'] == 'postnum') {
 				$graph->setTitle('Total posts per board');
 				
-				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . TC_DBPREFIX . "boards` ORDER BY `name` ASC");
+				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards` ORDER BY `name` ASC");
 				if (count($results) > 0) {
 					$data = array();
 					foreach ($results as $line) {
-						$posts = $tc_db->GetOne("SELECT `id` FROM `" . TC_DBPREFIX . "posts_" . $line['name'] . "` ORDER BY `id` DESC LIMIT 1");
+						$posts = $tc_db->GetOne("SELECT `id` FROM `" . KU_DBPREFIX . "posts_" . $line['name'] . "` ORDER BY `id` DESC LIMIT 1");
 						
 						$data = array_merge($data, array($line['name'] => $posts));
 					}
@@ -91,11 +91,11 @@ if (isset($_GET['graph'])) {
 			} elseif ($_GET['type'] == 'unique') {
 				$graph->setTitle('Unique user posts per board');
 				
-				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . TC_DBPREFIX . "boards` ORDER BY `name` ASC");
+				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards` ORDER BY `name` ASC");
 				if (count($results) > 0) {
 					$data = array();
 					foreach ($results as $line) {
-						$posts = $tc_db->GetOne("SELECT COUNT(DISTINCT `ipmd5`) FROM `" . TC_DBPREFIX . "posts_" . $line['name'] . "` WHERE `IS_DELETED` = 0");
+						$posts = $tc_db->GetOne("SELECT COUNT(DISTINCT `ipmd5`) FROM `" . KU_DBPREFIX . "posts_" . $line['name'] . "` WHERE `IS_DELETED` = 0");
 						
 						$data = array_merge($data, array($line['name'] => $posts));
 					}
@@ -103,11 +103,11 @@ if (isset($_GET['graph'])) {
 			} elseif ($_GET['type'] == 'posttime') {
 				$graph->setTitle('Average #minutes between posts (past week), boards without posts in past week not shown');
 				
-				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . TC_DBPREFIX . "boards` ORDER BY `name` ASC");
+				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards` ORDER BY `name` ASC");
 				if (count($results) > 0) {
 					$data = array();
 					foreach ($results as $line) {
-						$posts = $tc_db->GetAll("SELECT `postedat` FROM `" . TC_DBPREFIX . "posts_" . $line['name'] . "` WHERE `postedat` > " . (time() - 604800) . " ORDER BY `id` ASC");
+						$posts = $tc_db->GetAll("SELECT `postedat` FROM `" . KU_DBPREFIX . "posts_" . $line['name'] . "` WHERE `postedat` > " . (time() - 604800) . " ORDER BY `id` ASC");
 						if (count($posts) > 0) {
 							$i = 0;
 							$lastpost_time = 0;
@@ -196,10 +196,10 @@ function manage_page($action = 'posting_rates') {
 /* Deletes reports that have the reported post has been deleted */
 function delete_accepted_reports() {
     /*    global $tc_db;
-    $results = $tc_db->GetAll("SELECT ".TC_DBPREFIX."reports.id FROM ".TC_DBPREFIX."reports JOIN ".TC_DBPREFIX."posts ON ".TC_DBPREFIX."reports.postid = ".TC_DBPREFIX."posts.id AND ".TC_DBPREFIX."reports.boardid = ".TC_DBPREFIX."posts.boardid WHERE ".TC_DBPREFIX."posts.IS_DELETED = 1");
+    $results = $tc_db->GetAll("SELECT ".KU_DBPREFIX."reports.id FROM ".KU_DBPREFIX."reports JOIN ".KU_DBPREFIX."posts ON ".KU_DBPREFIX."reports.postid = ".KU_DBPREFIX."posts.id AND ".KU_DBPREFIX."reports.boardid = ".KU_DBPREFIX."posts.boardid WHERE ".KU_DBPREFIX."posts.IS_DELETED = 1");
     if (count($results)>0) {
     foreach($results AS $line) {
-    $tc_db->Execute("DELETE FROM ".TC_DBPREFIX."reports WHERE id = ".$line['id']."");
+    $tc_db->Execute("DELETE FROM ".KU_DBPREFIX."reports WHERE id = ".$line['id']."");
     }
     }*/
 }

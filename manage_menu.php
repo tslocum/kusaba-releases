@@ -1,18 +1,18 @@
 <?php
 /*
- * This file is part of Trevorchan.
+ * This file is part of kusaba.
  *
- * Trevorchan is free software; you can redistribute it and/or modify it under the
+ * kusaba is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
  *
- * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+ * kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+ * kusaba; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /** 
@@ -20,17 +20,17 @@
  *
  * Loaded when a user visits manage.php
  * 
- * @package Trevorchan  
+ * @package kusaba  
  */
 
 session_start();
 
 require 'config.php';
-require TC_ROOTDIR.'lib/smarty.php';
-require TC_ROOTDIR . 'inc/functions.php';
-require TC_ROOTDIR . 'inc/classes/manage.class.php';
-require TC_ROOTDIR . 'inc/encryption.php';
-require TC_ROOTDIR . 'inc/module.php';
+require KU_ROOTDIR.'lib/smarty.php';
+require KU_ROOTDIR . 'inc/functions.php';
+require KU_ROOTDIR . 'inc/classes/manage.class.php';
+require KU_ROOTDIR . 'inc/encryption.php';
+require KU_ROOTDIR . 'inc/module.php';
 
 $manage_class = new Manage();
 $smarty->assign('lang_manageboards', _gettext('Manage boards'));
@@ -40,7 +40,7 @@ $tpl_links = '';
 if (!$manage_class->ValidateSession(true)) {
 	$tpl_links .= '<li><a href="manage_page.php">Log in</a></li>';
 } else {
-	$manage_postpassword = md5_encrypt($_SESSION['manageusername'], TC_RANDOMSEED);
+	$manage_postpassword = md5_encrypt($_SESSION['manageusername'], KU_RANDOMSEED);
 	
 	$tpl_links .= '<li><a href="manage_page.php?action=logout">Logout</a></li>
 	<li><span id="postingpassword"><a id="showpwd" href="#" onclick="javascript:document.getElementById(\'postingpassword\').innerHTML = \'<input type=text id=postingpasswordbox value=' . $manage_postpassword . '>\'; document.getElementById(\'postingpasswordbox\').select(); return false;">'._gettext('Show Posting Password').'</a></span></li>';
@@ -54,8 +54,11 @@ if (!$manage_class->ValidateSession(true)) {
 	if ($manage_class->CurrentUserIsAdministrator()) {
 		$tpl_links .= section_html(_gettext('Administration'), 'administration') .
 		'<ul>
-		<li><a href="manage_page.php?action=news">' . _gettext('News') . '</a></li>
-		<li><a href="manage_page.php?action=addboard">' . _gettext('Add board') . '</a></li>
+		<li><a href="manage_page.php?action=news">' . _gettext('News') . '</a></li>';
+		if (KU_BLOTTER) {
+			$tpl_links .= '<li><a href="manage_page.php?action=blotter">Blotter</a></li>';
+		}
+		$tpl_links .= '<li><a href="manage_page.php?action=addboard">' . _gettext('Add board') . '</a></li>
 		<li><a href="manage_page.php?action=delboard">' . _gettext('Delete board') . '</a></li>
 		<li><a href="manage_page.php?action=wordfilter">' . _gettext('Wordfilter') . '</a></li>
 		<li><a href="manage_page.php?action=checkversion">' . _gettext('Check for new version') . '</a></li>
@@ -70,7 +73,7 @@ if (!$manage_class->ValidateSession(true)) {
 		<li><a href="manage_page.php?action=sql">' . _gettext('SQL query') . '</a></li>
 		<li><a href="manage_page.php?action=proxyban">' . _gettext('Ban proxy list') . '</a></li>
 		<li><a href="manage_page.php?action=rebuildall">' . _gettext('Rebuild all html files') . '</a></li>' . "\n";
-		if (TC_APC) {
+		if (KU_APC) {
 			$tpl_links .= '<li><a href="manage_page.php?action=apc">APC</a></li>' . "\n";
 		}
 		$tpl_links .= '</ul></div>';
@@ -93,7 +96,7 @@ if (!$manage_class->ValidateSession(true)) {
 	</ul></div>';
 	/* Moderation */
 	if ($manage_class->CurrentUserIsAdministrator() || $manage_class->CurrentUserIsModerator()) {
-		$open_reports = $tc_db->GetAll("SELECT HIGH_PRIORITY COUNT(*) FROM `" . TC_DBPREFIX . "reports` WHERE `cleared` = '0'");
+		$open_reports = $tc_db->GetAll("SELECT HIGH_PRIORITY COUNT(*) FROM `" . KU_DBPREFIX . "reports` WHERE `cleared` = '0'");
 		$tpl_links .= section_html(_gettext('Moderation') . '[' . $open_reports[0][0] . ']', 'moderation') .
 		'<ul>
 		<li><a href="manage_page.php?action=reports">' . 'View Reports' . '</a></li>
@@ -119,7 +122,7 @@ if (!$manage_class->ValidateSession(true)) {
 	if (!$manage_class->CurrentUserIsAdministrator()) {
 		$tpl_links .= _gettext('Moderating boards') . ': ';
 		$i = 0;
-		$resultsboard = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . TC_DBPREFIX . "boards`");
+		$resultsboard = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "boards`");
 		foreach ($resultsboard as $lineboard) {
 			if ($manage_class->CurrentUserIsModeratorOfBoard($lineboard['name'], $_SESSION['manageusername'])) {
 				$i++;

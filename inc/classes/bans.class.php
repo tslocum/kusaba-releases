@@ -1,18 +1,18 @@
 <?php
 /*
- * This file is part of Trevorchan.
+ * This file is part of kusaba.
  *
- * Trevorchan is free software; you can redistribute it and/or modify it under the
+ * kusaba is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
  *
- * Trevorchan is distributed in the hope that it will be useful, but WITHOUT ANY
+ * kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License along with
- * Trevorchan; if not, write to the Free Software Foundation, Inc.,
+ * kusaba; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /** 
@@ -20,7 +20,7 @@
  * 
  * Assorted banning-related functions placed into class format  
  *  
- * @package Trevorchan   
+ * @package kusaba   
  */
 
 class Bans {
@@ -29,7 +29,7 @@ class Bans {
 	function RemoveExpiredBans() {
 		global $tc_db;
 		
-		$results = $tc_db->Execute("DELETE FROM `".TC_DBPREFIX."banlist` WHERE `until` != 0 AND `until` < ".time());
+		$results = $tc_db->Execute("DELETE FROM `".KU_DBPREFIX."banlist` WHERE `until` != 0 AND `until` < ".time());
 		if ($tc_db->Affected_Rows()>0) {
 			$this->UpdateHtaccess();
 		}
@@ -38,30 +38,30 @@ class Bans {
 	/* Perform a check for a ban record for a specified IP address */
 	function BanCheck($ip, $board = '', $force_display = false) {
 		global $tc_db;
-		require_once TC_ROOTDIR . 'inc/encryption.php';
+		require_once KU_ROOTDIR . 'inc/encryption.php';
 		
 		if (!isset($_COOKIE['tc_previousip'])) {
 			$_COOKIE['tc_previousip'] = '';
 		}
-		$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."banlist` WHERE `type` = '0' AND ( `ipmd5` = '" . md5($ip) . "' OR `ipmd5` = '". md5($_COOKIE['tc_previousip']) . "' ) LIMIT 1");
+		$results = $tc_db->GetAll("SELECT * FROM `".KU_DBPREFIX."banlist` WHERE `type` = '0' AND ( `ipmd5` = '" . md5($ip) . "' OR `ipmd5` = '". md5($_COOKIE['tc_previousip']) . "' ) LIMIT 1");
 		if (count($results)>0) {
 			foreach($results AS $line) {
 				if ($line['globalban']!=1) {
 					if (in_array($board, explode('|', $line['boards']))) {
-						echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until']);
+						echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until'], $line['appealat']);
 						die();
 					}
 				} else {
-					echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until']);
+					echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until'], $line['appealat']);
 					die();
 				}
 			}
 		}
-		$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."banlist` WHERE `type` = '1'");
+		$results = $tc_db->GetAll("SELECT * FROM `".KU_DBPREFIX."banlist` WHERE `type` = '1'");
 		if (count($results)>0) {
 			foreach($results AS $line) {
-				if (eregi(md5_decrypt($line['ip'], TC_RANDOMSEED), $ip)) {
-					echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until']);
+				if (eregi(md5_decrypt($line['ip'], KU_RANDOMSEED), $ip)) {
+					echo $this->DisplayBannedMessage($line['globalban'], '<b>/'.implode('/</b>, <b>/', explode('|', $line['boards'])).'/</b>&nbsp;', $line['reason'], $line['at'], $line['until'], $line['appealat']);
 					die();
 				}
 			}
@@ -76,11 +76,11 @@ class Bans {
 	}
 
 	/* Add a ip/ip range ban */
-	function BanUser($ip, $modname, $globalban, $duration, $boards, $reason, $type=0, $allowread=1) {
+	function BanUser($ip, $modname, $globalban, $duration, $boards, $reason, $appealat, $type=0, $allowread=1) {
 		global $tc_db;
 		
-		require_once TC_ROOTDIR.'inc/encryption.php';
-		$result = $tc_db->GetOne("SELECT COUNT(*) FROM `".TC_DBPREFIX."banlist` WHERE `type` = '".$type."' AND `ipmd5` = '".md5($ip)."'");
+		require_once KU_ROOTDIR.'inc/encryption.php';
+		$result = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."banlist` WHERE `type` = '".$type."' AND `ipmd5` = '".md5($ip)."'");
 		if ($result[0]==0) {
 			if ($duration>0) {
 				$ban_globalban = '0';
@@ -93,7 +93,7 @@ class Bans {
 				$ban_until = '0';
 			}
 			
-			$tc_db->Execute("INSERT INTO `".TC_DBPREFIX."banlist` ( `ip` , `ipmd5` , `type` , `allowread` , `globalban` , `boards` , `by` , `at` , `until` , `reason` ) VALUES ( '".md5_encrypt($ip, TC_RANDOMSEED)."' , '".md5($ip)."' , '".$type."' , '".$allowread."' , '".$globalban."' , '".$boards."' , '".$modname."' , '".time()."' , '".$ban_until."' , '".$reason."' )");
+			$tc_db->Execute("INSERT INTO `".KU_DBPREFIX."banlist` ( `ip` , `ipmd5` , `type` , `allowread` , `globalban` , `boards` , `by` , `at` , `until` , `reason`, `appealat` ) VALUES ( '".md5_encrypt($ip, KU_RANDOMSEED)."' , '".md5($ip)."' , '".$type."' , '".$allowread."' , '".$globalban."' , '".$boards."' , '".$modname."' , '".time()."' , '".$ban_until."' , '".$reason."' , '".$appealat."' )");
 			
 			$this->UpdateHtaccess();
 			
@@ -104,11 +104,11 @@ class Bans {
 	}
 	
 	/* Return the page which will inform the user a quite unfortunate message */
-	function DisplayBannedMessage($globalban, $boards, $reason, $at, $until) {
+	function DisplayBannedMessage($globalban, $boards, $reason, $at, $until, $appealat) {
 		/* Set a cookie with the users current IP address in case they use a proxy to attempt to make another post */
-		setcookie('tc_previousip', $_SERVER['REMOTE_ADDR'], (time() + 604800), TC_BOARDSFOLDER);
+		setcookie('tc_previousip', $_SERVER['REMOTE_ADDR'], (time() + 604800), KU_BOARDSFOLDER);
 		
-		require_once TC_ROOTDIR . 'lib/smarty.php';
+		require_once KU_ROOTDIR . 'lib/smarty.php';
 		
 		$smarty->assign('title', _gettext('YOU ARE BANNED') . '!');
 		$smarty->assign('youarebanned', _gettext('YOU ARE BANNED') . ' :\'(');
@@ -126,35 +126,53 @@ class Bans {
 		}
 		$smarty->assign('ip', $_SERVER['REMOTE_ADDR']);
 		
+		if (KU_APPEAL != '') {
+			if ($appealat == 0) {
+				$smarty->assign('appeal', 'You may <b>not</b> appeal this ban.');
+			} elseif ($appealat == -1) {
+				$smarty->assign('appeal', 'Your appeal is currently pending review.');
+			} elseif ($appealat == -2) {
+				$smarty->assign('appeal', 'Your appeal was reviewed and denied.  You may <b>not</b> appeal this ban again.');
+			} else {
+				if ($appealat < time()) {
+					$smarty->assign('appeal', 'You may now appeal this ban.<br><br><form action="' . KU_BOARDSPATH . '/banned.php" method="post"><label for="appealmessage">Appeal Message:</label><br><textarea name="appealmessage" rows="10" cols="50"></textarea><br><input type="submit" value="Send Appeal"></form>');
+				} else {
+					$smarty->assign('appeal', 'You may appeal this ban in <b>' . (substr(timeDiff($appealat, true, 2), 0, -1)) . '</b>.');
+				}
+			}
+		} else {
+			$smarty->assign('appeal', '');
+		}
+		
 		return $smarty->fetch('banned.tpl');
 	}
 	
 	function UpdateHtaccess() {
 		global $tc_db;
 		
-		require_once TC_ROOTDIR . 'inc/encryption.php';
-		$htaccess_contents = file_get_contents(TC_BOARDSDIR.'.htaccess');
-		$htaccess_contents_preserve = substr($htaccess_contents, 0, strpos($htaccess_contents, '## !TC_BANS:')+12)."\n";
+		require_once KU_ROOTDIR . 'inc/encryption.php';
+		$htaccess_contents = file_get_contents(KU_BOARDSDIR.'.htaccess');
+		$htaccess_contents_preserve = substr($htaccess_contents, 0, strpos($htaccess_contents, '## !KU_BANS:')+12)."\n";
 	
 		$htaccess_contents_bans_iplist = '';
-		$results = $tc_db->GetAll("SELECT `ip` FROM `".TC_DBPREFIX."banlist` WHERE `allowread` = 0 AND `type` = 0 ORDER BY `ip` ASC");
+		$results = $tc_db->GetAll("SELECT `ip` FROM `".KU_DBPREFIX."banlist` WHERE `allowread` = 0 AND `type` = 0 ORDER BY `ip` ASC");
 		if (count($results) > 0) {
 			$htaccess_contents_bans_iplist .= 'RewriteCond %{REMOTE_ADDR} (';
 			foreach($results AS $line) {
-					$htaccess_contents_bans_iplist .= str_replace('.', '\\.', md5_decrypt($line['ip'], TC_RANDOMSEED)) . '|';
+				$htaccess_contents_bans_iplist .= str_replace('.', '\\.', md5_decrypt($line['ip'], KU_RANDOMSEED)) . '|';
 			}
 			$htaccess_contents_bans_iplist = substr($htaccess_contents_bans_iplist, 0, -1);
 			$htaccess_contents_bans_iplist .= ')$' . "\n";
 		}
 		if ($htaccess_contents_bans_iplist!='') {
 			$htaccess_contents_bans_start = "<IfModule mod_rewrite.c>\nRewriteEngine On\n";
-			$htaccess_contents_bans_end = "RewriteRule !^(banned.php|youarebanned.jpg)$ " . TC_BOARDSFOLDER . "banned.php [L]\n</IfModule>";
+			$htaccess_contents_bans_end = "RewriteRule !^(banned.php|youarebanned.jpg)$ " . KU_BOARDSFOLDER . "banned.php [L]\n</IfModule>";
 		} else {
 			$htaccess_contents_bans_start = '';
 			$htaccess_contents_bans_end = '';
 		}
 		$htaccess_contents_new = $htaccess_contents_preserve.$htaccess_contents_bans_start.$htaccess_contents_bans_iplist.$htaccess_contents_bans_end;
-		file_put_contents(TC_BOARDSDIR.'.htaccess', $htaccess_contents_new);
+		file_put_contents(KU_BOARDSDIR.'.htaccess', $htaccess_contents_new);
 	}
 }
 
