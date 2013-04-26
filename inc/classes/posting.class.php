@@ -25,7 +25,6 @@ class Posting {
 		
 		/* If oekaki seems to be in the url... */
 		if (isset($_POST['oekaki'])) {
-			echo KU_CGIDIR . 'kusabaoek/' . $_POST['oekaki'] . '.png';
 			/* See if it checks out and is a valid oekaki id */
 			if ($_POST['oekaki'] != '' && is_file(KU_CGIDIR . 'kusabaoek/' . $_POST['oekaki'] . '.png') && $board_class->board_type == '2') {
 				/* Set the variable to tell the script it is handling an oekaki posting, and the oekaki file which will be posted */
@@ -60,6 +59,23 @@ class Posting {
 			/* If the time was shorter than the minimum time distance */
 			if (time() - $line['postedat'] <= KU_NEWTHREADDELAY) {
 				die(_gettext('Error: please wait a moment before posting again.'));
+			}
+		}
+	}
+	
+	function UTF8Strings() {
+		if (function_exists('mb_convert_encoding')) {
+			if (isset($_POST['name']) && !mb_check_encoding($_POST['name'], 'UTF-8')) {
+				$_POST['name'] = mb_convert_encoding($_POST['name'], 'UTF-8');
+			}
+			if (isset($_POST['em']) && !mb_check_encoding($_POST['em'], 'UTF-8')) {
+				$_POST['em'] = mb_convert_encoding($_POST['em'], 'UTF-8');
+			}
+			if (isset($_POST['subject']) && !mb_check_encoding($_POST['subject'], 'UTF-8')) {
+				$_POST['subject'] = mb_convert_encoding($_POST['subject'], 'UTF-8');
+			}
+			if (isset($_POST['message']) && !mb_check_encoding($_POST['message'], 'UTF-8')) {
+				$_POST['message'] = mb_convert_encoding($_POST['message'], 'UTF-8');
 			}
 		}
 	}
@@ -107,7 +123,7 @@ class Posting {
 				$results = $tc_db->GetAll("SELECT `bantime` , `description` FROM `" . KU_DBPREFIX . "bannedhashes` WHERE `md5` = '" . mysql_real_escape_string(md5_file($_FILES['imagefile']['tmp_name'])) . "' LIMIT 1");
 				if (count($results) > 0) {
 					foreach ($results as $line) {
-						$bans_class->BanUser($_SERVER['REMOTE_ADDR'], 'SERVER', '1', $line['bantime'], '', 'Posting a banned file.<br>' . $line['description'], 0, 1);
+						$bans_class->BanUser($_SERVER['REMOTE_ADDR'], 'SERVER', '1', $line['bantime'], '', 'Posting a banned file.<br>' . $line['description'], 0, 0, 1);
 						$bans_class->BanCheck($_SERVER['REMOTE_ADDR'], $board_class->board_dir);
 						die();
 					}

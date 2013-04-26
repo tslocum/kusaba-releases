@@ -43,6 +43,14 @@ tt {
 	text-decoration: none;
 }
 
+.threadlinks {
+    text-align: right;
+}
+
+.threadlinks a {
+    font-weight: bold;
+}
+
 .userdelete {
 	float: right;
 	text-align: center;

@@ -670,7 +670,7 @@ class Manage {
 			}
 			$boardid = $tc_db->GetOne("SELECT HIGH_PRIORITY `id` FROM `" . KU_DBPREFIX . "boards` WHERE `name` = '" . mysql_real_escape_string($_GET['updateboard']) . "' LIMIT 1");
 			if ($boardid != '') {
-				if ($_POST['order'] >= 0 && $_POST['maxpages'] >= 0 && $_POST['markpage'] >= 0 && $_POST['maxage'] >= 0 && $_POST['messagelength'] >= 0 && ($_POST['defaultstyle'] == '' || in_array($_POST['defaultstyle'], explode(':', KU_STYLES)))) {
+				if ($_POST['order'] >= 0 && $_POST['maxpages'] >= 0 && $_POST['markpage'] >= 0 && $_POST['maxage'] >= 0 && $_POST['messagelength'] >= 0 && ($_POST['defaultstyle'] == '' || in_array($_POST['defaultstyle'], explode(':', KU_STYLES)) || in_array($_POST['defaultstyle'], explode(':', KU_TXTSTYLES)))) {
 					$filetypes = array();
 					while (list($postkey, $postvalue) = each($_POST)) {
 						if (substr($postkey, 0, 9) == 'filetype_') {
@@ -691,7 +691,7 @@ class Manage {
 					
 					if (($_POST['type'] == '0' || $_POST['type'] == '1' || $_POST['type'] == '2' || $_POST['type'] == '3') && ($_POST['uploadtype'] == '0' || $_POST['uploadtype'] == '1' || $_POST['uploadtype'] == '2')) {
 						if (!($_POST['uploadtype'] != '0' && $_POST['type'] == '3')) {
-							$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "boards` SET `type` = '" . mysql_real_escape_string($_POST['type']) . "' , `uploadtype` = '" . mysql_real_escape_string($_POST['uploadtype']) . "' , `order` = '" . mysql_real_escape_string($_POST['order']) . "' , `section` = '" . mysql_real_escape_string($_POST['section']) . "' , `desc` = '" . mysql_real_escape_string($_POST['desc']) . "' , `locale` = '" . mysql_real_escape_string($_POST['locale']) . "' , `showid` = '" . $updateboard_showid . "' , `locked` = '" . $updateboard_locked . "' , `maximagesize` = '" . mysql_real_escape_string($_POST['maximagesize']) . "' , `messagelength` = '" . mysql_real_escape_string($_POST['messagelength']) . "' , `maxpages` = '" . mysql_real_escape_string($_POST['maxpages']) . "' , `maxage` = '" . mysql_real_escape_string($_POST['maxage']) . "' , `markpage` = '" . mysql_real_escape_string($_POST['markpage']) . "' , `maxreplies` = '" . mysql_real_escape_string($_POST['maxreplies']) . "' , `image` = '" . mysql_real_escape_string($_POST['image']) . "' , `includeheader` = '" . mysql_real_escape_string($_POST['includeheader']) . "' , `redirecttothread` = '" . $updateboard_redirecttothread . "' , `forcedanon` = '" . $updateboard_forcedanon . "' , `trial` = '" . $updateboard_trial . "' , `popular` = '" . $updateboard_popular . "' , `defaultstyle` = '" . $_POST['defaultstyle'] . "' , `enablereporting` = '" . $updateboard_enablereporting . "' , `enablecaptcha` = '" . $updateboard_enablecaptcha . "' , `enablenofile` = '" . $updateboard_enablenofile . "' , `enablearchiving` = '" . $updateboard_enablearchiving . "', `enablecatalog` = '" . $updateboard_enablecatalog . "' , `loadbalanceurl` = '" . mysql_real_escape_string($_POST['loadbalanceurl']) . "' , `loadbalancepassword` = '" . mysql_real_escape_string($_POST['loadbalancepassword']) . "' WHERE `name` = '" . mysql_real_escape_string($_GET['updateboard']) . "'");
+							$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "boards` SET `type` = '" . mysql_real_escape_string($_POST['type']) . "' , `uploadtype` = '" . mysql_real_escape_string($_POST['uploadtype']) . "' , `order` = '" . mysql_real_escape_string($_POST['order']) . "' , `section` = '" . mysql_real_escape_string($_POST['section']) . "' , `desc` = '" . mysql_real_escape_string($_POST['desc']) . "' , `locale` = '" . mysql_real_escape_string($_POST['locale']) . "' , `showid` = '" . $updateboard_showid . "' , `locked` = '" . $updateboard_locked . "' , `maximagesize` = '" . mysql_real_escape_string($_POST['maximagesize']) . "' , `messagelength` = '" . mysql_real_escape_string($_POST['messagelength']) . "' , `maxpages` = '" . mysql_real_escape_string($_POST['maxpages']) . "' , `maxage` = '" . mysql_real_escape_string($_POST['maxage']) . "' , `markpage` = '" . mysql_real_escape_string($_POST['markpage']) . "' , `maxreplies` = '" . mysql_real_escape_string($_POST['maxreplies']) . "' , `image` = '" . mysql_real_escape_string($_POST['image']) . "' , `includeheader` = '" . mysql_real_escape_string($_POST['includeheader']) . "' , `redirecttothread` = '" . $updateboard_redirecttothread . "' , `forcedanon` = '" . $updateboard_forcedanon . "' , `trial` = '" . $updateboard_trial . "' , `popular` = '" . $updateboard_popular . "' , `defaultstyle` = '" . mysql_real_escape_string($_POST['defaultstyle']) . "' , `enablereporting` = '" . $updateboard_enablereporting . "' , `enablecaptcha` = '" . $updateboard_enablecaptcha . "' , `enablenofile` = '" . $updateboard_enablenofile . "' , `enablearchiving` = '" . $updateboard_enablearchiving . "', `enablecatalog` = '" . $updateboard_enablecatalog . "' , `loadbalanceurl` = '" . mysql_real_escape_string($_POST['loadbalanceurl']) . "' , `loadbalancepassword` = '" . mysql_real_escape_string($_POST['loadbalancepassword']) . "' WHERE `name` = '" . mysql_real_escape_string($_GET['updateboard']) . "'");
 							$tc_db->Execute("DELETE FROM `" . KU_DBPREFIX . "board_filetypes` WHERE `boardid` = '" . $boardid . "'");
 							foreach ($filetypes as $filetype) {
 								$tc_db->Execute("INSERT INTO `" . KU_DBPREFIX . "board_filetypes` ( `boardid`, `typeid` ) VALUES ( '" . $boardid . "', '" . mysql_real_escape_string($filetype) . "' )");
@@ -965,6 +965,14 @@ class Manage {
 						$tpl_page .= ($lineboard['defaultstyle'] == $stylesheet) ? ' selected' : '';
 						$tpl_page .= '>' . ucfirst($stylesheet) . '</option>';
 					}
+					
+					$stylestxt = explode(':', KU_TXTSTYLES);
+					foreach ($stylestxt as $stylesheet) {
+						$tpl_page .= '<option value="' . $stylesheet . '"';
+						$tpl_page .= ($lineboard['defaultstyle'] == $stylesheet) ? ' selected' : '';
+						$tpl_page .= '>[TXT] ' . ucfirst($stylesheet) . '</option>';
+					}
+					
 					$tpl_page .= '</select>
 					<div class="desc">'._gettext('The style which will be set when the user first visits the board.').' '._gettext('Default').': <b>Use Default</b></div><br>';
 					
@@ -1390,11 +1398,11 @@ class Manage {
 							$tpl_page .= _gettext('Sorry, a generic error has occurred.');
 							die();
 						}
-						$logentry = _gettext('Banned') . ' ' . $_POST['ip'] . ' until ';
+						$logentry = _gettext('Banned') . ' ' . $_POST['ip'];
 						if ($_POST['seconds'] == '0') {
-							$logentry .= _gettext('forever');
+							$logentry .= ' without expiration';
 						} else {
-							$logentry .= date('F j, Y, g:i a', time() + $_POST['seconds']);
+							$logentry .= ' until ' . date('F j, Y, g:i a', time() + $_POST['seconds']);
 						}
 						$logentry .= ' - ' . _gettext('Reason') . ': ' . $_POST['reason'] . ' - ' . _gettext('Banned from') . ': ';
 						if ($ban_globalban == '1') {
@@ -1559,7 +1567,7 @@ class Manage {
 				$hiddenbans = $hiddenbans[0][0] - 15;
 			}
 			if (count($results) > 0) {
-				$tpl_page .= '<table border="1"><tr><th>';
+				$tpl_page .= '<table border="1" width="100%"><tr><th>';
 				if ($i == 1) {
 					$tpl_page .= 'IP Range';
 				} else {
@@ -1584,7 +1592,7 @@ class Manage {
 					}
 					$tpl_page .= '</td><td>' . date("F j, Y, g:i a", $line['at']) . '</td><td>';
 					if ($line['until'] == '0') {
-						$tpl_page .= '<b>' . _gettext('forever') . '</b>';
+						$tpl_page .= '<b>' . _gettext('Does not expire') . '</b>';
 					} else {
 						$tpl_page .= date("F j, Y, g:i a", $line['until']);
 					}
@@ -1608,7 +1616,7 @@ class Manage {
 			foreach ($results as $line) {
 				$tpl_page .= '<tr><td>' . $line['md5'] . '</td><td>' . $line['description'] . '</td><td>';
 				if ($line['bantime'] == 0) {
-					$tpl_page .= 'forever';
+					$tpl_page .= '<b>' . _gettext('Does not expire') . '</b>';
 				} else {
 					$tpl_page .= $line['bantime'] . ' seconds';
 				}
@@ -1786,7 +1794,7 @@ class Manage {
 					$bans_class->BanUser($ban_ip, mysql_real_escape_string($_SESSION['manageusername']), $ban_globalban, 0, $ban_boards, mysql_real_escape_string($_POST['reason']), 0, 0, 1);
 					$logentry = _gettext('Banned') . ' ' . $ban_ip . ' until ';
 					if ($_POST['seconds'] == '0') {
-						$logentry .= _gettext('forever');
+						$logentry .= '<b>' . _gettext('Does not expire') . '</b>';
 					} else {
 						$logentry .= date('F j, Y, g:i a', time() + $_POST['seconds']);
 					}
@@ -1998,38 +2006,40 @@ class Manage {
 								$_POST['firstpostid'] = 1;
 							}
 							$tc_db->Execute("CREATE TABLE `" . KU_DBPREFIX . "posts_" . mysql_real_escape_string($_POST['directory']) . "` (
-							`id` int(10) NOT NULL auto_increment, 
-							`parentid` int(10) NOT NULL default '0', 
-							`name` varchar(255) NOT NULL, 
-							`tripcode` varchar(30) NOT NULL, 
-							`email` varchar(255) NOT NULL, 
-							`subject` varchar(255) NOT NULL, 
-							`message` text NOT NULL, 
-							`filename` varchar(50) NOT NULL, 
-							`filename_original` varchar(50) NOT NULL, 
-							`filetype` varchar(20) NOT NULL, 
-							`filemd5` text NOT NULL, 
-							`image_w` smallint(5) NOT NULL default '0', 
-							`image_h` smallint(5) NOT NULL default '0', 
-							`filesize` int(10) NOT NULL default '0', 
-							`filesize_formatted` varchar(255) NOT NULL, 
-							`thumb_w` smallint(5) NOT NULL default '0', 
-							`thumb_h` smallint(5) NOT NULL default '0', 
-							`password` varchar(255) NOT NULL, 
-							`postedat` int(20) NOT NULL, 
-							`lastbumped` int(20) NOT NULL default '0', 
-							`ip` varchar(75) NOT NULL, 
-							`ipmd5` varchar(200) NOT NULL,
-							`tag` varchar(5) NOT NULL,
-							`stickied` tinyint(1) NOT NULL default '0', 
-							`locked` tinyint(1) NOT NULL default '0', 
-							`posterauthority` tinyint(1) NOT NULL default '0', 
-							`deletedat` int(20) NOT NULL DEFAULT '0', 
-							`IS_DELETED` tinyint(1) NOT NULL default '0', 
-							UNIQUE KEY `id` (`id`), 
-							KEY `parentid` (`parentid`), 
-							KEY `lastbumped` (`lastbumped`)
-							) ENGINE=MyISAM AUTO_INCREMENT=" . mysql_real_escape_string($_POST['firstpostid']) . " ;");
+							  `id` int(10) NOT NULL auto_increment,
+							  `parentid` int(10) NOT NULL default '0',
+							  `name` varchar(255) NOT NULL,
+							  `tripcode` varchar(30) NOT NULL,
+							  `email` varchar(255) NOT NULL,
+							  `subject` varchar(255) NOT NULL,
+							  `message` text NOT NULL,
+							  `filename` varchar(50) NOT NULL,
+							  `filename_original` varchar(50) NOT NULL,
+							  `filetype` varchar(20) NOT NULL,
+							  `filemd5` char(32) NOT NULL,
+							  `image_w` smallint(5) NOT NULL default '0',
+							  `image_h` smallint(5) NOT NULL default '0',
+							  `filesize` int(10) NOT NULL default '0',
+							  `filesize_formatted` varchar(255) NOT NULL,
+							  `thumb_w` smallint(5) NOT NULL default '0',
+							  `thumb_h` smallint(5) NOT NULL default '0',
+							  `password` varchar(255) NOT NULL,
+							  `postedat` int(20) NOT NULL,
+							  `lastbumped` int(20) NOT NULL default '0',
+							  `ip` varchar(75) NOT NULL,
+							  `ipmd5` char(32) NOT NULL,
+							  `tag` varchar(5) NOT NULL,
+							  `stickied` tinyint(1) NOT NULL default '0',
+							  `locked` tinyint(1) NOT NULL default '0',
+							  `posterauthority` tinyint(1) NOT NULL default '0',
+							  `deletedat` int(20) NOT NULL default '0',
+							  `IS_DELETED` tinyint(1) NOT NULL default '0',
+							  UNIQUE KEY `id` (`id`),
+							  KEY `parentid` (`parentid`),
+							  KEY `lastbumped` (`lastbumped`),
+							  KEY `filemd5` (`filemd5`),
+							  KEY `stickied` (`stickied`)
+							) ENGINE=InnoDB AUTO_INCREMENT=" . mysql_real_escape_string($_POST['firstpostid']) . ";");
 							$filetypes = $tc_db->GetAll("SELECT " . KU_DBPREFIX . "filetypes.id FROM " . KU_DBPREFIX . "filetypes WHERE " . KU_DBPREFIX . "filetypes.filetype = 'JPG' OR " . KU_DBPREFIX . "filetypes.filetype = 'GIF' OR " . KU_DBPREFIX . "filetypes.filetype = 'PNG';");
 							foreach ($filetypes AS $filetype) {
 								$tc_db->Execute("INSERT INTO `" . KU_DBPREFIX . "board_filetypes` ( `boardid` , `typeid` ) VALUES ( " . $boardid . " , " . $filetype['id'] . " );");
@@ -2256,7 +2266,7 @@ class Manage {
 						}
 						$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "staff` SET `boards` = '" . mysql_real_escape_string(implode('|', $staff_new_boards)) . "' WHERE `id` = '" . mysql_real_escape_string($_GET['edit']) . "'");
 						$tpl_page .= _gettext('Staff successfully updated') . '<hr>';
-						if ($_POST['type'] == 3) {
+						if ($_POST['type'] != '3') {
 							$logentry = _gettext('Updated staff member') . ' - ';
 							if ($_POST['type'] == '1') {
 								$logentry .= _gettext('Administrator');
@@ -2264,8 +2274,6 @@ class Manage {
 								$logentry .= _gettext('Moderator');
 							} elseif ($_POST['type'] == '0') {
 								$logentry .= _gettext('Janitor');
-							} elseif ($_POST['type'] == '3') {
-								$logentry .= 'VIP';
 							} else {
 								die('Something went wrong.');
 							}

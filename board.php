@@ -99,8 +99,12 @@ if ($oekaki == '') {
 	$is_oekaki = true;
 }
 
+/* Ensure that UTF-8 is used on some of the post variables */
+$posting_class->UTF8Strings();
+//$tc_db->debug = true;
 /* Check if the user sent a valid post (image for thread, image/message for reply, etc) */
 if ($posting_class->CheckValidPost($is_oekaki)) {
+	$tc_db->Execute("START TRANSACTION");
 	$posting_class->CheckReplyTime();
 	$posting_class->CheckNewThreadTime();
 	$posting_class->CheckMessageLength();
@@ -294,7 +298,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 			
 			if ($is_oekaki) {
 				if (file_exists(KU_BOARDSDIR . $board_class->board_dir . '/src/' . $upload_class->file_name . '.pch')) {
-					$post['message'] .= '<br><small><a href="' . KU_CGIPATH . '/animation.php?board=' . $board_class->board_dir . '&id=' . $upload_class->file_name . '">View animation</a></small>';
+					$post['message'] .= '<br><small><a href="' . KU_CGIPATH . '/animation.php?board=' . $board_class->board_dir . '&nbsp;id=' . $upload_class->file_name . '">View animation</a></small>';
 				}
 			}
 			
@@ -354,9 +358,10 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 			}
 		}
 		
+		$tc_db->Execute("COMMIT");
+		
 		/* Trim any threads which have been pushed past the limit, or exceed the maximum age limit */
 		$board_class->TrimToPageLimit();
-		
 		
 		if (KU_INSTANTREDIRECT && ($board_class->board_redirecttothread == 1 || $_POST['em'] == 'return' || $_POST['em'] == 'noko')) {
 			if ($thread_replyto == '0') {

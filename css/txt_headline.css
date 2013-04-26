@@ -1,5 +1,5 @@
 body {
-	padding: 8px;
+	padding: 0px 8px 8px 8px;
 	margin: 0px;
 	background: #FFFFFF;
 	color: #000000;
@@ -46,6 +46,11 @@ ol p:first-child, ul p:first-child {
 
 ol p:last-child, ul p:last-child {
 	margin-bottom: 0;
+}
+
+.topbar {
+	width: 100%;
+	text-align: right;
 }
 
 .head {
@@ -104,8 +109,6 @@ h2 small {
 }
 
 .threadlinks {
-	display: block;
-	text-align: right;
 	font-weight: bold;
 }
 

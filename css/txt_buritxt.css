@@ -6,7 +6,7 @@ body {
 }
 a {
     color: #34345c;
-    text-decoration: none
+    text-decoration: none;
 }
 a:hover {
     text-decoration: underline
@@ -68,13 +68,6 @@ h2 a {
 
 .threadlistflat {
     margin-bottom:0
-}
-.threadlinks {
-    text-align: right;
-    display: block;
-}
-.threadlinks a {
-    font-weight: bold;
 }
 
 .postheader * {
@@ -208,7 +201,7 @@ body.read h2 {
 }
 
 .threads a {
-    display: block;
+    /*display: block;*/
 }
 .threads a:hover {
     text-decoration: none;
@@ -218,6 +211,9 @@ body.read h2 {
 }
 .threads th {
     background: #d6daf0 !important
+}
+.threads a {
+	display: block;
 }
 .quote:hover {
     background: #d6daf0; !important

@@ -44,15 +44,13 @@ require 'config.php';
 <title><?php echo KU_NAME; ?></title>
 <link rel="shortcut icon" href="/favicon.ico">
 <?php
-if (isset($tc_config)) {
-	if ($kusabaorg) {
-		echo '<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
-		</script>
-		<script type="text/javascript">
-		_uacct = "UA-71983-11";
-		urchinTracker(document.referrer);
-		</script>';
-	}
+if ($kusabaorg) {
+	echo '<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+	</script>
+	<script type="text/javascript">
+	_uacct = "UA-71983-11";
+	urchinTracker(document.referrer);
+	</script>';
 }
 ?>
 </head>

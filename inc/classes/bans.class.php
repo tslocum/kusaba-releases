@@ -111,6 +111,7 @@ class Bans {
 		require_once KU_ROOTDIR . 'lib/smarty.php';
 		
 		$smarty->assign('title', _gettext('YOU ARE BANNED') . '!');
+		$smarty->assign('ku_slogan', KU_SLOGAN);
 		$smarty->assign('youarebanned', _gettext('YOU ARE BANNED') . ' :\'(');
 		if ($globalban==1) {
 			$smarty->assign('boards', strtolower(_gettext('All boards')));

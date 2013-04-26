@@ -22,8 +22,6 @@ blockquote p {margin-top: 0;}
 .border, .hborder {border: 1px outset gray; margin-left: 2.5%; margin-right: 2.5%; width: 95%; padding: 6px; margin-bottom: 1em; background-color: #efefef}
 .hborder {background-color: #cfc}
 h2 {margin-top: 0px; clear: both;}
-.threadlinks {display:block; text-align: right;}
-.threadlinks a {font-weight: bold;}
 /*.threadldiv {margin-right: 2.5%; margin-left: 2.5%; margin-bottom: 1em; background-color: #cfc; width: 95%;}*/
 .threads {font-size: small; text-align: left;}
 table.threads th {text-align: center;}

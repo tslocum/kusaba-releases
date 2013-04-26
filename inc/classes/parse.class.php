@@ -47,8 +47,8 @@ class Parse {
 			'<i>\\1</i>', 
 			'<span style="border-bottom: 1px dotted">\\1</span>', 
 			'<strike>\\1</strike>', 
-			'<div style="whitespace: pre; font-family: monospace;">\\1</div>', 
-			'<div style="font-family: monospace; font-family: Mona,\'MS PGothic\' !important; ">\\1</div>', 
+			'<div style="font-family: monospace !important;">\\1</div>', 
+			'<div style="font-family: Mona,\'MS PGothic\' !important;">\\1</div>', 
 			'<span class="spoiler" onmouseover="this.style.color=\'white\';" onmouseout="this.style.color=\'black\'">\\1</span>', 
 			);
 		$string = preg_replace($patterns, $replaces , $string);
@@ -65,11 +65,13 @@ class Parse {
 		if ($boardtype==1) {
 			/* The css for text boards use 'quote' as the class for quotes */
 			$class = 'quote';
+			$linechar = '';
 		} else {
 			/* The css for imageboards use 'unkfunc' (???) as the class for quotes */
 			$class = 'unkfunc';
+			$linechar = "\n";
 		}
-		$buffer = preg_replace('/^(&gt;[^>](.*))\n/m', '<span class="'.$class.'">\\1</span>' . "\n", $buffer);
+		$buffer = preg_replace('/^(&gt;[^>](.*))\n/m', '<span class="'.$class.'">\\1</span>' . $linechar, $buffer);
 		/* Remove the > from the quoted line if it is a text board */
 		if ($boardtype==1) {
 			$buffer = str_replace('<span class="'.$class.'">&gt;', '<span class="'.$class.'">', $buffer);
@@ -83,7 +85,7 @@ class Parse {
 		$thread_board_return = $board;
 		
 		/* Add html for links to posts in the board the post was made */
-		$buffer = preg_replace_callback('/&gt;&gt;([0-9]+)/', array(&$this, 'InterthreadQuoteCheck'), $buffer);
+		$buffer = preg_replace_callback('/&gt;&gt;([0-9,\-,\,]+)/', array(&$this, 'InterthreadQuoteCheck'), $buffer);
 		
 		/* Add html for links to posts made in a different board */
 		$buffer = preg_replace_callback('/&gt;&gt;\/([a-z]+)\/([0-9]+)/', array(&$this, 'InterboardQuoteCheck'), $buffer);
@@ -94,11 +96,43 @@ class Parse {
 	function InterthreadQuoteCheck($matches) {
 		global $tc_db, $ispage, $thread_board_return;
 		
+		if (strpos($matches[1], ',') !== false || strpos($matches[1], '-') !== false) {
+			$postids = getQuoteIds($matches[1]);
+			if (count($postids) > 0) {
+				if ($this->boardtype != 1) {
+					foreach ($postids as $postid) {
+						$result = $tc_db->GetOne("SELECT `parentid` FROM `".KU_DBPREFIX."posts_".mysql_real_escape_string($thread_board_return)."` WHERE `id` = '".mysql_real_escape_string($postid)."'");
+						if ($result === 0) {
+							$realid = $postid;
+						} else {
+							$realid = $result;
+						}
+					}
+				} else {
+					$realid = $this->parentid;
+				}
+				
+				if ($realid != '') {
+					$return = '<a href="' . KU_BOARDSFOLDER . 'read.php';
+					if (KU_TRADITIONALREAD) {
+						$return .= '/' . $thread_board_return . '/' . $realid.'/' . $matches[1];
+					} else {
+						$return .= '?b=' . $thread_board_return . '&nbsp;t=' . $realid.'&nbsp;p=' . $matches[1];
+					}
+					$return .= '">' . $matches[0] . '</a>';
+				}
+			} else {
+				return $matches[0];
+			}
+			
+			return $return;
+		}
+		
 		if ($this->boardtype != 1) {
 			$query = "SELECT `parentid` FROM `".KU_DBPREFIX."posts_".mysql_real_escape_string($thread_board_return)."` WHERE `id` = '".mysql_real_escape_string($matches[1])."'";
 			$result = $tc_db->GetOne($query);
-			if ($result!='') {
-				if ($result==0) {
+			if ($result != '') {
+				if ($result == 0) {
 					$realid = $matches[1];
 				} else {
 					$realid = $result;
@@ -223,6 +257,7 @@ class Parse {
 		$message = trim($message);
 		$message = $this->CutWord($message, KU_MAXCHAR, "\n");
 		$message = htmlspecialchars($message, ENT_QUOTES);
+		$message = str_replace('	', '&nbsp;&nbsp;&nbsp;&nbsp;', $message);
 		if (KU_MAKELINKS) {
 			$message = $this->MakeClickable($message);
 		}

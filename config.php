@@ -107,6 +107,10 @@ if (!$cache_loaded) {
 		$cf['KU_DEFAULTSTYLE']  = 'futaba'; /* If Default is selected in the style list in board options, it will use this style.  Should be lower case */
 		$cf['KU_STYLESWITCHER'] = true; /* Whether or not to display the different styles in a clickable switcher at the top of the board */
 		
+		$cf['KU_TXTSTYLES']        = 'futatxt:buritxt:yotsuba:headline:pseud0ch'; /* Styles which are available to be used for the boards, separated by colons, in lower case */
+		$cf['KU_DEFAULTTXTSTYLE']  = 'futatxt'; /* If Default is selected in the style list in board options, it will use this style.  Should be lower case */
+		$cf['KU_TXTSTYLESWITCHER'] = true; /* Whether or not to display the different styles in a clickable switcher at the top of the board */
+		
 		$cf['KU_MENUSTYLES']        = 'futaba:burichan'; /* Menu styles*/
 		$cf['KU_DEFAULTMENUSTYLE']  = 'futaba'; /* Default menu style */
 		$cf['KU_MENUSTYLESWITCHER'] = true; /* Whether or not to display the different styles in a clickable switcher in the menu */
@@ -124,7 +128,9 @@ if (!$cache_loaded) {
 		$cf['KU_REPLYTHUMBHEIGHT'] = 125; /* Maximum thumbnail height (reply) */
 		$cf['KU_CATTHUMBWIDTH']    = 50; /* Maximum thumbnail width (catalog) */
 		$cf['KU_CATTHUMBHEIGHT']   = 50; /* Maximum thumbnail height (catalog) */
-	
+		$cf['KU_THUMBMETHOD']      = 'gd'; /* Method to use when thumbnailing images in jpg, gif, or png format.  Options available: gd, imagemagick */
+		$cf['KU_ANIMATEDTHUMBS']  = false; /* Whether or not to allow animated thumbnails */
+		
 	/* Post handling */
 		$cf['KU_NEWWINDOW']       = true; /* When a user clicks a thumbnail, whether to open the link in a new window or not */
 		$cf['KU_MAKELINKS']       = true; /* Whether or not to turn http:// links into clickable links */
@@ -133,17 +139,19 @@ if (!$cache_loaded) {
 		$cf['KU_NOMESSAGEREPLY']  = ''; /* Text to set a message to if a reply is made with no text */
 	
 	/* Post display */
-		$cf['KU_THREADS']       = 10; /* Number of threads to display on a board page */
-		$cf['KU_REPLIES']       = 3; /* Number of replies to display on a board page */
-		$cf['KU_REPLIESSTICKY'] = 1; /* Number of replies to display on a board page when a thread is stickied */
-		$cf['KU_THUMBMSG']      = false; /* Whether or not to display the "Thumbnail displayed, click image for full size." message on posts with images */
-		$cf['KU_BANMSG']        = '<br><font color="#FF0000"><b>(USER WAS BANNED FOR THIS POST)</b></font>'; /* The text to add at the end of a post if a ban is placed and "Add ban message" is checked */
+		$cf['KU_THREADS']        = 10; /* Number of threads to display on a board page */
+		$cf['KU_THREADSTXT']     = 15; /* Number of threads to display on a text board front page */
+		$cf['KU_REPLIES']        = 3; /* Number of replies to display on a board page */
+		$cf['KU_REPLIESSTICKY']  = 1; /* Number of replies to display on a board page when a thread is stickied */
+		$cf['KU_THUMBMSG']       = false; /* Whether or not to display the "Thumbnail displayed, click image for full size." message on posts with images */
+		$cf['KU_BANMSG']         = '<br><font color="#FF0000"><b>(USER WAS BANNED FOR THIS POST)</b></font>'; /* The text to add at the end of a post if a ban is placed and "Add ban message" is checked */
+		$cf['KU_TRADITIONALREAD'] = true; /* Whether or not to use the traditional style for multi-quote urls.  Traditional: read.php/board/thread/posts, Non-traditional: read.php?b=board&t=thread&p=posts */
 		
 	/* Pages */
 		$cf['KU_POSTBOX'] = '<li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.<!tc_catalog /></li>'; /* Notice displayed under the post area */
 		$cf['KU_FIRSTPAGE'] = 'board.html'; /* Filename of the first page of a board.  Only change this if you are willing to maintain the .htaccess files for each board directory (they are created with a DirectoryIndex board.html, change them if you change this) */
 		$cf['KU_DIRTITLE']  = false; /* Whether or not to place the board directory in the board's title and at the top of the page.  true would render as "/b/ - Random", false would render as "Random" */
-	
+		
 	/* File tagging */
 		$cf['KU_TAGS'] = array('Japanese' => 'J',
 		                       'Anime'    => 'A',
@@ -167,9 +175,9 @@ if (!$cache_loaded) {
 		$cf['KU_PINGBACK']        = ''; /* The password to use when making a ping to the chan directory.  Set to '' to disable */
 	
 	/* Misc config */
-		$cf['KU_MODLOGDAYS'] = 7; /* Days to keep modlog entries before removing them */
-		$cf['KU_RANDOMSEED'] = 'ENTER RANDOM LETTERS/NUMBERS HERE'; /* Type a bunch of random letters/numbers here, any large amount (35+ characters) will do */
-		$cf['KU_STATICMENU'] = false; /* Whether or not to generate the menu files as static files, instead of linking to menu.php.  Enabling this will reduce load, however some users have had trouble with getting the files to generate */
+		$cf['KU_MODLOGDAYS']        = 7; /* Days to keep modlog entries before removing them */
+		$cf['KU_RANDOMSEED']        = 'ENTER RANDOM LETTERS/NUMBERS HERE'; /* Type a bunch of random letters/numbers here, any large amount (35+ characters) will do */
+		$cf['KU_STATICMENU']        = false; /* Whether or not to generate the menu files as static files, instead of linking to menu.php.  Enabling this will reduce load, however some users have had trouble with getting the files to generate */
 		$cf['KU_GENERATEBOARDLIST'] = true; /* Set to true to automatically make the board list which is displayed ad the top and bottom of the board pages, or false to use the boards.html file */
 		
 	/* Language / timezone / encoding */
@@ -181,7 +189,7 @@ if (!$cache_loaded) {
 		$cf['KU_DEBUG'] = false; /* When enabled, debug information will be printed (Warning: all queries will be shown publicly) */
 	
 	/* Post-configuration actions, don't modify these */
-		$cf['KU_VERSION']    = '1.0.0';
+		$cf['KU_VERSION']    = '1.0.1';
 		$cf['KU_TAGS']       = serialize($cf['KU_TAGS']);
 		$cf['KU_TRIPS']      = serialize($cf['KU_TRIPS']);
 		$cf['KU_LINELENGTH'] = $cf['KU_LINELENGTH'] * 15;

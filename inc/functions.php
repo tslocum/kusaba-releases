@@ -84,6 +84,26 @@ function printStylesheets($prefered_stylesheet = KU_DEFAULTSTYLE) {
 	return $output_stylesheets;
 }
 
+function printStylesheetsTXT($prefered_stylesheet = KU_DEFAULTTXTSTYLE) {
+	global $tc_db;
+	$output_stylesheets = '';
+	$styles = explode(':', KU_TXTSTYLES);
+	
+	if (!in_array($prefered_stylesheet, $styles)) {
+		$prefered_stylesheet = KU_DEFAULTTXTSTYLE;
+	}
+	
+	foreach ($styles as $stylesheet) {
+		$output_stylesheets .= '<link rel="';
+		if ($stylesheet != $prefered_stylesheet) {
+			$output_stylesheets .= 'alternate ';
+		}
+		$output_stylesheets .= 'stylesheet" type="text/css" href="' . KU_BOARDSPATH . '/css/txt_' . $stylesheet . '.css" title="' . ucfirst($stylesheet) . '">' . "\n";
+	}
+	
+	return $output_stylesheets;
+}
+
 function printStylesheetsSite($prefered_stylesheet = KU_DEFAULTMENUSTYLE, $menu = false) {
 	global $tc_db;
 	$output_stylesheets = '';
@@ -215,7 +235,7 @@ function getBlotter($all = false) {
 			if ($all && $line['important'] == 1) {
 				$output .= '<font style="color: red;">';
 			} elseif (!$all) {
-				$output .= '<li name="blotterentry" style="display: none;">' . "\n";
+				$output .= '<li class="blotterentry" style="display: none;">' . "\n";
 				if ($line['important'] == 1) {
 					$output .= '	<span style="color: red;">' . "\n" . '	';
 				}
@@ -264,6 +284,73 @@ function clearBlotterCache() {
 	}
 }
 
+function getQuoteIds($quote) {
+	if (strpos($quote, ',') !== false) {
+		$postids = split(',', $quote);
+	} else {
+		$postids = array($quote);
+	}
+	
+	foreach ($postids as $postid) {
+		if (strpos($postid, '-') !== false) {
+			$rangeids = split('-', $postid);
+			if (count($rangeids) == 2) {
+				if ($rangeids[1] > $rangeids[0]) {
+					$range_processed = range($rangeids[0], $rangeids[1]);
+					foreach ($range_processed as $range) {
+						$postids[] = $range;
+					}
+				}
+			}
+			
+			$key = array_search($postid, $postids);
+			unset($postids[$key]);
+		}
+	}
+	
+	return $postids;
+}
+
+function calculateGlobalPostingRate($board) {
+	global $tc_db;
+	
+	$posts = $tc_db->GetAll("SELECT `postedat` FROM `" . KU_DBPREFIX . "posts_" . $board . "` WHERE `postedat` > " . (time() - 604800) . " ORDER BY `id` ASC");
+	if (count($posts) > 0) {
+		$i = 0;
+		$lastpost_time = 0;
+		$times = array();
+		foreach ($posts as $post) {
+			$i++;
+			if ($i > 1) {
+				$times[] = ($post['postedat'] - $lastpost_time);
+			}
+			$lastpost_time = $post['postedat'];
+		}
+		
+		$times_sum = array_sum($times);
+		if ($times_sum > 0) {
+			$times_sum = ($times_sum / 60);
+			$times_avg = ($times_sum / count($times));
+		} else {
+			$times_avg = 0;
+		}
+	} else {
+		$times_avg = 0;
+	}
+	
+	if ($times_avg > 0) {
+		return $times_avg;
+	} else {
+		return 0;
+	}
+}
+
+function calculateThreadLifespan($id, $threadpage, $threadposition, $board, $board_maxpages, $board_maxage) {
+	global $tc_db;
+	
+	return calculateGlobalPostingRate($board);
+}
+
 /**
  * Clear cache for the supplied post ID of the supplied board
  * 
@@ -303,7 +390,7 @@ function boardid_to_dir($boardid) {
  */      
 function calculatenumpages($boardtype, $numposts) {
 	if ($boardtype==1) {
-		return (floor($numposts/15));
+		return (floor($numposts/KU_THREADSTXT));
 	} else {
 		return (floor($numposts/KU_THREADS));
 	}
@@ -457,7 +544,7 @@ function pageList($boardpage, $pages, $board) {
  * @return string Generated name and tripcode html
  */  
 function formatNameAndTrip($name, $email, $tripcode) {
-	$output = '<span class="postername">' . "\n" . '	';
+	$output = '<span class="postername">';
 			
 	if ($email != '') {
 		$output .= '<a href="mailto:' . $email . '">';
@@ -475,14 +562,14 @@ function formatNameAndTrip($name, $email, $tripcode) {
 		$output .= '</a>';
 	}
 	
-	$output .= "\n" . '</span>' . "\n";
+	$output .= '</span>';
 	
 	if ($tripcode != '') {
-		$output .= '<span class="postertrip">' . "\n" .
-		'	!' . $tripcode . "\n" .
-		'</span>' . "\n";
+		$output .= '<span class="postertrip">!' . $tripcode . '</span>';
 	}
 	
+	$output .= "\n";
+		
 	return $output;
 }
 
@@ -530,52 +617,48 @@ function formatLongMessage($message, $board, $threadid, $page) {
  * @return string Thread row
  */ 
 function uploadImageboardPageRow($post, $board, $maxage, $replies) {
+	if ($post['tag'] == '') {
+		$post['tag'] = '*';
+	}
+	if ($post['filesize_formatted'] == '') {
+		$filesize = ConvertBytes($post['filesize']);
+	} else {
+		$filesize = $post['filesize_formatted'];
+	}
 	$output = '<tr';
 	/* If the thread is two hours or less from being pruned, add the style for old rows */
 	if (checkMarkedForDeletion($post, $maxage)) {
 		$output .= ' class="replyhl"';
 	}
 	$output .= '>' . "\n" .
-	'<td align="center">' . "\n" .
-	'	' . $post['id'] . "\n" .
-	'</td>' . "\n" .
-	'<td>' . "\n" .
-	formatNameAndTrip($post['name'], $post['email'], $post['tripcode']) .
-	'</td>' . "\n" .
-	'<td align="center">' . "\n" .
-	'	[<a href="' . KU_BOARDSFOLDER . $board . '/src/' . $post['filename'] . '.' . $post['filetype'] . '" target="_blank">' . $post['filename'] . '.' . $post['filetype'] . '</a>]' . "\n" .
-	'</td>' . "\n";
-	
-	if ($post['tag'] == '') {
-		$post['tag'] = '*';
-	}
-	
-	$output .= '<td align="center">' . "\n" .
-	'	[' . $post['tag'] . ']' . "\n" .
-	'</td>' . "\n" .
-	'<td>' . "\n" .
-	'	' . $post['subject'] . "\n" .
-	'</td>' . "\n" .
-	'<td align="center">' . "\n" .
-	'	';
-	
-	if ($post['filesize_formatted'] == '') {
-		$output .= ConvertBytes($post['filesize']);
-	} else {
-		$output .= $post['filesize_formatted'];
-	}
-	
-	$output .= "\n" . '</td>' . "\n" .
-	'<td>' . "\n" .
-	'	<nobr>' . date("y/m/d(D)H:i", $post['postedat']) . '</nobr>' . "\n" .
-	'</td>' . "\n" .
-	'<td align="center">' . "\n" .
-	'	' . $replies . "\n" .
-	'</td>' . "\n" .
-	'<td align="center">' . "\n" .
-	'	[<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $post['id'] . '.html">Reply</a>]' . "\n" .
-	'</td>' . "\n" .
-	'</tr>';
+	'	<td align="center">' . "\n" .
+	'		' . $post['id'] . "\n" .
+	'	</td>' . "\n" .
+	'	<td>' . "\n" .
+	'		' . formatNameAndTrip($post['name'], $post['email'], $post['tripcode']) .
+	'	</td>' . "\n" .
+	'	<td align="center">' . "\n" .
+	'		[<a href="' . KU_BOARDSFOLDER . $board . '/src/' . $post['filename'] . '.' . $post['filetype'] . '" target="_blank">' . $post['filename'] . '.' . $post['filetype'] . '</a>]' . "\n" .
+	'	</td>' . "\n" .
+	'	<td align="center">' . "\n" .
+	'		[' . $post['tag'] . ']' . "\n" .
+	'	</td>' . "\n" .
+	'	<td>' . "\n" .
+	'		' . $post['subject'] . "\n" .
+	'	</td>' . "\n" .
+	'	<td align="center">' . "\n" .
+	'		' . $filesize . "\n" .
+	'	</td>' . "\n" .
+	'	<td>' . "\n" .
+	'		<span style="white-space: nowrap;">' . date("y/m/d(D)H:i", $post['postedat']) . '</span>' . "\n" .
+	'	</td>' . "\n" .
+	'	<td align="center">' . "\n" .
+	'		' . $replies . "\n" .
+	'	</td>' . "\n" .
+	'	<td align="center">' . "\n" .
+	'		[<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $post['id'] . '.html">Reply</a>]' . "\n" .
+	'	</td>' . "\n" .
+	'</tr>' . "\n";
 	
 	return $output;
 }
@@ -619,7 +702,7 @@ function markedForDeletionMessage() {
  * @param boolean $forcereplymodehide Force the Reply Mode to be hidden
  * @return string Thread links
  */ 
-function threadLinks($type, $threadid, $board, $boardtype, $modifier_last50, $modifier_first100, $forcereplymodehide = false) {
+function threadLinks($type, $threadid, $board, $boardtype, $modifier_last50, $modifier_first100, $forcereplymodehide = false, $forceentirethreadlink = false) {
 	if ($boardtype != 1) {
 		$leftbracket = '&#91;';
 		$rightbracket = '&#93;';
@@ -636,7 +719,7 @@ function threadLinks($type, $threadid, $board, $boardtype, $modifier_last50, $mo
 		$output = $leftbracket . '<a href="' . KU_BOARDSFOLDER . $board . '/res/' . $threadid . '.html">' . _gettext('Reply') . '</a>' . $rightbracket;
 	}
 	
-	if ((KU_FIRSTLAST && $modifier_last50) || $boardtype == 1) {
+	if ((KU_FIRSTLAST && $modifier_last50) || $boardtype == 1 || $forceentirethreadlink) {
 		if ($type == 'return') {
 			$output .= ' ' . $leftbracket;
 		}
@@ -989,56 +1072,79 @@ function removeBoard($dir){
  * @return boolean Success/fail 
  */ 
 function createThumbnail($name, $filename, $new_w, $new_h) {
-	$system=explode(".", $filename);
-	$system = array_reverse($system);
-	if (preg_match("/jpg|jpeg/", $system[0])) {
-		$src_img=imagecreatefromjpeg($name);
-	} else if (preg_match("/png/", $system[0])) {
-		$src_img=imagecreatefrompng($name);
-	} else if (preg_match("/gif/", $system[0])) {
-		$src_img=imagecreatefromgif($name);
-	} else {
-		return false;
-	}
-	
-	if (!$src_img) {
-		echo '<br>Unable to open the uploaded image for thumbnailing.  Maybe its a different filetype, and has the wrong extension?';
-		return false;
-	}
-	$old_x = imageSX($src_img);
-	$old_y = imageSY($src_img);
-	if ($old_x > $old_y) {
-		$percent = $new_w / $old_x;
-	} else {
-		$percent = $new_h / $old_y;
-	}
-	$thumb_w = round($old_x * $percent);
-	$thumb_h = round($old_y * $percent);
-	
-	$dst_img = ImageCreateTrueColor($thumb_w, $thumb_h);
-	fastImageCopyResampled($dst_img, $src_img, 0, 0, 0, 0, $thumb_w, $thumb_h, $old_x, $old_y);
-	
-	if (preg_match("/png/", $system[0])) {
-		if (!imagepng($dst_img, $filename)) {
-			echo 'unable to imagepng.';
+	if (KU_THUMBMETHOD == 'imagemagick') {
+		$convert = 'convert ' . escapeshellarg($name) . ' ';
+		if (!KU_ANIMATEDTHUMBS) {
+			$convert .= '-coalesce ';
+		}
+		$convert .= '-resize ' . $new_w . 'x' . $new_h . ' -quality ';
+		if (substr($filename, 0, -3) != 'gif') {
+			$convert .= '70';
+		} else {
+			$convert .= '90';
+		}
+		$convert .= ' ' . escapeshellarg($filename);
+		exec($convert);
+		
+		if (is_file($filename)) {
+			return true;
+		} else {
 			return false;
 		}
-	} else if (preg_match("/jpg|jpeg/", $system[0])) {
-		if (!imagejpeg($dst_img, $filename, 70)) {
-			echo 'unable to imagejpg.';
+	} elseif (KU_THUMBMETHOD == 'gd') {
+		$system=explode(".", $filename);
+		$system = array_reverse($system);
+		if (preg_match("/jpg|jpeg/", $system[0])) {
+			$src_img=imagecreatefromjpeg($name);
+		} else if (preg_match("/png/", $system[0])) {
+			$src_img=imagecreatefrompng($name);
+		} else if (preg_match("/gif/", $system[0])) {
+			$src_img=imagecreatefromgif($name);
+		} else {
 			return false;
 		}
-	} else if (preg_match("/gif/", $system[0])) {
-		if (!imagegif($dst_img, $filename)) { 
-			echo 'unable to imagegif.';
+		
+		if (!$src_img) {
+			echo '<br>Unable to open the uploaded image for thumbnailing.  Maybe its a different filetype, and has the wrong extension?';
 			return false;
 		}
+		$old_x = imageSX($src_img);
+		$old_y = imageSY($src_img);
+		if ($old_x > $old_y) {
+			$percent = $new_w / $old_x;
+		} else {
+			$percent = $new_h / $old_y;
+		}
+		$thumb_w = round($old_x * $percent);
+		$thumb_h = round($old_y * $percent);
+		
+		$dst_img = ImageCreateTrueColor($thumb_w, $thumb_h);
+		fastImageCopyResampled($dst_img, $src_img, 0, 0, 0, 0, $thumb_w, $thumb_h, $old_x, $old_y);
+		
+		if (preg_match("/png/", $system[0])) {
+			if (!imagepng($dst_img, $filename)) {
+				echo 'unable to imagepng.';
+				return false;
+			}
+		} else if (preg_match("/jpg|jpeg/", $system[0])) {
+			if (!imagejpeg($dst_img, $filename, 70)) {
+				echo 'unable to imagejpg.';
+				return false;
+			}
+		} else if (preg_match("/gif/", $system[0])) {
+			if (!imagegif($dst_img, $filename)) { 
+				echo 'unable to imagegif.';
+				return false;
+			}
+		}
+		
+		imagedestroy($dst_img); 
+		imagedestroy($src_img); 
+		
+		return true;
 	}
 	
-	imagedestroy($dst_img); 
-	imagedestroy($src_img); 
-	
-	return true;
+	return false;
 }
 
 /* Author: Tim Eckel - Date: 12/17/04 - Project: FreeRingers.net - Freely distributable. */
