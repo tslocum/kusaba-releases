@@ -85,8 +85,8 @@ function togglePassword() {
 	
 	if (passwordbox_html=='<td></td><td></td>') {
 		if ((bSaf) || (bOpera) || (bMoz))
-			passwordbox.innerHTML = '<td class="postblock">Mod</td><td><input type="password" name="modpassword" size="28" maxlength="75" />&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
-		else passwordbox.text = '<td class="postblock">Mod</td><td><input type="password" name="modpassword" size="28" maxlength="75" />&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
+			passwordbox.innerHTML = '<td class="postblock">Mod</td><td><input type="password" name="modpassword" size="28" maxlength="75" />&nbsp;<acronym title="Distplay staff status (Mod/Admin)">D</acronym>:&nbsp;<input type="checkbox" name="displaystaffstatus" checked>&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
+		else passwordbox.text = '<td class="postblock">Mod</td><td><input type="password" name="modpassword" size="28" maxlength="75" />&nbsp;<acronym title="Distplay staff status (Mod/Admin)">D</acronym>:&nbsp;<input type="checkbox" name="displaystaffstatus" checked>&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
 	} else {
 		if ((bSaf) || (bOpera) || (bMoz))
 			passwordbox.innerHTML = '<td></td><td></td>';
@@ -172,7 +172,7 @@ function get_preferred_stylesheet()
 	return null;
 }
 
-function set_inputs(id) { with(document.getElementById(id)) {if(!name.value) name.value=getCookie("name"); if(!email.value) email.value=getCookie("email"); if(!postpassword.value) postpassword.value=get_password("postpassword"); } }
+function set_inputs(id) { with(document.getElementById(id)) {if(!name.value) name.value=getCookie("name"); if(!em.value) em.value=getCookie("email"); if(!postpassword.value) postpassword.value=get_password("postpassword"); } }
 function set_delpass(id) { with(document.getElementById(id)) postpassword.value=getCookie("postpassword"); }
 
 window.onunload=function(e)

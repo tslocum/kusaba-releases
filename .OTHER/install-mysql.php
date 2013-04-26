@@ -65,10 +65,10 @@ Before running this script, make sure that:<br>
 <?php
 } else {
 	require('config.php');
-	$reqiredtables = array("banlist","boards","config","iplist","loginattempts","modlog","news","posts","reports","sections","staff","wordfilter");
+	$reqiredtables = array("banlist","boards","config","iplist","loginattempts","modlog","news","passcache","reports","sections","staff","wordfilter");
         foreach ($reqiredtables as $tablename) {
-                if (mysql_table_exists($tc_config['dblink'],$tc_config['dbdatabase'],$tc_config['dbprefix'].$tablename)) {
-                        die("Table <b>".$tc_config['dbprefix'].$tablename."</b> already exists in the database!  Drop it, and re run this script.");
+                if (mysql_table_exists(TC_DBDATABASE,TC_DBPREFIX.$tablename)) {
+                        die("Table <b>".TC_DBPREFIX.$tablename."</b> already exists in the database!  Drop it, and re run this script.");
                 }
         }
 	// Lets open the file for reading! :)
@@ -102,7 +102,7 @@ Before running this script, make sure that:<br>
 	$sqlarray = explode(';',$readdata);
 	echo 'File contents have been formatted for use with mysql_query.<br>';
 	// Lets drop any existing tables in the database
-	$listoftables = mysql_query("show tables from ".$tc_config['dbdatabase']."",$tc_config['dblink']);
+	$listoftables = $tc_db->GetAll("show tables from ".TC_DBDATABASE."");
 	
 	echo '<h2>Table Creation</h2>';
 	// Lets now loop through the array and create each table 
@@ -115,10 +115,10 @@ Before running this script, make sure that:<br>
 			$pos2 = strpos($sqldata, '`', $pos1 + 1);
 			$tablename = substr($sqldata, $pos1+1, ($pos2-$pos1)-1);
 			echo "Attempting to create table '$tablename'... ";
-			if(mysql_query($sqldata,$tc_config['dblink'])) {
+			if($tc_db->Execute($sqldata)) {
 				echo "success.<br>";
 			} else {
-				echo "<font color='red'>failed</font>. Error is: ".mysql_error().'<br>';
+				echo "<font color='red'>failed</font>. Enable debugging to see this error.<br>";
 				die ("Table creation failed. Please rerun this script again or attempt to fix the problem if you know how to solve it.");
 			}
 		}
@@ -127,14 +127,13 @@ Before running this script, make sure that:<br>
 	echo '<br>SQL commands have finished. If all is well, proceed to the <a href="install.php">installation file</a> but don\'t forget to delete this file!'; 
 }
 
-function mysql_table_exists($dbLink, $database, $tableName)
+function mysql_table_exists($database, $tableName)
 {
-   $tables = array();
-   $tablesResult = mysql_query("SHOW TABLES FROM $database;", $dbLink);
-   while ($row = mysql_fetch_row($tablesResult)) $tables[] = $row[0];
-   if (!$result) {
-   }
-   return(in_array($tableName, $tables));
+    global $tc_db;
+    $tables = array();
+    $tablesResults = $tc_db->GetAll("SHOW TABLES FROM $database;");
+    foreach ($tablesResults AS $row) $tables[] = $row[0];
+    return(in_array($tableName, $tables));
 }
 
 ?>

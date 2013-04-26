@@ -1,5 +1,12 @@
 <?php
-
+/*
+* +------------------------------------------------------------------------------+
+* Common encryption functions
+* +------------------------------------------------------------------------------+
+* Allow for more advanced encryption using the random seed set in the
+* configuration.
+* +------------------------------------------------------------------------------+
+*/
 if (!function_exists("get_rnd_iv")) {
     function get_rnd_iv($iv_len)
     {

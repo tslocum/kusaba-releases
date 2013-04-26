@@ -1,43 +1,51 @@
 <?php
-	if (!isset($_POST['width'])||!isset($_POST['height'])||!isset($_POST['board'])) {
-		die();
-	}
-	if ($_POST['width']<1||$_POST['height']<1) {
-		die("Please enter a width/height greater than zero.");
-	}
-	if ($_POST['width']>750||$_POST['height']>750) {
-		die("Please enter a width/height less than or equal to 750.");
-	}
-	require("config.php");
-	require($tc_config['rootdir']."/inc/OekakiApplet.php");
-	$result = mysql_query("SELECT * FROM `".$tc_config['dbprefix']."boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'",$tc_config['dblink']);
-	$rows = mysql_num_rows($result);
-	if ($rows==0) {
-		die();
-	} else {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-			$board_id = $line['id'];
-			$board_type = $line['type'];
-		}
-	}
-	if ($board_type!='2') {
-		die("That is not a Oekaki compatible board!");
-	}
-	if (!isset($_POST['replyto'])) {
-		$_POST['replyto'] = '0';
-	}
-    
-	echo '<head>
+/*
+* +------------------------------------------------------------------------------+
+* Paint page for oekaki
+* +------------------------------------------------------------------------------+
+* This is the page displayed when a user clicks the "Paint" button on an oekaki
+* board.  It displays the painter app, configured to send the finished image to
+* paint_save.php, which will be processed for posting.
+* +------------------------------------------------------------------------------+
+*/
+if (!isset($_POST['width'])||!isset($_POST['height'])||!isset($_POST['board'])) {
+    die();
+}
+if ($_POST['width']<1||$_POST['height']<1) {
+    die("Please enter a width/height greater than zero.");
+}
+if ($_POST['width']>750||$_POST['height']>750) {
+    die("Please enter a width/height less than or equal to 750.");
+}
+require("config.php");
+require(TC_ROOTDIR.'inc/OekakiApplet.php');
+$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'");
+if (count($results)==0) {
+    die();
+} else {
+    foreach($results AS $line) {
+        $board_id = $line['id'];
+        $board_dir = $line['name'];
+        $board_type = $line['type'];
+    }
+}
+if ($board_type!='2') {
+    die("That is not a Oekaki compatible board!");
+}
+if (!isset($_POST['replyto'])) {
+    $_POST['replyto'] = '0';
+}
+echo '<head>
 <style type="text/css">
 body{
 margin: 0;
 padding: 0
 }
 </style>
-</head>';
+</head><body bgcolor="#AEAED9">';
 
 
-    $applet = $_POST['applet'];
+$applet = $_POST['applet'];
     //$use_animation = $_GET['useanim'] ? TRUE : FALSE;
     
     /*if( $use_animation )
@@ -100,7 +108,7 @@ padding: 0
 </form>
 EOB;*/
     
-    $OekakiApplet = new OekakiApplet;
+$OekakiApplet = new OekakiApplet;
     
     /*if( $_GET['edit'] && is_dir( 'drawings/' . basename( $_GET['edit'] ) ) )
     {
@@ -116,29 +124,28 @@ EOB;*/
         {
             $animation_ext = 'pch';
         }*/
-	if (isset($_POST['replyimage'])) {
-		if ($_POST['replyimage']!='0') {
-			$result = mysql_query("SELECT * FROM `".$tc_config['dbprefix']."posts` WHERE `boardid` = '".$board_id."' AND `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'",$tc_config['dblink']);
-			$rows = mysql_num_rows($result);
-			if ($rows==0) {
-				die("Invalid reply image.");
-			} else {
-				while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-					$post_image = $line['image'].'.'.$line['imagetype'];
-				}
-				if (is_file($tc_config['boardsdir'].'/'.$_POST['board'].'/src/'.$post_image)) {
-					$imageDim = getimagesize($tc_config['boardsdir'].'/'.$_POST['board'].'/src/'.$post_image);
-					$imgWidth = $imageDim[0];
-					$imgHeight = $imageDim[1];
-					$_POST['width'] = $imgWidth;
-					$_POST['height'] = $imgHeight;
-					$OekakiApplet->load_image_url = $_POST['board'].'/src/'.$post_image;
-				} else {
-					die("Invalid reply image.");
-				}
-			}
-		}
-	}
+if (isset($_POST['replyimage'])) {
+    if ($_POST['replyimage']!='0') {
+        $results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."posts_".$board_dir."` WHERE `id` = '".mysql_escape_string($_POST['replyimage'])."' AND `IS_DELETED` = '0'");
+        if (count($results)==0) {
+            die("Invalid reply image.");
+        } else {
+            foreach($results AS $line) {
+                $post_image = $line['image'].'.'.$line['imagetype'];
+            }
+            if (is_file(TC_BOARDSDIR.$board_dir.'/src/'.$post_image)) {
+                $imageDim = getimagesize(TC_BOARDSDIR.$board_dir.'/src/'.$post_image);
+                $imgWidth = $imageDim[0];
+                $imgHeight = $imageDim[1];
+                $_POST['width'] = $imgWidth;
+                $_POST['height'] = $imgHeight;
+                $OekakiApplet->load_image_url = $board_dir.'/src/'.$post_image;
+            } else {
+                die("Invalid reply image.");
+            }
+        }
+    }
+}
         /*$OekakiApplet->load_animation_url = file_exists( 'drawings/' . $save_id . '/animation.' . $animation_ext ) ? 'drawings/' . $save_id . '/animation.' . $animation_ext : '';
         if( $OekakiApplet->load_animation_url )
         {
@@ -151,44 +158,41 @@ EOB;*/
     }
     else
     {*/
-        $save_id = time().rand(1,100);
-        $OekakiApplet->animation = $use_animation;
+$save_id = time().rand(1,100);
+$OekakiApplet->animation = $use_animation;
     /*}*/
     
-    // Important to applet!
-    $OekakiApplet->applet_id                        = 'oekaki';
+// Important to applet!
+$OekakiApplet->applet_id                        = 'oekaki';
+
+// Applet display
+$OekakiApplet->applet_width                     = "100%";
+$OekakiApplet->applet_height                    = "100%";
+
+// Image display
+$OekakiApplet->canvas_width                     = $_POST['width'];
+$OekakiApplet->canvas_height                    = $_POST['height'];
+
+// Saving
+$OekakiApplet->url_save                         = 'paint_save.php?applet='.$applet.'&saveid='.$save_id;
+$OekakiApplet->url_finish                       = 'board.php?board='.$_POST['board'].'&postoek='.$save_id.'&replyto='.$_POST['replyto'].'';
+$OekakiApplet->url_target                       = '_self';
+
+// Format to save
+$OekakiApplet->default_format                   = 'png';
     
-    // Applet display
-    $OekakiApplet->applet_width                     = "100%";
-    $OekakiApplet->applet_height                    = "100%";
-    
-    // Image display
-    $OekakiApplet->canvas_width                     = $_POST['width'];
-    $OekakiApplet->canvas_height                    = $_POST['height'];
-    
-    // Saving
-    $OekakiApplet->url_save                         = 'paint_save.php?applet='.$applet.'&saveid='.$save_id;
-    $OekakiApplet->url_finish                       = 'board.php?board='.$_POST['board'].'&postoek='.$save_id.'&replyto='.$_POST['replyto'].'';
-    $OekakiApplet->url_target                       = '_self';
-    
-    // Format to save
-    $OekakiApplet->default_format                   = 'png';
-    
-	echo '<table width="100%" height="100%"><tbody><tr><td width="100%">';
-    switch( $applet )
-    {
-        case 'shipainter':
-        {
-            echo $OekakiApplet->shipainter( 'spainter_all.jar', '/', FALSE );
-            break;
-        }
-        case 'shipainterpro':
-        {
-            echo $OekakiApplet->shipainter( 'spainter_all.jar', '/', TRUE );
-            break;
-        }
+echo '<table width="100%" height="100%"><tbody><tr><td width="100%">';
+switch($applet) {
+    case 'shipainter': {
+        echo $OekakiApplet->shipainter( 'spainter_all.jar', '/', FALSE );
+        break;
     }
-    	echo '</td></tr></tbody></table>';
+    case 'shipainterpro': {
+        echo $OekakiApplet->shipainter( 'spainter_all.jar', '/', TRUE );
+        break;
+    }
+}
+echo '</td></tr></tbody></table></body>';
     /*echo <<<EOB
 </body>
 </html>

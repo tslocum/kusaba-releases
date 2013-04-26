@@ -1,7 +1,12 @@
 <?php
-
-session_start();
-
+/*
+* +------------------------------------------------------------------------------+
+* News display, which is the first page shown when a user visits a chan's index
+* +------------------------------------------------------------------------------+
+* Any news added by an administrator in the manage panel will show here, with the
+* newest entry on the top.
+* +------------------------------------------------------------------------------+
+*/
 require("config.php");
 
 ?>
@@ -9,7 +14,7 @@ require("config.php");
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pl" lang="pl">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title><?php echo $tc_config['name']; ?></title>
+<title><?php echo TC_NAME; ?></title>
 <style type="text/css">
 body { font-family: sans-serif; font-size: 75%; background: #ffe }
 a { text-decoration: none; color: #550 }
@@ -28,13 +33,13 @@ li a { display: block; width: 100%; }
 </head>
 
 <body>
-<div style="text-align:center;"><h1><?php echo $tc_config['fancyname']; ?></h1></div>
+<div style="text-align:center;"><h1><?php echo TC_FANCYNAME; ?></h1></div>
 <div class="menu">
 
 News | <a href="#">Blog</a> | <a href="#">FAQ</a> | <a href="#">Rules</a></div>
 <?php
-$result = mysql_query("SELECT * FROM `{$tc_config['dbprefix']}news` ORDER BY `postedat` DESC",$tc_config['dblink']);
-while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+$results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."news` ORDER BY `postedat` DESC");
+foreach($results AS $line) {
 ?>
 <div class="content">
 <h2><?php echo stripslashes($line['subject']); ?> by <?php if ($line['postedemail']!="") { echo '<a href="mailto:'.stripslashes($line['postedemail']).'">'; } echo stripslashes($line['postedby']); if ($line['postedemail']!="") { echo '</a>'; } ?> - <?php echo date("n/j/y @ g:iA T",$line['postedat']); ?></h2>

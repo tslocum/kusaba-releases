@@ -1,86 +1,85 @@
 <?php
+
 require("config.php");
-require_once($tc_config['rootdir']."/inc/functions.php");
-require_once($tc_config['rootdir']."/inc/encryption.php");
+require_once(TC_ROOTDIR."inc/functions.php");
+require_once(TC_ROOTDIR."inc/encryption.php");
 
-echo 'Note:  Run each step ONCE.<br><br>1. <a href="?do=insertimageinfo">Update image dimensions to new system</a><br>2. <a href="?do=cryptip">Encrypt IP addresses</a><br>3. <a href="?do=insertsql">Insert upgrade SQL</a><br><br>';
+/* Uncomment the line below to show debug information if your upgrade isn't going so well */
+//$tc_db->debug = true;
 
-if ($_GET['do']=='insertimageinfo') {
-    $i = 0;
-    $result = mysql_query("SELECT {$tc_config['dbprefix']}posts.id , {$tc_config['dbprefix']}posts.image , {$tc_config['dbprefix']}posts.imagetype, {$tc_config['dbprefix']}posts.boardid, {$tc_config['dbprefix']}boards.name AS boardname FROM `{$tc_config['dbprefix']}posts` JOIN `{$tc_config['dbprefix']}boards` ON {$tc_config['dbprefix']}posts.boardid = {$tc_config['dbprefix']}boards.id WHERE {$tc_config['dbprefix']}posts.image_w = '0' AND {$tc_config['dbprefix']}posts.image != '' AND {$tc_config['dbprefix']}posts.image != 'removed' AND {$tc_config['dbprefix']}posts.IS_DELETED = 0",$tc_config['dblink']);
-    $rows = mysql_num_rows($result);
-    while ($line = mysql_fetch_assoc($result)) {
-        $image_path = $tc_config['boardsdir']."/".$line['boardname']."/src/".$line['image'].'.'.$line['imagetype'];
-        $image_thumb_path = $tc_config['boardsdir']."/".$line['boardname']."/thumb/".$line['image'].'s.'.$line['imagetype'];
-        $imgSize = filesize($image_path);
-        $imageDim = getimagesize($image_path);
-        $imgWidth = $imageDim[0];
-        $imgHeight = $imageDim[1];
-        $imgDim_thumb = getimagesize($image_thumb_path);
-        $imgWidth_thumb = $imgDim_thumb[0];
-        $imgHeight_thumb = $imgDim_thumb[1];
-        mysql_query("UPDATE `{$tc_config['dbprefix']}posts` SET `image_w` = '".$imgWidth."' , `image_h` = '".$imgHeight."' , `image_size` = '".$imgSize."' , `thumb_w` = '".$imgWidth_thumb."' , `thumb_h` = '".$imgHeight_thumb."' WHERE `id` = '".$line['id']."' AND `boardid` = '".$line['boardid']."' LIMIT 1",$tc_config['dblink']);
-        echo mysql_error($tc_config['dblink']);
-        $i++;
+if ($_GET['do']=='insertsql') {
+    $tc_db->Execute("ALTER TABLE `".TC_DBPREFIX."reports` CHANGE `ip` `ip` VARCHAR( 75 ) NOT NULL ;");
+
+    $tc_db->Execute("CREATE TABLE `".TC_DBPREFIX."passcache` (
+`md5` VARCHAR( 100 ) NOT NULL ,
+`tripcode` VARCHAR( 10 ) NOT NULL
+) ENGINE = MYISAM ;");
+
+    $tc_db->Execute("ALTER TABLE `".TC_DBPREFIX."banlist` CHANGE `id` `id` SMALLINT( 5 ) NOT NULL AUTO_INCREMENT");
+
+    $tc_db->Execute("ALTER TABLE `".TC_DBPREFIX."sections` ADD `hidden` TINYINT( 1 ) NOT NULL DEFAULT '0' AFTER `order`");
+
+    $tc_db->Execute("ALTER TABLE `".TC_DBPREFIX."boards` ADD `uploadtype` TINYINT( 1 ) NOT NULL DEFAULT '0' AFTER `type`");
+
+    $tc_db->Execute("ALTER TABLE `".TC_DBPREFIX."boards` ADD `enablecaptcha` TINYINT( 1 ) NOT NULL DEFAULT '0' AFTER `enablereporting`");
+
+    //New table system, I pray to raptor jesus it works
+    echo '<br>Creating individual tables for each board<br><ul>';
+    $resultsboard = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."boards`");
+    foreach ($resultsboard AS $lineboard) {
+        echo '<li>Creating table for /'.$lineboard['name'].'/...</li>';
+        $results = $tc_db->SelectLimit("SELECT `id` FROM `".TC_DBPREFIX."posts` WHERE `boardid` = '".$lineboard['id']."' ORDER BY `id` DESC",1);
+        $nextpost = 1;
+        foreach($results AS $line) {
+            $nextpost = $line['id']+1;
+        }
+        $tc_db->Execute("CREATE TABLE `".TC_DBPREFIX."posts_".$lineboard['name']."` (
+        `id` int(10) NOT NULL auto_increment,
+        `threadid` int(10) NOT NULL default '0',
+        `user` varchar(255) NOT NULL,
+        `tripcode` varchar(10) NOT NULL,
+        `email` varchar(255) NOT NULL,
+        `subject` varchar(255) NOT NULL,
+        `message` text NOT NULL,
+        `image` varchar(20) NOT NULL,
+        `imagetype` varchar(5) NOT NULL,
+        `imagemd5` text NOT NULL,
+        `image_w` smallint(5) NOT NULL default '0',
+        `image_h` smallint(5) NOT NULL default '0',
+        `image_size` int(10) NOT NULL default '0',
+        `thumb_w` smallint(5) NOT NULL default '0',
+        `thumb_h` smallint(5) NOT NULL default '0',
+        `password` varchar(255) NOT NULL,
+        `postedat` int(20) NOT NULL,
+        `lastbumped` int(20) NOT NULL default '0',
+        `ip` varchar(75) NOT NULL,
+        `ipmd5` varchar(200) NOT NULL,
+        `stickied` tinyint(1) NOT NULL default '0',
+        `locked` tinyint(1) NOT NULL default '0',
+        `posterauthority` tinyint(1) NOT NULL default '0',
+        `IS_DELETED` tinyint(1) NOT NULL default '0',
+        UNIQUE KEY `id` (`id`),
+        KEY `threadid` (`threadid`),
+        KEY `lastbumped` (`lastbumped`)
+        ) ENGINE=MyISAM AUTO_INCREMENT=".$nextpost." ;");
+        echo '<li>&nbsp;&nbsp;&nbsp;&nbsp;Table created.</li>';
+        echo '<li>&nbsp;&nbsp;&nbsp;&nbsp;Copying board posts from singular table to new table...</li>';
+        $results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."posts` WHERE `boardid` = ".$lineboard['id']."");
+        foreach ($results AS $line) {
+            $tc_db->Execute("INSERT INTO `".TC_DBPREFIX."posts_".$lineboard['name']."` ( `id` , `threadid` , `user` , `tripcode` , `email` , `subject` , `message` , `image` , `imagetype` , `imagemd5` , `image_w` , `image_h` , `image_size` , `thumb_w` , `thumb_h` , `password` , `postedat` , `lastbumped` , `ip` , `ipmd5` , `stickied` , `locked` , `posterauthority` , `IS_DELETED` )
+            VALUES
+            ( '".$line['id']."' , '".$line['threadid']."' , '".$line['user']."' , '".$line['tripcode']."' , '".mysql_real_escape_string($line['email'])."' , '".mysql_real_escape_string($line['subject'])."' , '".mysql_real_escape_string($line['message'])."' , '".$line['image']."' , '".$line['imagetype']."' , '".$line['imagemd5']."' , '".$line['image_w']."' , '".$line['image_h']."' , '".$line['image_size']."' , '".$line['thumb_w']."' , '".$line['thumb_h']."' , '".$line['password']."' , '".$line['postedat']."' , '".$line['lastbumped']."' , '".$line['ip']."' , '".$line['ipmd5']."' , '".$line['stickied']."' , '".$line['locked']."' , '".$line['posterauthority']."' , '".$line['IS_DELETED']."' );");
+        }
+        echo '<li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.count($results).' posts copied.</li>';
     }
-    echo 'Updated posts\' stored image size.  '.$i.' posts updated.<br>';
-} elseif ($_GET['do']=='cryptip') {
-    $i = 0;
-    $result = mysql_query("SELECT `ip` FROM `{$tc_config['dbprefix']}iplist`",$tc_config['dblink']);
-    $rows = mysql_num_rows($result);
-    while ($line = mysql_fetch_assoc($result)) {
-        mysql_query("UPDATE `{$tc_config['dbprefix']}iplist` SET `ip` = '".md5_encrypt($line['ip'],$tc_config['randomseed'])."' , `ipmd5` = '".md5($line['ip'])."' WHERE `ip` = '".$line['ip']."'",$tc_config['dblink']);
-        $i++;
-    }
-    echo 'Encrypted IP addresses in iplist.  '.$i.' addresses encrypted.<br>';
-    
-    $i = 0;
-    $result = mysql_query("SELECT `ip` FROM `{$tc_config['dbprefix']}banlist`",$tc_config['dblink']);
-    $rows = mysql_num_rows($result);
-    while ($line = mysql_fetch_assoc($result)) {
-        mysql_query("UPDATE `{$tc_config['dbprefix']}banlist` SET `ip` = '".md5_encrypt($line['ip'],$tc_config['randomseed'])."' , `ipmd5` = '".md5($line['ip'])."' WHERE `ip` = '".$line['ip']."'",$tc_config['dblink']);
-        $i++;
-    }
-    echo 'Encrypted IP addresses in banlist.  '.$i.' addresses encrypted.<br>';
-    
-    $i = 0;
-    $result = mysql_query("SELECT `ip` FROM `{$tc_config['dbprefix']}posts`",$tc_config['dblink']);
-    $rows = mysql_num_rows($result);
-    while ($line = mysql_fetch_assoc($result)) {
-        mysql_query("UPDATE `{$tc_config['dbprefix']}posts` SET `ip` = '".md5_encrypt($line['ip'],$tc_config['randomseed'])."' , `ipmd5` = '".md5($line['ip'])."' WHERE `ip` = '".$line['ip']."'",$tc_config['dblink']);
-        $i++;
-    }
-    echo 'Encrypted IP addresses in posts.  '.$i.' addresses encrypted.<br>';
-} elseif ($_GET['do']=='insertsql') {
-    $result = mysql_query("ALTER TABLE `boards` ADD `enablereporting` TINYINT( 1 ) NOT NULL DEFAULT '1' AFTER `forcedanon` ;",$tc_config['dblink']);
-$result = mysql_query("CREATE TABLE `reports` (
-  `id` int(5) NOT NULL auto_increment,
-  `cleared` tinyint(1) NOT NULL default '0',
-  `boardid` int(5) NOT NULL,
-  `postid` int(20) NOT NULL,
-  `when` int(20) NOT NULL,
-  `ip` varchar(15) NOT NULL,
-  UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;",$tc_config['dblink']);
+    echo '<li>Renaming the old posts table to '.TC_DBPREFIX.'posts__deleteme...</li>';
+    $tc_db->Execute("RENAME TABLE `".TC_DBPREFIX."posts` TO `".TC_DBPREFIX."posts__deleteme`");
+    echo '<li>&nbsp;&nbsp;&nbsp;&nbsp;Table renamed.</li>';
+    echo '</ul>';
 
-$result = mysql_query("ALTER TABLE `sections` ADD `abbreviation` CHAR( 4 ) NOT NULL AFTER `name` ;",$tc_config['dblink']);
-
-$result = mysql_query("ALTER TABLE `posts` ADD `image_w` SMALLINT( 5 ) NOT NULL DEFAULT '0' AFTER `imagemd5` ,
-ADD `image_h` SMALLINT( 5 ) NOT NULL DEFAULT '0' AFTER `image_w` ,
-ADD `image_size` INT( 10 ) NOT NULL DEFAULT '0' AFTER `image_h` ,
-ADD `thumb_w` SMALLINT( 5 ) NOT NULL DEFAULT '0' AFTER `image_size` ,
-ADD `thumb_h` SMALLINT( 5 ) NOT NULL DEFAULT '0' AFTER `thumb_w` ;",$tc_config['dblink']);
-
-$result = mysql_query("ALTER TABLE `banlist` ADD `ipmd5` VARCHAR( 200 ) NOT NULL AFTER `ip` ;",$tc_config['dblink']);
-$result = mysql_query("ALTER TABLE `iplist` ADD `ipmd5` VARCHAR( 200 ) NOT NULL AFTER `ip` ;",$tc_config['dblink']);
-$result = mysql_query("ALTER TABLE `posts` ADD `ipmd5` VARCHAR( 200 ) NOT NULL AFTER `ip` ;",$tc_config['dblink']);
-
-$result = mysql_query("ALTER TABLE `banlist` ADD `allowread` TINYINT( 1 ) NOT NULL DEFAULT '1' AFTER `type` ;",$tc_config['dblink']);
-    if ($result) {
-        echo 'SQL successfully inserted.';
-    } else {
-        echo 'Error inserting SQL: '.mysql_error($tc_config['dblink']);
-    }
+    echo 'SQL inserted.';
+} else {
+    echo '<a href="?do=insertsql">Insert upgrade SQL</a>';
 }
 
 ?>

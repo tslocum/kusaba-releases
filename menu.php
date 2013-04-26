@@ -1,7 +1,22 @@
 <?php
-
+/*
+* +------------------------------------------------------------------------------+
+* Links to all boards for navigation
+* +------------------------------------------------------------------------------+
+* Boards will be listed, divided up by sections set in the manage panel.  IRC info
+* will also be displayed, if it is set.
+* +------------------------------------------------------------------------------+
+*/
 require('config.php');
-require($tc_config['rootdir'].'/inc/functions.php');
+require(TC_ROOTDIR.'inc/functions.php');
+
+if (isset($_GET['showdirs'])) {
+    setcookie("tcshowdirs","yes",time()+604800);
+    $_COOKIE['tcshowdirs'] = 'yes';
+} elseif (isset($_GET['hidedirs'])) {
+    setcookie("tcshowdirs","",0);
+    $_COOKIE['tcshowdirs'] = '';
+}
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -39,27 +54,47 @@ function toggle(button,area) {
 <base target="main" />
 </head>
 <body>
-<h1><?php echo $tc_config['name']; ?></h1>
+<h1><?php echo TC_NAME; ?></h1>
 <ul>
-<li><a href="<?php echo $tc_config['webpath']; ?>" target="_top">Front Page</a></li>
- 
+<li><a href="<?php echo TC_WEBPATH; ?>" target="_top">Front Page</a></li>
+<?php echo '<li><a target="_self" href="';
+if ($_COOKIE['tcshowdirs']=='yes') {
+    echo '?hidedirs">[Hide Directories]';
+} else {
+    echo '?showdirs">[Show Directories]';
+}
+echo '</a></li>'; ?>
+
 </ul>
 
 <?php
-$result_boardsexist = mysql_query("SELECT `id` FROM `".$tc_config['dbprefix']."boards` LIMIT 1",$tc_config['dblink']);
-if (mysql_num_rows($result_boardsexist)==0) {
+$results_boardsexist = $tc_db->GetAll("SELECT `id` FROM `".TC_DBPREFIX."boards` LIMIT 1");
+if (count($results_boardsexist)==0) {
     echo '<ul><li>No visible boards</li></ul>';
 } else {
-    $result = mysql_query("SELECT `id`,`name`,`abbreviation` FROM `".$tc_config['dbprefix']."sections` ORDER BY `order` ASC",$tc_config['dblink']);
-    while ($line = mysql_fetch_assoc($result)) {
-        echo '<h2><span class="plus" onclick="toggle(this,\''.$line['abbreviation'].'\');" title="Click to show/hide">&minus;</span>'.$line['name'].'</h2><div id="'.$line['abbreviation'].'" style=""><ul>';
-        $resultboard = mysql_query("SELECT `name`,`desc`,`locked` FROM `".$tc_config['dbprefix']."boards` WHERE `section` = ".$line['id']." ORDER BY `order` ASC",$tc_config['dblink']);
-        $rows = mysql_num_rows($resultboard);
-        if ($rows>0) {
-            while ($lineboard = mysql_fetch_assoc($resultboard)) {
-                echo '<li><a href="'.$tc_config['boardspath'].'/'.$lineboard['name'].'/board.html">'.$lineboard['desc'];
+    $results = $tc_db->GetAll("SELECT * FROM `".TC_DBPREFIX."sections` ORDER BY `order` ASC");
+    foreach($results AS $line) {
+        echo '<h2><span class="plus" onclick="toggle(this,\''.$line['abbreviation'].'\');" title="Click to show/hide">';
+        if ($line['hidden']==1) {
+            echo '+';
+        } else {
+            echo '&minus;';
+        }
+        echo '</span>'.$line['name'].'</h2><div id="'.$line['abbreviation'].'" style="';
+        if ($line['hidden']==1) {
+            echo 'display: none;';
+        }
+        echo '"><ul>';
+        $resultsboard = $tc_db->GetAll("SELECT `name`,`desc`,`locked` FROM `".TC_DBPREFIX."boards` WHERE `section` = ".$line['id']." ORDER BY `order` ASC");
+        if (count($resultsboard)>0) {
+            foreach($resultsboard AS $lineboard) {
+                echo '<li><a href="'.TC_BOARDSPATH.'/'.$lineboard['name'].'/board.html">';
+                if ($_COOKIE['tcshowdirs']=='yes') {
+                    echo '/'.$lineboard['name'].'/ - ';
+                }
+                echo $lineboard['desc'];
                 if ($lineboard['locked']=="1") {
-                    echo ' <img src="'.$tc_config['boardspath'].'/locked.gif" border="0" alt="Locked" />';
+                    echo ' <img src="'.TC_BOARDSPATH.'/locked.gif" border="0" alt="Locked" />';
                 }
                 echo '</a></li>';
             }
@@ -76,6 +111,32 @@ if (mysql_num_rows($result_boardsexist)==0) {
 <ul>
 <li><?php echo config_getvalue('ircinfo'); ?></li>
 </ul>
+<?php } ?>
+
+<?php if ($tc_config['is_trevorchan']) { ?>
+
+<h2>Links</h2>
+<ul>
+<li><a href="http://code.google.com/p/trevorchan/" target="_top">Project page</a></li>
+</ul>
+
+<script type="text/javascript"><!--
+google_ad_client = "pub-6158454562572132";
+google_ad_width = 120;
+google_ad_height = 600;
+google_ad_format = "120x600_as";
+google_ad_type = "text_image";
+//2007-01-07: Trevorchan
+google_ad_channel = "7008956366";
+google_color_border = "FFFFEE";
+google_color_bg = "FFFFEE";
+google_color_link = "800000";
+google_color_text = "cb7e46";
+google_color_url = "800000";
+//--></script>
+<script type="text/javascript"
+  src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
 <?php } ?>
 
 </body>

@@ -1,11 +1,9 @@
--- --------------------------------------------------------
-
 -- 
 -- Table structure for table `banlist`
 -- 
 
 CREATE TABLE `banlist` (
-  `id` tinyint(5) NOT NULL auto_increment,
+  `id` smallint(5) NOT NULL auto_increment,
   `type` tinyint(1) NOT NULL default '0',
   `allowread` tinyint(1) NOT NULL default '1',
   `ip` varchar(255) NOT NULL,
@@ -30,6 +28,7 @@ CREATE TABLE `boards` (
   `order` tinyint(5) NOT NULL default '0',
   `name` varchar(75) NOT NULL,
   `type` tinyint(1) NOT NULL default '0',
+  `uploadtype` tinyint(1) NOT NULL default '0',
   `desc` varchar(75) NOT NULL,
   `image` varchar(255) NOT NULL,
   `section` tinyint(2) NOT NULL default '0',
@@ -45,6 +44,7 @@ CREATE TABLE `boards` (
   `redirecttothread` tinyint(1) NOT NULL default '0',
   `forcedanon` tinyint(1) NOT NULL default '0',
   `enablereporting` tinyint(1) NOT NULL default '1',
+  `enablecaptcha` tinyint(1) NOT NULL default '0',
   KEY `id` (`id`)
 ) ENGINE=MyISAM;
 
@@ -115,39 +115,13 @@ CREATE TABLE `news` (
 -- --------------------------------------------------------
 
 -- 
--- Table structure for table `posts`
+-- Table structure for table `passcache`
 -- 
 
-CREATE TABLE `posts` (
-  `boardid` tinyint(5) NOT NULL,
-  `id` int(10) NOT NULL,
-  `threadid` int(10) NOT NULL default '0',
-  `user` varchar(255) NOT NULL,
-  `tripcode` varchar(10) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `subject` varchar(255) NOT NULL,
-  `message` text NOT NULL,
-  `image` varchar(20) NOT NULL,
-  `imagetype` varchar(5) NOT NULL,
-  `imagemd5` text NOT NULL,
-  `image_w` smallint(5) NOT NULL default '0',
-  `image_h` smallint(5) NOT NULL default '0',
-  `image_size` int(10) NOT NULL default '0',
-  `thumb_w` smallint(5) NOT NULL default '0',
-  `thumb_h` smallint(5) NOT NULL default '0',
-  `password` varchar(255) NOT NULL,
-  `postedat` int(20) NOT NULL,
-  `lastbumped` int(20) NOT NULL default '0',
-  `ip` varchar(75) NOT NULL,
-  `ipmd5` varchar(200) NOT NULL,
-  `stickied` tinyint(1) NOT NULL default '0',
-  `locked` tinyint(1) NOT NULL default '0',
-  `posterauthority` tinyint(1) NOT NULL default '0',
-  `IS_DELETED` tinyint(1) NOT NULL default '0',
-  KEY `id` (`id`),
-  KEY `threadid` (`threadid`),
-  KEY `boardid` (`boardid`),
-  KEY `lastbumped` (`lastbumped`)
+CREATE TABLE `passcache` (
+  `md5` varchar(100) NOT NULL,
+  `name` varchar(75) NOT NULL,
+  `tripcode` varchar(10) NOT NULL
 ) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
@@ -159,10 +133,10 @@ CREATE TABLE `posts` (
 CREATE TABLE `reports` (
   `id` int(5) NOT NULL auto_increment,
   `cleared` tinyint(1) NOT NULL default '0',
-  `boardid` int(5) NOT NULL,
+  `board` varchar(255) NOT NULL,
   `postid` int(20) NOT NULL,
   `when` int(20) NOT NULL,
-  `ip` varchar(15) NOT NULL,
+  `ip` varchar(75) NOT NULL,
   UNIQUE KEY `id` (`id`)
 ) ENGINE=MyISAM;
 
@@ -175,6 +149,7 @@ CREATE TABLE `reports` (
 CREATE TABLE `sections` (
   `id` int(5) NOT NULL auto_increment,
   `order` tinyint(3) NOT NULL default '0',
+  `hidden` tinyint(1) NOT NULL default '0',
   `name` varchar(255) NOT NULL,
   `abbreviation` char(4) NOT NULL,
   KEY `id` (`id`)
@@ -210,7 +185,6 @@ CREATE TABLE `wordfilter` (
   `time` int(20) NOT NULL,
   KEY `id` (`id`)
 ) ENGINE=MyISAM;
-
 
 -- 
 -- Dumping data for table `config`
