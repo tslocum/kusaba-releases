@@ -1,18 +1,4 @@
--- phpMyAdmin SQL Dump
--- version 2.8.0.3
--- http://www.phpmyadmin.net
--- 
--- Generation Time: Sep 20, 2006 at 10:01 PM
--- Server version: 5.0.18
--- PHP Version: 4.4.2
--- 
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `banlist`
--- 
-
+DROP TABLE IF EXISTS `banlist`;
 CREATE TABLE `banlist` (
   `id` tinyint(5) NOT NULL auto_increment,
   `ip` varchar(255) NOT NULL,
@@ -21,14 +7,9 @@ CREATE TABLE `banlist` (
   `until` int(20) NOT NULL,
   `reason` text NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=7 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1  ;
 
--- --------------------------------------------------------
-
--- 
--- Table structure for table `boards`
--- 
-
+DROP TABLE IF EXISTS `boards`;
 CREATE TABLE `boards` (
   `id` tinyint(5) NOT NULL auto_increment,
   `name` varchar(75) NOT NULL,
@@ -40,25 +21,15 @@ CREATE TABLE `boards` (
   `createdon` int(20) NOT NULL,
   `locked` tinyint(1) NOT NULL default '0',
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=7 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
--- --------------------------------------------------------
-
--- 
--- Table structure for table `iplist`
--- 
-
+DROP TABLE IF EXISTS `iplist`;
 CREATE TABLE `iplist` (
   `ip` varchar(200) NOT NULL,
   `lastpost` int(20) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
--- --------------------------------------------------------
-
--- 
--- Table structure for table `news`
--- 
-
+DROP TABLE IF EXISTS `news`;
 CREATE TABLE `news` (
   `id` tinyint(5) NOT NULL auto_increment,
   `subject` varchar(255) NOT NULL,
@@ -67,14 +38,9 @@ CREATE TABLE `news` (
   `postedby` varchar(75) NOT NULL,
   `postedemail` varchar(75) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
--- --------------------------------------------------------
-
--- 
--- Table structure for table `posts`
--- 
-
+DROP TABLE IF EXISTS `posts`;
 CREATE TABLE `posts` (
   `boardid` tinyint(5) NOT NULL,
   `id` int(10) NOT NULL,
@@ -96,12 +62,7 @@ CREATE TABLE `posts` (
   KEY `boardid` (`boardid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
--- --------------------------------------------------------
-
--- 
--- Table structure for table `staff`
--- 
-
+DROP TABLE IF EXISTS `staff`;
 CREATE TABLE `staff` (
   `id` tinyint(5) NOT NULL auto_increment,
   `username` varchar(255) NOT NULL,
@@ -110,16 +71,9 @@ CREATE TABLE `staff` (
   `boards` text NOT NULL,
   `addedon` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
-INSERT INTO `staff` (`username`, `password`, `isadmin`, `boards`, `addedon`) VALUES ('admin', '21232f297a57a5a743894a0e4a801fc3', 1, '', 0);
-
--- --------------------------------------------------------
-
--- 
--- Table structure for table `wordfilter`
--- 
-
+DROP TABLE IF EXISTS `wordfilter`;
 CREATE TABLE `wordfilter` (
   `id` tinyint(5) NOT NULL auto_increment,
   `word` varchar(75) NOT NULL,
@@ -127,4 +81,4 @@ CREATE TABLE `wordfilter` (
   `boards` text NOT NULL,
   `time` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;

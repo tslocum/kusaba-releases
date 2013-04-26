@@ -53,6 +53,9 @@ if (isset($_SESSION['manageusername'])&&isset($_SESSION['managepassword'])) {
 
 echo '<div class="logo">Manage Boards</div>';
 echo 'Welcome, '.$_SESSION['manageusername'].' [<a href="?action=logout">logout</a>]<br />';
+if ($_SESSION['manageusername']=="admin"&&$_SESSION['managepassword']==md5("admin")) {
+	echo '<font color="red"><b>NOTICE: You are using the default administrator account.  Anyone can log in to this account so a second administrator account needs to be created.  Create another then log into it, and delete this one.</b></font><br />';
+}
 echo 'Staff rights: <b>';
 if (management_isadmin()) {
 	echo 'Administrator';
@@ -440,10 +443,13 @@ if ($_GET['action']=="rebuildall") {
 			$rows = mysql_num_rows($result);
 			if ($rows>0) {
 				if ($_POST['confirmation']=='yes') {
-					rmdir($chan_rootdir.'/'.$board_dir);
-					mysql_query("DELETE FROM `posts` WHERE `boardid` = '".$board_id."'",$dblink);
-					mysql_query("DELETE FROM `boards` WHERE `id` = '".$board_id."'",$dblink);
-					echo 'Board successfully deleted!';
+					if (remove_board($chan_rootdir.'/'.$board_dir)) {
+						mysql_query("DELETE FROM `posts` WHERE `boardid` = '".$board_id."'",$dblink);
+						mysql_query("DELETE FROM `boards` WHERE `id` = '".$board_id."'",$dblink);
+						echo 'Board successfully deleted!';
+					} else {
+						//Error
+					}
 				} else {
 					echo 'Are you absolutely sure you want to delete /'.$board_dir.'/ ?<br />
 					<form action="manage.php?action=delboard" method="post"><input type="hidden" name="directory" value="'.$_POST['directory'].'"><input type="hidden" name="confirmation" value="yes"><input type="submit" value="Continue"></form>';
@@ -676,5 +682,6 @@ if ($_GET['action']=="rebuildall") {
 }
 
 require("inc/footer.php");
+echo chan_footer();
 
 ?>

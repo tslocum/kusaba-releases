@@ -96,7 +96,7 @@ function delunusedimages($verbose = false) {
 
 //Boards
 function regenerate_board($board,$pagesonly = false) {
-	require("config.php");
+	is_file("config.php") ? require("config.php") : require("../config.php");
 	$resultboard = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
 	while ($lineboard = mysql_fetch_array($resultboard, MYSQL_ASSOC)) {
 		$board_id = $lineboard['id'];
@@ -122,13 +122,10 @@ function regenerate_board($board,$pagesonly = false) {
 		if ($numpostsleft>0) {
 			while ($numpostsleft>0) {
 				ob_start();
-				$ch = curl_init();
-				curl_setopt($ch, CURLOPT_URL, $chan_webpath."/inc/header.php?board=".$board_dir."");
-				curl_setopt($ch, CURLOPT_HEADER, 0);
-				curl_exec($ch);
-				curl_setopt($ch, CURLOPT_URL, $chan_webpath."/inc/postbox.php?board=".$board_dir."");
-				curl_exec($ch);
-				curl_close($ch);
+				require_once("header.php");
+				echo chan_header($board_dir);
+				require_once("postbox.php");
+				echo chan_postbox($board_dir);
 				$query = "SELECT * FROM `posts` WHERE `boardid` = '".$board_id."' AND `threadid` = '0' ORDER BY `stickied` DESC, `lastbumped` DESC LIMIT ".($boardpage*10).",10";
 				$result_leftposts = mysql_query($query,$dblink);
 				while ($line = mysql_fetch_array($result_leftposts, MYSQL_ASSOC)) {
@@ -166,11 +163,8 @@ function regenerate_board($board,$pagesonly = false) {
 					echo '<form method="get" action="'.$chan_webpath.'/'.$board_dir.'/'.($boardpage+1).'.html"><input value="Next" type="submit" /></form>';
 				}
 				echo '</td></tr></tbody></table>';
-				$ch = curl_init();
-				curl_setopt($ch, CURLOPT_URL, $chan_webpath."/inc/footer.php");
-				curl_setopt($ch, CURLOPT_HEADER, 0);
-				curl_exec($ch);
-				curl_close($ch);
+				require_once("footer.php");
+				echo chan_footer();
 				$page = ob_get_clean();
 				if ($boardpage==0) {
 					file_put_contents($chan_rootdir."/".$board_dir."/board.html",$page);
@@ -183,27 +177,12 @@ function regenerate_board($board,$pagesonly = false) {
 			}
 		} else { //Make a blank index
 			$thread_page = '';
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $chan_webpath."/inc/header.php?board=".$board_dir);
-			curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-			$file_contents = curl_exec($ch);
-			curl_close($ch);
-			$thread_page .= $file_contents;
-			$file_contents = '';
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $chan_webpath."/inc/postbox.php?board=".$board_dir);
-			curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-			$file_contents = curl_exec($ch);
-			curl_close($ch);
-			$thread_page .= $file_contents;
-			$file_contents = '';
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $chan_webpath."/inc/footer.php");
-			curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-			$file_contents = curl_exec($ch);
-			curl_close($ch);
-			$thread_page .= $file_contents;
-			$file_contents = '';
+			require_once("header.php");
+			$thread_page .= chan_header($board_dir);
+			require_once("postbox.php");
+			$thread_page .= chan_postbox($board_dir);
+			require_once("footer.php");
+			$thread_page .= chan_footer();
 			file_put_contents($chan_rootdir."/".$board_dir."/board.html",$thread_page);
 		}
 		//Rebuild /res/
@@ -236,6 +215,40 @@ function regenerate_all_boards($verbose = false) {
 			echo 'Regenerated /'.$lineboard['name'].'/<br />';
 		}
 	}
+}
+function remove_board($dir){
+
+	define('loc1', $chan_rootdir, true);
+
+  if(!isset($GLOBALS['remerror']))
+   $GLOBALS['remerror'] = false;
+
+  if($handle = opendir(loc1 . $dir)){          // if the folder exploration is sucsessful, continue
+   while (false !== ($file = readdir($handle))){ // as long as storing the next file to $file is successful, continue
+     $path = $dir . '/' . $file;
+     if(is_file(loc1 . $path)){
+       if(!unlink(loc1 . $path)){
+         echo '<u><font color="red">"' . $path . '" could not be deleted. This may be due to a permissions problem.</u><br>Directory cannot be deleted until all files are deleted.</font><br>';
+         $GLOBALS['remerror'] = true;
+         return false;
+       }
+     } else
+     if(is_dir(loc1 . $path) && substr($file, 0, 1) != '.'){
+       remove_board($path);
+       @rmdir(loc1 . $path);
+     }
+   }
+   closedir($handle); // close the folder exploration
+  }
+
+  if(!$GLOBALS['remerror']) // if no errors occured, delete the now empty directory.
+   if(!rmdir(loc1 . $dir)){
+     echo '<b><font color="red">Could not remove directory "' . $dir . '". This may be due to a permissions problem.</font></b><br>';
+     return false;
+   } else
+     return true;
+
+  return false;
 }
 
 //Threads
@@ -475,29 +488,14 @@ function regenerate_thread($board,$threadid) {
 		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
 			$thread_page = '';
 			$post_id = $line['id'];
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $chan_webpath."/inc/header.php?board=".$lineboard['name']);
-			curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-			$file_contents = curl_exec($ch);
-			curl_close($ch);
-			$thread_page .= $file_contents;
-			$file_contents = '';
+			require_once("header.php");
+			$thread_page .= chan_header($lineboard['name']);
 			$thread_page .= '&#91;<a href="'.$chan_webfolder.'/'.$lineboard['name'].'/board.html">Return</a>&#93; <div class="theader">Posting mode: Reply</div>';
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $chan_webpath."/inc/postbox.php?board=".$lineboard['name']);
-			curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-			$file_contents = curl_exec($ch);
-			curl_close($ch);
-			$thread_page .= $file_contents;
-			$file_contents = '';
+			require_once("postbox.php");
+			$thread_page .= chan_postbox($lineboard['name']);
 			$thread_page .=  buildthread($lineboard['name'],$post_id);
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $chan_webpath."/inc/footer.php");
-			curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
-			$file_contents = curl_exec($ch);
-			curl_close($ch);
-			$thread_page .= $file_contents;
-			$file_contents = '';
+			require_once("footer.php");
+			$thread_page .= chan_footer();
 			file_put_contents($lineboard['name']."/res/".$post_id.".html",$thread_page);
 		}
 	}
