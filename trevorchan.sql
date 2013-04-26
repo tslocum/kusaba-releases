@@ -4,7 +4,6 @@
 -- Table structure for table `banlist`
 -- 
 
-DROP TABLE IF EXISTS `banlist`;
 CREATE TABLE `banlist` (
   `id` tinyint(5) NOT NULL auto_increment,
   `ip` varchar(255) NOT NULL,
@@ -15,7 +14,7 @@ CREATE TABLE `banlist` (
   `until` int(20) NOT NULL,
   `reason` text NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=28 DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -23,7 +22,6 @@ CREATE TABLE `banlist` (
 -- Table structure for table `boards`
 -- 
 
-DROP TABLE IF EXISTS `boards`;
 CREATE TABLE `boards` (
   `id` tinyint(5) NOT NULL auto_increment,
   `order` tinyint(5) NOT NULL default '0',
@@ -43,7 +41,7 @@ CREATE TABLE `boards` (
   `redirecttothread` tinyint(1) NOT NULL default '0',
   `forcedanon` tinyint(1) NOT NULL default '0',
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -51,7 +49,6 @@ CREATE TABLE `boards` (
 -- Table structure for table `config`
 -- 
 
-DROP TABLE IF EXISTS `config`;
 CREATE TABLE `config` (
   `key` varchar(255) NOT NULL,
   `value` text NOT NULL
@@ -63,7 +60,6 @@ CREATE TABLE `config` (
 -- Table structure for table `iplist`
 -- 
 
-DROP TABLE IF EXISTS `iplist`;
 CREATE TABLE `iplist` (
   `ip` varchar(200) NOT NULL,
   `lastpost` int(20) NOT NULL
@@ -75,7 +71,6 @@ CREATE TABLE `iplist` (
 -- Table structure for table `loginattempts`
 -- 
 
-DROP TABLE IF EXISTS `loginattempts`;
 CREATE TABLE `loginattempts` (
   `username` varchar(255) NOT NULL,
   `ip` varchar(20) NOT NULL,
@@ -88,10 +83,10 @@ CREATE TABLE `loginattempts` (
 -- Table structure for table `modlog`
 -- 
 
-DROP TABLE IF EXISTS `modlog`;
 CREATE TABLE `modlog` (
   `entry` text NOT NULL,
   `user` varchar(255) NOT NULL,
+  `category` tinyint(2) NOT NULL default '0',
   `timestamp` int(20) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
@@ -101,7 +96,6 @@ CREATE TABLE `modlog` (
 -- Table structure for table `news`
 -- 
 
-DROP TABLE IF EXISTS `news`;
 CREATE TABLE `news` (
   `id` tinyint(5) NOT NULL auto_increment,
   `subject` varchar(255) NOT NULL,
@@ -110,7 +104,7 @@ CREATE TABLE `news` (
   `postedby` varchar(75) NOT NULL,
   `postedemail` varchar(75) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -118,7 +112,6 @@ CREATE TABLE `news` (
 -- Table structure for table `posts`
 -- 
 
-DROP TABLE IF EXISTS `posts`;
 CREATE TABLE `posts` (
   `boardid` tinyint(5) NOT NULL,
   `id` int(10) NOT NULL,
@@ -130,6 +123,7 @@ CREATE TABLE `posts` (
   `message` text NOT NULL,
   `image` varchar(20) NOT NULL,
   `imagetype` varchar(5) NOT NULL,
+  `imagemd5` text,
   `password` varchar(255) NOT NULL,
   `postedat` int(20) NOT NULL,
   `lastbumped` int(20) NOT NULL default '0',
@@ -149,7 +143,6 @@ CREATE TABLE `posts` (
 -- Table structure for table `staff`
 -- 
 
-DROP TABLE IF EXISTS `staff`;
 CREATE TABLE `staff` (
   `id` tinyint(5) NOT NULL auto_increment,
   `username` varchar(255) NOT NULL,
@@ -158,7 +151,7 @@ CREATE TABLE `staff` (
   `boards` text,
   `addedon` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -166,7 +159,6 @@ CREATE TABLE `staff` (
 -- Table structure for table `wordfilter`
 -- 
 
-DROP TABLE IF EXISTS `wordfilter`;
 CREATE TABLE `wordfilter` (
   `id` tinyint(5) NOT NULL auto_increment,
   `word` varchar(75) NOT NULL,
@@ -174,4 +166,13 @@ CREATE TABLE `wordfilter` (
   `boards` text NOT NULL,
   `time` int(20) NOT NULL,
   KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+
+INSERT INTO `config` (`key`, `value`) VALUES ('imagesinnewwindow', '1'),
+('postboxnotice', '<ul><li>Supported file types are: <!tc_filetypes /></li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than <!tc_maxthumbwidth />x<!tc_maxthumbheight /> pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.</li></ul>'),
+('modlogmaxdays', '7'),
+('maxthumbwidth', '200'),
+('maxthumbheight', '200'),
+('numrepliesdisplayed', '3'),
+('numrepliesdisplayedsticky', '1'),
+('numthreadsdisplayed', '10');

@@ -60,29 +60,14 @@ if (file_exists("config.php")) {
 				echo '<h2>Inserting default configuration values into database...</h2>';
 				$result = mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'imagesinnewwindow' , '1' )",$dblink);
 				if ($result) {
-					$result = mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'postboxnotice' , '<ul><li>Supported file types are: GIF, JPG, PNG</li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than 200x200 pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.</li></ul>' )",$dblink);
-					if ($result) {
-						$result = mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'modlogmaxdays' , '7' )",$dblink);
-						if ($result) {
-							$result = mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'maxthumbwidth' , '200' )",$dblink);
-							if ($result) {
-								$result = mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'maxthumbheight' , '200' )",$dblink);
-								if ($result) {
-									echo 'Default configs inserted.';
-									echo '<h2>Done!</h2>Installation has finished!  The default administrator account is <b>admin</b> with the password of <b>admin</b>.<br /><br />Delete this file from the server, then <a href="manage.php">add some boards</a>!';
-									echo '<br /><br /><br /><h1><font color="red">DELETE THIS FILE RIGHT NOW!</font></h1>';
-								} else {
-									echo 'Error: '.mysql_error($dblink);
-								}
-							} else {
-								echo 'Error: '.mysql_error($dblink);
-							}
-						} else {
-							echo 'Error: '.mysql_error($dblink);
-						}
-					} else {
-						echo 'Error: '.mysql_error($dblink);
-					}
+					mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'postboxnotice' , '<ul><li>Supported file types are: GIF, JPG, PNG</li><li>Maximum file size allowed is <!tc_maximagekb /> KB.</li><li>Images greater than 200x200 pixels will be thumbnailed.</li><li>Currently <!tc_uniqueposts /> unique user posts.</li></ul>' )",$dblink);
+					mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'modlogmaxdays' , '7' )",$dblink);
+					mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'maxthumbwidth' , '200' )",$dblink);
+					mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ( 'maxthumbheight' , '200' )",$dblink);
+					mysql_query("INSERT INTO `config` ( `key` , `value` ) VALUES ('numrepliesdisplayed', '3'),('numrepliesdisplayedsticky', '1'),('numthreadsdisplayed', '10');",$dblink);
+					echo 'Default configs inserted.';
+					echo '<h2>Done!</h2>Installation has finished!  The default administrator account is <b>admin</b> with the password of <b>admin</b>.<br /><br />Delete this file from the server, then <a href="manage.php">add some boards</a>!';
+					echo '<br /><br /><br /><h1><font color="red">DELETE THIS FILE RIGHT NOW!</font></h1>';
 				} else {
 					echo 'Error: '.mysql_error($dblink);
 				}

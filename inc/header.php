@@ -1,7 +1,7 @@
 <?php
 if (!function_exists("chan_header")) {
 	function chan_header($board) {
-		is_file("config.php") ? require("config.php") : require("../config.php");
+		require("config.php");
 		$output = "";
 		if ($board!="") {
 			$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
@@ -21,8 +21,8 @@ if (!function_exists("chan_header")) {
 			die("Invlaid board ID.");
 		}
 		$output .= '
-		<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pl" lang="pl">
+		<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+		<html>
 		<head>
 		<title>/'.$board_dir.'/ - '.$board_desc.'</title>
 		<style type="text/css">
@@ -31,16 +31,16 @@ if (!function_exists("chan_header")) {
 		.mod { color: red; font-weight:normal; }
 		</style>';
 		$output .= print_stylesheets('Futaba');
-		$output .= '<link rel="shortcut icon" href="'.$chan_webfolder.'/favicon.ico" />
-		<meta http-equiv="cache-control" content="no-cache" />
-		<meta http-equiv="pragma" content="no-cache" />
-		<meta http-equiv="expires" content="-1" />
+		$output .= '<link rel="shortcut icon" href="'.$chan_webpath.'/favicon.ico">
+		<meta http-equiv="cache-control" content="no-cache">
+		<meta http-equiv="pragma" content="no-cache">
+		<meta http-equiv="expires" content="-1">
 		<script type="text/javascript">var style_cookie="tcstyle";</script>
-		<script type="text/javascript" src="'.$chan_webfolder.'/javascript.js">
+		<script type="text/javascript" src="'.$chan_boardspath.'/javascript.js">
 		</script>
 		</head>
 		<body>
-		<div class="adminbar">[<a href="javascript:set_stylesheet(\'Burichan\')">Burichan</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Futaba\')">Futaba</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Gurochan\')">Gurochan</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Photon\')">Photon</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Fuhrerchan\')">Fuhrerchan</a>]&nbsp;-&nbsp;[<a href="'.$chan_webpath.$chan_webfolder.'" target="_top">Home</a>]&nbsp;[<a href="'.$chan_webfolder.'/manage.php">Manage</a>]</div>';
+		<div class="adminbar">[<a href="javascript:set_stylesheet(\'Burichan\')">Burichan</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Futaba\')">Futaba</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Gurochan\')">Gurochan</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Photon\')">Photon</a>]&nbsp;[<a href="javascript:set_stylesheet(\'Fuhrerchan\')">Fuhrerchan</a>]&nbsp;-&nbsp;[<a href="'.$chan_webpath.'" target="_top">Home</a>]&nbsp;[<a href="'.$chan_boardspath.'/manage.php">Manage</a>]</div>';
 		$output .= display_boardlist();
 		$output .= '<div class="logo">';
 		if ($board_image=="") {

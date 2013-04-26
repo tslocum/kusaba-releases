@@ -40,7 +40,7 @@ function toggle(button,area) {
 <body>
 <h1><?php echo $chan_name; ?></h1>
 <ul>
-<li><a href="<?php echo $chan_webpath.$chan_webfolder; ?>" target="_top">Front Page</a></li>
+<li><a href="<?php echo $chan_webpath; ?>" target="_top">Front Page</a></li>
  
 </ul>
 
@@ -51,9 +51,9 @@ $result = mysql_query("SELECT * FROM `boards` ORDER BY `order` ASC",$dblink);
 $rows = mysql_num_rows($result);
 if ($rows>0) {
 	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-		echo '<li><a href="'.$chan_webpath.$chan_webfolder.'/'.$line['name'].'/board.html">'.$line['desc'];
+		echo '<li><a href="'.$chan_boardspath.'/'.$line['name'].'/board.html">'.$line['desc'];
 		if ($line['locked']=="1") {
-			echo ' <img src="'.$chan_webfolder.'/locked.gif" border="0" alt="Locked" />';
+			echo ' <img src="'.$chan_boardspath.'/locked.gif" border="0" alt="Locked" />';
 		}
 		echo '</a></li>';
 	}
@@ -62,6 +62,11 @@ if ($rows>0) {
 }
 ?>
 </ul></div>
+
+<h2>IRC</h2>
+<ul>
+<li><a href="irc://irc.fukt.us/trevorchan" title="#trevorchan IRC">#trevorchan @ irc.fukt.us</a></li>
+</ul>
 
 </body>
 </html>

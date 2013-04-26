@@ -11,15 +11,14 @@ require("config.php");
 <html>
 <head>
 <title><?php echo $chan_name; ?></title>
-<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="shortcut icon" href="/favicon.ico">
 </head>
-<frameset cols="15%,*" frameborder="0" border="0">
+<frameset cols="15%,*" frameborder="0" style="border: 0;">
 <frame src="menu.php" name="menu">
 <frame src="news.php" name="main">
-</frameset>
-
 <noframes>
 Your browser doesn't support frames, which <?php echo $chan_name; ?> requires.<br>
 Please upgrade to something newer.
 </noframes>
+</frameset>
 </html>

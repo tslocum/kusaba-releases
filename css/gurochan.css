@@ -50,7 +50,7 @@ a.quotelink {
   font-size:12px;
 }
 .unkfunc {
-	background:inert;
+	background:inherit;
 	color:#789922;
 }
 .filesize {

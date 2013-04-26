@@ -108,16 +108,31 @@ function escape_quotes($receive) {
    else
        return $thearray;
 }
+function cut_word($txt, $where) {
+   if (empty($txt)) return false;
+   for ($c = 0, $a = 0, $g = 0; $c<strlen($txt); $c++) {
+	   $d[$c+$g]=$txt[$c];
+	   if ($txt[$c]!=" ") $a++;
+	   else if ($txt[$c]==" ") $a = 0;
+	   if ($a==$where) {
+	   $g++;
+	   $d[$c+$g]="\n";
+	   $a = 0;
+	   }
+   }
+   return implode("", $d);
+}
 function parse_post($message,$board,$threadid,$ispage = false) {
+	$message = str_replace("&","&amp;",$message);
 	$message = replace_brackets($message);
 	$message = trim($message);
 	//$message = str_replace(chr(9),"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",$message);
-	$message = wordwrap($message, 75, "\n", true);
+	$message = cut_word($message, 100);
 	if ($threadid!='0') {
 		$message = clickable_quote($message,$board,$threadid,$ispage);
 		$message = colored_quote($message);
 	}
-	$message = make_clickable($message);
+	//$message = make_clickable($message);
 	$message = nl2br($message);
 	$message = bbcode($message);
 	$message = parse_wordfilter($message,$board);

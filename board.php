@@ -6,16 +6,15 @@
 	 http://www.tj9991.com/
 	 tslocum@gmail.com
 */
- 
 require("config.php");
-require("inc/functions.php");
+require($chan_rootdir."/inc/functions.php");
 
  
-if ($_POST['board']!="") {
+if (isset($_POST['board'])) {
 	$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".mysql_escape_string($_POST['board'])."'",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			$board_id = $line['id'];
 			$board_dir = $line['name'];
 			$board_desc = $line['desc'];
@@ -24,6 +23,7 @@ if ($_POST['board']!="") {
 			$board_maxage = $line['maxage'];
 			$board_maxreplies = $line['maxreplies'];
 			$board_maxpages = $line['maxpages'];
+			$board_messagelength = $line['messagelength'];
 			$board_locked = $line['locked'];
 			$board_redirecttothread = $line['redirecttothread'];
 			$board_forcedanon = $line['forcedanon'];
@@ -31,11 +31,11 @@ if ($_POST['board']!="") {
 		$glob_maxthumbwidth = config_getvalue('maxthumbwidth');
 		$glob_maxthumbheight = config_getvalue('maxthumbheight');
 	} else {
-		echo '<meta http-equiv="refresh" content="0;url='.$chan_webpath.$chan_webfolder.'/trevorchan.php" />';
+		echo '<meta http-equiv="refresh" content="0;url='.$chan_webpath.'/trevorchan.php" />';
 		die();
 	}
 } else {
-	echo '<meta http-equiv="refresh" content="0;url='.$chan_webpath.$chan_webfolder.'/trevorchan.php" />';
+	echo '<meta http-equiv="refresh" content="0;url='.$chan_webpath.'/trevorchan.php" />';
 	die();
 }
 removed_expired_bans();
@@ -44,7 +44,7 @@ if (isset($_POST['message'])||isset($_FILES['imagefile'])) {
 	$result = mysql_query("SELECT * FROM `banlist` WHERE `ip` = '".$_SERVER['REMOTE_ADDR']."'",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			if ($line['until']=='0') {
 				$ban_until = '<font color="red">NEVER</font>';
 			} else {
@@ -61,35 +61,38 @@ if (isset($_POST['message'])||isset($_FILES['imagefile'])) {
 			}
 		}
 	}
-	$result = mysql_query("SELECT * FROM `iplist` WHERE `ip` = '".$_SERVER['REMOTE_ADDR']."'",$dblink);
+	$result = mysql_query("SELECT `lastpost` FROM `iplist` WHERE `ip` = '".$_SERVER['REMOTE_ADDR']."'",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			if (time()-$line['lastpost']<=$chan_postdelay) {
-				die('Error: please wait a moment before posting again.');
+				die($lang['wait to post again']);
 			}
 		}
 	}
-	$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `ip` = '".$_SERVER['REMOTE_ADDR']."' AND `postedat` > '".(time()-60)."'",$dblink);
+	$result = mysql_query("SELECT `id` FROM `posts` WHERE `IS_DELETED` = '0' AND  `ip` = '".$_SERVER['REMOTE_ADDR']."' AND `postedat` > '".(time()-60)."'",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>$chan_maxppm) {
-		die('Error: please wait a moment before posting.');
+		die($lang['wait to post again']);
 	}
 	if (strlen($_POST['message'])>8192) {
-		die("Sorry, your message is too long.  Message length: ".strlen($_POST['message']).", maxmimum allowed length: 8192");
+		printf($lang['message too long'],strlen($_POST['message']),$board_messagelength);
+		die();
 	}
-	if ($_POST['replythread']>0) {
+	$thread_locked = '0';
+	$isreplying = false;
+	if (isset($_POST['replythread'])) {
 		$isreplying = true;
-		$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND `id` = '".mysql_escape_string($_POST['replythread'])."' AND `boardid` = '".$board_id."' AND `threadid` = '0'");
+		$result = mysql_query("SELECT `id`,`locked` FROM `posts` WHERE `IS_DELETED` = '0' AND `id` = '".mysql_escape_string($_POST['replythread'])."' AND `boardid` = '".$board_id."' AND `threadid` = '0'");
 		if (mysql_num_rows($result)>0) {
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysql_fetch_assoc($result)) {
 				$thread_locked = $line['locked'];
 				$thread_replyto = $line['id'];
 			}
 		} else {
-			die("Invalid thread ID.  This may have been caused by the thread recently being deleted.");
+			die($lang['invalid thread id']);
 		}
-		$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND `threadid` = '".mysql_escape_string($_POST['replythread'])."' AND `boardid` = '".$board_id."'");
+		$result = mysql_query("SELECT `id` FROM `posts` WHERE `IS_DELETED` = '0' AND `threadid` = '".mysql_escape_string($_POST['replythread'])."' AND `boardid` = '".$board_id."'");
 		$thread_replies = mysql_num_rows($result);
 	} else {
 		$thread_replyto = "0";
@@ -98,21 +101,16 @@ if (isset($_POST['message'])||isset($_FILES['imagefile'])) {
 	$post_email = addslashes(strip_tags($_POST['email']));
 	$post_subject = addslashes(strip_tags($_POST['subject']));
 	$user_authority = '0';
-	if ($_POST['modpassword']!="") {
-
-		require("inc/encryption.php");
-		$result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".md5_decrypt($_POST['modpassword'],$chan_randomseed)."'");
+	if (isset($_POST['modpassword'])) {
+		require($chan_rootdir."/inc/encryption.php");
+		$result = mysql_query("SELECT `isadmin`,`boards` FROM `staff` WHERE `username` = '".md5_decrypt($_POST['modpassword'],$chan_randomseed)."'");
 		$rows = mysql_num_rows($result);
 		if ($rows>0) {
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-				$result2 = mysql_query("SELECT * FROM `staff` WHERE `username` = '".md5_decrypt($_POST['modpassword'],$chan_randomseed)."'",$dblink);
-				while ($line2 = mysql_fetch_array($result2, MYSQL_ASSOC)) {
-					$staff_boards = explode('|',$line2['boards']);
-				}
+			while ($line = mysql_fetch_assoc($result)) {
 				if ($line['isadmin']=="1") {
 					$user_authority = '1';
 				} else {
-					if (in_array($board_dir,$staff_boards)) {
+					if (in_array($board_dir,explode('|',$line['boards']))) {
 						$user_authority = '2';
 					}
 				}
@@ -121,115 +119,121 @@ if (isset($_POST['message'])||isset($_FILES['imagefile'])) {
 	}
 	if ($_POST['postpassword']!="") {
 		$post_password = $_POST['postpassword'];
+	} else {
+		$post_password = "";
 	}
 	if ($user_authority=='0') {
 		if ($thread_locked=='1') {
-			die('Sorry, this thread is locked and can not currently be replied to.');
+			die($lang['thread is locked']);
 		}
-		require_once("inc/parse.php");
+		require_once($chan_rootdir."/inc/parse.php");
 		$post_message = parse_post($_POST['message'],$board_dir,$thread_replyto);
 	} else {
-		if ($_POST['rawhtml']=='on') {
+		if (isset($_POST['rawhtml'])) {
 			$post_message = addslashes($_POST['message']);
 		} else {
-			require_once("inc/parse.php");
+			require_once($chan_rootdir."/inc/parse.php");
 			$post_message = parse_post($_POST['message'],$board_dir,$thread_replyto);
 		}
-		if ($_POST['lockonpost']=='on') {
+		if (isset($_POST['lockonpost'])) {
 			$onpost_lock = true;
 		}
-		if ($_POST['stickyonpost']=='on') {
+		if (isset($_POST['stickyonpost'])) {
 			$onpost_sticky = true;
 		}
 	}
 	if ($isreplying) {
-		//preg_match("/[^\s]/",$post_message)==false
 		if ($_FILES['imagefile']['name']==""&&$post_message=="") {
-			die("An image, or message, is required for a reply.");
+			die($lang['image/message required for reply']);
 		}
 	} else {
 		if ($_FILES['imagefile']['name']=="") {
-			die("An image is required for a new thread.");
+			die($lang['image required for thread']);
 		}
 	}
 	if($board_locked=='0'||$user_authority>'0') {
 		trimtopagelimit($board_dir);
 		$result = mysql_query("LOCK TABLE `posts` WRITE;",$dblink);
-		if (!$result) {
-			//echo 'Error: '.mysql_error($dblink);
-		}
 		$imageused = false;
+		$onpost_sticky = false;
+		$onpost_lock = false;
+		$thisimage_name = "";
+		$filetype = "";
+		$file_md5 = "";
 		$post_id = getnextpostid($dblink,$board_id);
 		if ($_FILES['imagefile']['name']!="") {
 			if (strpos($_FILES['imagefile']['name'],',')!=false) {
 				mysql_query("UNLOCK TABLES;",$dblink);
-				die("Please select only one image to upload.");
+				die($lang['select one image']);
 			}
 			if (!file_exists($_FILES['imagefile']['tmp_name'])) {
-				echo 'Error, it appears your file did not transfer properly.  Please go back and try again.';
+				echo $lang['corrupt transfer'];
 			}
-			$file_isduplicate = false;
 			$file=$_FILES['imagefile']['name'];
 			$file_md5 = md5_file($_FILES['imagefile']['tmp_name']);
-			$dir = './'.$board_dir.'/src';
-			$files = glob ("$dir/{*.jpg,*.png,*.gif}",  GLOB_BRACE);
-			if (is_array($files)) { 
-				foreach ($files as $image) {
-					if (md5_file($image)==$file_md5) {
-						$file_isduplicate = true;
-					}
-				}
-			}
-			if ($file_isduplicate) {
+			if (check_md5($file_md5,$board_id)) {
 				mysql_query("UNLOCK TABLES;",$dblink);
-				die("Duplicate file entry detected.");
+				die($lang['duplicate file']);
 			}
 			$filetype=substr($file,-4);
+			if ($filetype=="jpeg") { // Fix for the rarely used 4-char format
+				$filetype = ".jpg";
+			}
 			$imageDim = getimagesize($_FILES['imagefile']['tmp_name']);
 			$imgWidth = $imageDim[0];
 			$imgHeight = $imageDim[1];
-			//print(time()." Image height and width figured out, its: ".$imgWidth."x".$imgHeight."<br />");
 			$filetype = strtolower($filetype);
 			if ($_FILES['imagefile']['size']>$board_maximagesize) {
 				mysql_query("UNLOCK TABLES;",$dblink);
-				die("Please make sure your image is smaller than ".$board_maximagesize."B");
+				printf($lang['image too big'],$board_maximagesize);
+				die();
 			} else {
 				if (in_array(strtoupper(substr($filetype,1)),$board_filetypes)) {
 					if ($filetype==".jpg"||$filetype==".png"||$filetype==".gif") {
 						$thisimage_name = time().rand(1,99).$post_id;
-						//print(time()." Image name figured it, it will be: ".$thisimage_name.$filetype."<br />");
-						if (!move_uploaded_file($_FILES['imagefile']['tmp_name'],$chan_rootdir."/".$board_dir."/src/".$thisimage_name.$filetype)) {
+						if (!move_uploaded_file($_FILES['imagefile']['tmp_name'],$chan_boardsdir."/".$board_dir."/src/".$thisimage_name.$filetype)) {
 							mysql_query("UNLOCK TABLES;",$dblink);
-							die("Could not copy uploaded image.");
+							die($lang['could not copy']);
 						}
-						if ($_FILES['imagefile']['size']==filesize($chan_rootdir."/".$board_dir."/src/".$thisimage_name.$filetype)) {
+						if ($_FILES['imagefile']['size']==filesize($chan_boardsdir."/".$board_dir."/src/".$thisimage_name.$filetype)) {
 							if ($imgWidth>$glob_maxthumbwidth||$imgHeight>$glob_maxthumbheight) {
-								if (!createthumb($chan_rootdir."/".$board_dir."/src/".$thisimage_name.$filetype,$chan_rootdir."/".$board_dir."/thumb/".$thisimage_name.'s'.$filetype,$glob_maxthumbwidth,$glob_maxthumbheight)) {
+								if (!createthumb($chan_boardsdir."/".$board_dir."/src/".$thisimage_name.$filetype,$chan_boardsdir."/".$board_dir."/thumb/".$thisimage_name.'s'.$filetype,$glob_maxthumbwidth,$glob_maxthumbheight)) {
 									mysql_query("UNLOCK TABLES;",$dblink);
-									die("Could not create thumbnail.");
+									die($lang['could not create thumbnail']);
 								}
 							} else {
-								if (!createthumb($chan_rootdir."/".$board_dir."/src/".$thisimage_name.$filetype,$chan_rootdir."/".$board_dir."/thumb/".$thisimage_name.'s'.$filetype,$imgWidth,$imgHeight)) {
+								if (!createthumb($chan_boardsdir."/".$board_dir."/src/".$thisimage_name.$filetype,$chan_boardsdir."/".$board_dir."/thumb/".$thisimage_name.'s'.$filetype,$imgWidth,$imgHeight)) {
 									mysql_query("UNLOCK TABLES;",$dblink);
-									die("Could not create thumbnail.");
+									die($lang['could not create thumbnail']);
 								}
 							}
-							//print(time()." Copied and thumbnailed successfully.");
-							$imageDim_thumb = getimagesize($chan_rootdir."/".$board_dir."/thumb/".$thisimage_name.'s'.$filetype);
+							$imageDim_thumb = getimagesize($chan_boardsdir."/".$board_dir."/thumb/".$thisimage_name.'s'.$filetype);
 							$imgWidth_thumb = $imageDim_thumb[0];
 							$imgHeight_thumb = $imageDim_thumb[1];
 							$imageused = true;
 						} else {
 							mysql_query("UNLOCK TABLES;",$dblink);
-							die("File was not fully uploaded.  Please go back and try again.");
+							die($lang['file not fully uploaded']);
+						}
+					} else if ($filetype==".swf") {
+						$thisimage_name = time().rand(1,99).$post_id;
+						if (!move_uploaded_file($_FILES['imagefile']['tmp_name'],$chan_boardsdir."/".$board_dir."/src/".$thisimage_name.$filetype)) {
+							mysql_query("UNLOCK TABLES;",$dblink);
+							die($lang['could not copy'] );
+						}
+						if ($_FILES['imagefile']['size']==filesize($chan_boardsdir."/".$board_dir."/src/".$thisimage_name.$filetype)) {
+							$imageused = true;
+						} else {
+							mysql_query("UNLOCK TABLES;",$dblink);
+							die($lang['corrupt transfer']);
 						}
 					} else {
 						mysql_query("UNLOCK TABLES;",$dblink);
-						die("Improper filetype.");
+						die($lang['improper filetype']);
 					}
 				} else {
 					mysql_query("UNLOCK TABLES;",$dblink);
-					die("Sorry, that filetype is not allowed on this board.");
+					die($lang['filetype not allowed']);
 				}
 			}
 		}
@@ -239,7 +243,7 @@ if (isset($_POST['message'])||isset($_FILES['imagefile'])) {
 				$post_name = "";
 			}
 		}
-		$query = "INSERT INTO `posts` ( `boardid` , `id` , `threadid` , `user` , `tripcode` , `email` , `subject` , `message` , `image` , `imagetype` , `password` , `postedat` , `lastbumped` , `ip` , `posterauthority` , `stickied` , `locked` ) VALUES ( '".$board_id."', '".$post_id."', '".$thread_replyto."', ";
+		$query = "INSERT INTO `posts` ( `boardid` , `id` , `threadid` , `user` , `tripcode` , `email` , `subject` , `message` , `image` , `imagetype` , `imagemd5` , `password` , `postedat` , `lastbumped` , `ip` , `posterauthority` , `stickied` , `locked` ) VALUES ( '".$board_id."', '".$post_id."', '".$thread_replyto."', ";
 		if (strpos($post_name,"#")!=false||(substr($post_name,0,1)=="#"&&substr($post_name,1)!="")) {
 			$tripcode_user = substr($post_name,0,strpos($post_name,"#"));
 			$tripcode_password = substr($post_name,strpos($post_name,"#")+1);
@@ -249,7 +253,8 @@ if (isset($_POST['message'])||isset($_FILES['imagefile'])) {
 			$query .= "'".substr($post_name,0,100)."', '', ";
 		}
 		$filetype_withoutdot = substr($filetype,1);
-		$query .= "'".substr($post_email,0,100)."', '".substr($post_subject,0,100)."', '".$post_message."', '".mysql_escape_string($thisimage_name)."', '".$filetype_withoutdot."', '".md5($post_password)."' , '".time()."', '".time()."' , '".$_SERVER['REMOTE_ADDR']."' , '".$user_authority."'";
+		$post_password_md5 = ($post_password=='') ? '' : md5($post_password);
+		$query .= "'".substr($post_email,0,100)."', '".substr($post_subject,0,100)."', '".$post_message."', '".mysql_escape_string($thisimage_name)."', '".$filetype_withoutdot."', '".$file_md5."', '".$post_password_md5."' , '".time()."', '".time()."' , '".$_SERVER['REMOTE_ADDR']."' , '".$user_authority."'";
 		if ($onpost_sticky==true) {
 			if ($thread_replyto=='0') {
 				$query .= " , '1'";
@@ -271,16 +276,23 @@ if (isset($_POST['message'])||isset($_FILES['imagefile'])) {
 			$query .= " , '0'";
 		}
 		$query .= " );";
-		if ((file_exists($chan_rootdir."/".$board_dir."/src/".$thisimage_name.$filetype)&&file_exists($chan_rootdir."/".$board_dir."/thumb/".$thisimage_name.'s'.$filetype))||$imageused==false) {
+		if ((file_exists($chan_boardsdir."/".$board_dir."/src/".$thisimage_name.$filetype)&&file_exists($chan_boardsdir."/".$board_dir."/thumb/".$thisimage_name.'s'.$filetype))||($filetype==".swf"&&file_exists($chan_boardsdir."/".$board_dir."/src/".$thisimage_name.$filetype))||$imageused==false) {
 			mysql_query($query,$dblink);
+			if (isset($_POST['name'])) {
+				setcookie("name",urldecode($_POST['name']),time()+31556926,"/");
+			}
+			if ($_POST['email']!="sage"&&$_POST['email']!="age") {
+				setcookie("email",urldecode($_POST['email']),time()+31556926,"/");
+			}
+			setcookie("postpassword",urldecode($_POST['postpassword']),time()+31556926,"/");
 		} else {
 			mysql_query("UNLOCK TABLES;",$dblink);
-			die("Unable to copy selected image.  Please go back and try again.");
+			die($lang['could not copy']);
 		}
 		mysql_query("UNLOCK TABLES;",$dblink);
 		if ($thread_replyto!="0"&&$post_email!="sage") {
 			if ($thread_replies<=$board_maxreplies) {
-				mysql_query("UPDATE `posts` SET `lastbumped` = '".time()."' WHERE `id` = '".$thread_replyto."'",$dblink);
+				mysql_query("UPDATE `posts` SET `lastbumped` = '".time()."' WHERE `id` = '".$thread_replyto."' AND `boardid` = '".$board_id."'",$dblink);
 			}
 		}
 		$result = mysql_query("SELECT * FROM `iplist` WHERE `ip` = '".$_SERVER['REMOTE_ADDR']."'",$dblink);
@@ -291,21 +303,19 @@ if (isset($_POST['message'])||isset($_FILES['imagefile'])) {
 			mysql_query("UPDATE `iplist` SET `lastpost` = '".time()."' WHERE `ip` = '".$_SERVER['REMOTE_ADDR']."'",$dblink);
 		}
 		if ($thread_replyto=="0") {
-			//print(time()." Regenerating thread: board - ".$board_dir." - post: ".$post_id."<br />");
 			regenerate_thread($board_dir,$post_id);
 		} else {
-			//print(time()." Regenerating thread: board - ".$board_dir." - reply-to post: ".$thread_replyto."<br />");
 			regenerate_thread($board_dir,$thread_replyto);
 		}
 	} else {
-		die('Sorry, this board is locked and can not currently be replied to.');
+		die($lang['board is locked']);
 	}
-} else if (isset($_POST['delete'])) {
+} else if (isset($_POST['delete'])&&isset($_POST['postpassword'])) {
 	if ($_POST['postpassword']!="") {
-		$result = mysql_query("SELECT * FROM `posts` WHERE `id` = '".mysql_escape_string($_POST['delete'])."' AND `boardid` = '".$board_id."' AND `IS_DELETED` = '0'",$dblink);
+		$result = mysql_query("SELECT `id`,`threadid`,`password`,`image`,`imagetype` FROM `posts` WHERE `id` = '".mysql_escape_string($_POST['delete'])."' AND `boardid` = '".$board_id."' AND `IS_DELETED` = '0'",$dblink);
 		$rows = mysql_num_rows($result);
 		if ($rows>0) {
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysql_fetch_assoc($result)) {
 				$deletepost_id = $line['id'];
 				$deletepost_threadid = $line['threadid'];
 				$deletepost_password = $line['password'];
@@ -315,71 +325,67 @@ if (isset($_POST['message'])||isset($_FILES['imagefile'])) {
 			if (md5($_POST['postpassword'])==$deletepost_password) {
 				if ($_POST['fileonly']=="on") {
 					if ($deletepost_image!=""&&$deletepost_image!="removed") {
-						$result = mysql_query("UPDATE `posts` SET `image` = 'removed' WHERE `id` = '".$deletepost_id."' AND `boardid` = '".$board_id."' AND `IS_DELETED` = '0'",$dblink);
+						$result = mysql_query("UPDATE `posts` SET `image` = 'removed' WHERE `id` = '".$deletepost_id."' AND `boardid` = '".$board_id."' AND `IS_DELETED` = '0' LIMIT 1",$dblink);
 						if ($result) {
-							@unlink($chan_rootdir.'/'.$board_dir.'/src/'.$deletepost_image.'.'.$deletepost_imagetype);
-							@unlink($chan_rootdir.'/'.$board_dir.'/thumb/'.$deletepost_image.'s.'.$deletepost_imagetype);
+							@unlink($chan_boardsdir.'/'.$board_dir.'/src/'.$deletepost_image.'.'.$deletepost_imagetype);
+							@unlink($chan_boardsdir.'/'.$board_dir.'/thumb/'.$deletepost_image.'s.'.$deletepost_imagetype);
 							regenerate_board($board_dir,true);
 							if ($deletepost_threadid!='0') {
 								regenerate_thread($board_dir,$deletepost_threadid);
 							}
-							echo 'Image successfully deleted from your post.';
-							echo '<meta http-equiv="refresh" content="1;url='.$chan_webpath.$chan_webfolder.'/'.$board_dir.'/board.html" />';
+							echo $lang['image successfully deleted'];
+							echo '<meta http-equiv="refresh" content="1;url='.$chan_boardspath.'/'.$board_dir.'/board.html" />';
 						} else {
 							echo 'Error: '.mysql_error($dblink);
 						}
 					} else {
-						echo 'Your post already doesn\'t have an image!';
+						echo $lang['post doesnt have message'];
 					}
 				} else {
 					if (delete_post($deletepost_id,$board_dir)) {
 						if ($deletepost_image!=""&&$deletepost_image!="removed") {
-							@unlink($chan_rootdir.'/'.$board_dir.'/src/'.$deletepost_image.'.'.$deletepost_imagetype);
-							@unlink($chan_rootdir.'/'.$board_dir.'/thumb/'.$deletepost_image.'s.'.$deletepost_imagetype);
+							@unlink($chan_boardsdir.'/'.$board_dir.'/src/'.$deletepost_image.'.'.$deletepost_imagetype);
+							@unlink($chan_boardsdir.'/'.$board_dir.'/thumb/'.$deletepost_image.'s.'.$deletepost_imagetype);
 						}
 						regenerate_board($board_dir,true);
 						if ($deletepost_threadid!='0') {
 							regenerate_thread($board_dir,$deletepost_threadid);
 						}
-						echo 'Your post has successfully been deleted.';
-						echo '<meta http-equiv="refresh" content="1;url='.$chan_webpath.$chan_webfolder.'/'.$board_dir.'/board.html" />';
+						echo $lang['post successfully deleted'];
+						echo '<meta http-equiv="refresh" content="1;url='.$chan_boardspath.'/'.$board_dir.'/board.html" />';
 					} else {
-						echo 'There was an error in trying to delete your post';
+						echo $lang['error deleting post'];
 					}
 				}
 			} else {
-				echo 'Incorrect password';
+				echo $lang['incorrect password'];
 			}
 		} else {
-			echo '<meta http-equiv="refresh" content="0;url='.$chan_webpath.$chan_webfolder.'/'.$board_dir.'/board.html" />';
+			echo '<meta http-equiv="refresh" content="0;url='.$chan_boardspath.'/'.$board_dir.'/board.html" />';
 		}
 	} else {
-		echo '<meta http-equiv="refresh" content="0;url='.$chan_webpath.$chan_webfolder.'/'.$board_dir.'/board.html" />';
+		echo '<meta http-equiv="refresh" content="0;url='.$chan_boardspath.'/'.$board_dir.'/board.html" />';
 	}
 	die();
 } else {
-	echo '<meta http-equiv="refresh" content="0;url='.$chan_webpath.$chan_webfolder.'/'.$board_dir.'/board.html" />';
+	echo '<meta http-equiv="refresh" content="0;url='.$chan_boardspath.'/'.$board_dir.'/board.html" />';
 	die();
 }
  
 regenerate_board($board_dir,true);
 if ($thread_replyto=="0") {
-	print("Thread successfully posted.  You are now being redirected.");
+	print($lang['thread successfully posted']);
 } else {
-	print("Reply successfully posted.  You are now being redirected.");
+	print($lang['reply successfully posted']);
 }
 if ($board_redirecttothread=='1') {
 	if ($thread_replyto=="0") {
-		//echo '<a href="res/'.$post_id.'.html">Click me!</a>';
-		echo '<meta http-equiv="refresh" content="1;url='.$chan_webpath.$chan_webfolder.'/'.$board_dir.'/res/'.$post_id.'.html" />';
-		//header("Location: res/".$post_id.".html");
+		echo '<meta http-equiv="refresh" content="1;url='.$chan_boardspath.'/'.$board_dir.'/res/'.$post_id.'.html" />';
 	} else {
-		//echo '<a href="res/'.$thread_replyto.'.html">Click me!</a>';
-		echo '<meta http-equiv="refresh" content="1;url='.$chan_webpath.$chan_webfolder.'/'.$board_dir.'/res/'.$thread_replyto.'.html" />';
-		//header("Location: res/".$thread_replyto.".html");
+		echo '<meta http-equiv="refresh" content="1;url='.$chan_boardspath.'/'.$board_dir.'/res/'.$thread_replyto.'.html" />';
 	}
 } else {
-	echo '<meta http-equiv="refresh" content="1;url='.$chan_webpath.$chan_webfolder.'/'.$board_dir.'/" />';
+	echo '<meta http-equiv="refresh" content="1;url='.$chan_boardspath.'/'.$board_dir.'/" />';
 }
 
 die(); //Just in case...

@@ -1,3 +1,12 @@
+function replaceAll( str, from, to ) {
+	var idx = str.indexOf( from );
+	while ( idx > -1 ) {
+		str = str.replace( from, to );
+		idx = str.indexOf( from );
+	}
+	return str;
+}
+
 function insert(text)
 {
 	var textarea=document.forms.postform.message;
@@ -37,29 +46,40 @@ function highlight(post)
 	}
 }
 
+function get_password(name)
+{
+	var pass=getCookie(name);
+	if(pass) return pass;
+
+	var chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	var pass='';
+
+	for(var i=0;i<8;i++)
+	{
+		var rnd=Math.floor(Math.random()*chars.length);
+		pass+=chars.substring(rnd,rnd+1);
+	}
+
+	return(pass);
+}
+
 function togglePassword() {
-	if (document.getElementById("passwordbox").innerHTML=="") {
+	if (document.getElementById("passwordbox").innerHTML=="<td></td><td></td>") {
         document.getElementById("passwordbox").innerHTML = '<td class="postblock">Mod</td><td><input type="password" name="modpassword" size="28" maxlength="75" />&nbsp;<acronym title="Lock">L</acronym>:&nbsp;<input type="checkbox" name="lockonpost" />&nbsp;&nbsp;<acronym title="Sticky">S</acronym>:&nbsp;<input type="checkbox" name="stickyonpost" />&nbsp;&nbsp;<acronym title="Raw HTML">RH</acronym>:&nbsp;<input type="checkbox" name="rawhtml" /></td>';
     } else {
-        document.getElementById("passwordbox").innerHTML = '';
+        document.getElementById("passwordbox").innerHTML = '<td></td><td></td>';
     }
 }
 
-function getCookie(name) {
-    var dc = document.cookie;
-    var prefix = name + "=";
-    var begin = dc.indexOf("; " + prefix);
-    if (begin == -1) {
-        begin = dc.indexOf(prefix);
-        if (begin != 0) return null;
-    } else {
-        begin += 2;
-    }
-    var end = document.cookie.indexOf(";", begin);
-    if (end == -1) {
-        end = dc.length;
-    }
-    return unescape(dc.substring(begin + prefix.length, end));
+function getCookie(name)
+{
+	with(document.cookie)
+	{
+		var regexp=new RegExp("(^|;\\s+)"+name+"=(.*?)(;|$)");
+		var hit=regexp.exec(document.cookie);
+		if(hit&&hit.length>2) return unescape(replaceAll(hit[2],'+','%20'));
+		else return '';
+	}
 }
 
 function set_cookie(name,value,days)
@@ -127,6 +147,9 @@ function get_preferred_stylesheet()
 	}
 	return null;
 }
+
+function set_inputs(id) { with(document.getElementById(id)) {if(!name.value) name.value=getCookie("name"); if(!email.value) email.value=getCookie("email"); if(!postpassword.value) postpassword.value=get_password("postpassword"); } }
+function set_delpass(id) { with(document.getElementById(id)) postpassword.value=getCookie("postpassword"); }
 
 window.onunload=function(e)
 {

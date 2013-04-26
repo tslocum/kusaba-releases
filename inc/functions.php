@@ -16,11 +16,16 @@ if (!function_exists("file_put_contents")) {
 	   }
 	}
 }
+function microtime_float()
+{
+   list($usec, $sec) = explode(" ", microtime());
+   return ((float)$usec + (float)$sec);
+}
 // <3 coda for this wonderful snippet
 // print $contents to $filename by using a temporary file and renaming it
 function print_page($filename,$contents,$board) {
 	require("config.php");
-	$tempfile = tempnam($chan_webfolder."/".$board."/res", "tmp"); //note: THIS actually creates the file
+	$tempfile = tempnam($chan_boardsdir."/".$board."/res", "tmp"); //note: THIS actually creates the file
 	$fp = fopen($tempfile, "w");
 	fwrite($fp, $contents);
 	fclose($fp);
@@ -51,35 +56,35 @@ function print_stylesheets($prefered_stylesheet = 'Burichan') {
 		$prefered_stylesheet = 'Burichan';
 	}
 	if ($prefered_stylesheet=='Burichan') {
-		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />';
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_boardspath.'/css/burichan.css" title="Burichan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/futaba.css" title="Futaba">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/gurochan.css" title="Gurochan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/photon.css" title="Photon">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/fuhrerchan.css" title="Fuhrerchan">';
 	} else if ($prefered_stylesheet=='Futaba') {
-		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />';
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_boardspath.'/css/futaba.css" title="Futaba">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/burichan.css" title="Burichan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/gurochan.css" title="Gurochan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/photon.css" title="Photon">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/fuhrerchan.css" title="Fuhrerchan">';
 	} else if ($prefered_stylesheet=='Gurochan') {
-		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />';
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_boardspath.'/css/gurochan.css" title="Gurochan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/burichan.css" title="Burichan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/futaba.css" title="Futaba">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/photon.css" title="Photon">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/fuhrerchan.css" title="Fuhrerchan">';
 	} else if ($prefered_stylesheet=='Photon') {
-		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />';
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_boardspath.'/css/photon.css" title="Photon">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/burichan.css" title="Burichan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/futaba.css" title="Futaba">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/gurochan.css" title="Gurochan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/fuhrerchan.css" title="Fuhrerchan">';
 	} else if ($prefered_stylesheet=='Fuhrerchan') {
-		return '<link rel="stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/fuhrerchan.css" title="Fuhrerchan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/burichan.css" title="Burichan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/futaba.css" title="Futaba" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/gurochan.css" title="Gurochan" />
-	<link rel="alternate stylesheet" type="text/css" href="'.$chan_webpath.$chan_webfolder.'/css/photon.css" title="Photon" />';
+		return '<link rel="stylesheet" type="text/css" href="'.$chan_boardspath.'/css/fuhrerchan.css" title="Fuhrerchan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/burichan.css" title="Burichan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/futaba.css" title="Futaba">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/gurochan.css" title="Gurochan">
+	<link rel="alternate stylesheet" type="text/css" href="'.$chan_boardspath.'/css/photon.css" title="Photon">';
 	}
 	
 }
@@ -87,10 +92,10 @@ function print_stylesheets($prefered_stylesheet = 'Burichan') {
 //Management
 function management_adminsonly() {
 	require("config.php");
-	$result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".$_SESSION['manageusername']."' AND `password` = '".$_SESSION['managepassword']."'",$dblink);
+	$result = mysql_query("SELECT `isadmin` FROM `staff` WHERE `username` = '".$_SESSION['manageusername']."' AND `password` = '".$_SESSION['managepassword']."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			if ($line['isadmin']!="1") {
 				die();
 			}
@@ -101,11 +106,10 @@ function management_adminsonly() {
 }
 function management_isadmin() {
 	require("config.php");
-	//die("SELECT * FROM `staff` WHERE `username` = '".$_SESSION['manageusername']."' AND `password` = '".$_SESSION['managepassword']."'".$dblink);
-	$result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".$_SESSION['manageusername']."' AND `password` = '".$_SESSION['managepassword']."'",$dblink);
+	$result = mysql_query("SELECT `isadmin` FROM `staff` WHERE `username` = '".$_SESSION['manageusername']."' AND `password` = '".$_SESSION['managepassword']."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			if ($line['isadmin']=="1") {
 				return true;
 			} else {
@@ -116,18 +120,31 @@ function management_isadmin() {
 		die();
 	}
 }
-function management_addlogentry($entry) {
+function management_addlogentry($entry,$category = 0) {
+	// Categories
+	// 0 - no category
+	// 1 - login
+	// 2 - cleanup/rebuild boards and html files
+	// 3 - board adding/deleting
+	// 4 - board updates
+	// 5 - locking/stickying
+	// 6 - staff changes
+	// 7 - thread deletion/post deletion
+	// 8 - bans
+	// 9 - news
+	// 10 - global changes
+	// 11 - wordfilter
 	require("config.php");
 	if ($entry!="") {
-		mysql_query("INSERT INTO `modlog` ( `entry` , `user` , `timestamp` ) VALUES ( '".$entry."' , '".$_SESSION['manageusername']."' , '".time()."' )",$dblink);
+		mysql_query("INSERT INTO `modlog` ( `entry` , `user` , `category` , `timestamp` ) VALUES ( '".mysql_escape_string($entry)."' , '".$_SESSION['manageusername']."' , '".mysql_escape_string($category)."' , '".time()."' )",$dblink);
 	}
 }
 function moderator_ismodofboard($board,$username) {
 	require("config.php");
-	$result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".$username."'",$dblink);
+	$result = mysql_query("SELECT `isadmin`,`boards` FROM `staff` WHERE `username` = '".$username."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			if ($line['isadmin']=="1") {
 				return true;
 			} else {
@@ -146,16 +163,16 @@ function moderator_ismodofboard($board,$username) {
 function moderator_boardlist($username) {
 	is_file("config.php") ? require("config.php") : require("../config.php");
 	$staff_boardsmoderated = array();
-	$result = mysql_query("SELECT * FROM `staff` WHERE `username` = '".$username."'",$dblink);
+	$result = mysql_query("SELECT `boards` FROM `staff` WHERE `username` = '".$username."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
 		if (management_isadmin()) {
-			$resultboard = mysql_query("SELECT * FROM `boards`",$dblink);
-			while ($lineboard = mysql_fetch_array($resultboard, MYSQL_ASSOC)) {
+			$resultboard = mysql_query("SELECT `name` FROM `boards`",$dblink);
+			while ($lineboard = mysql_fetch_assoc($resultboard)) {
 				$staff_boardsmoderated = array_merge($staff_boardsmoderated,array($lineboard['name']));
 			}
 		} else {
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysql_fetch_assoc($result)) {
 				$array_boards = explode('|',$line['boards']);
 			}
 			foreach ($array_boards as $this_board_name) {
@@ -165,14 +182,14 @@ function moderator_boardlist($username) {
 	}
 	return $staff_boardsmoderated;
 }
-function moderator_deleteandbanlinks($chan_webfolder,$board_dir,$post_id, $is_thread) {
+function moderator_deleteandbanlinks($chan_boardsfolder,$board_dir,$post_id, $is_thread) {
 	is_file("config.php") ? require("config.php") : require("../config.php");
-	$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board_dir."'",$dblink);
-	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+	$result = mysql_query("SELECT `id` FROM `boards` WHERE `name` = '".$board_dir."'",$dblink);
+	while ($line = mysql_fetch_assoc($result)) {
 		$board_id = $line['id'];
 	}
-	$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `IS_DELETED` = '0' AND `boardid` = '".$board_id."' AND `id` = '".$post_id."'",$dblink);
-	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+	$result = mysql_query("SELECT `ip` FROM `posts` WHERE `IS_DELETED` = '0' AND  `IS_DELETED` = '0' AND `boardid` = '".$board_id."' AND `id` = '".$post_id."'",$dblink);
+	while ($line = mysql_fetch_assoc($result)) {
 		$poster_ip = $line['ip'];
 	}
 	if ($is_thread==true) {
@@ -182,7 +199,7 @@ function moderator_deleteandbanlinks($chan_webfolder,$board_dir,$post_id, $is_th
 	}
 	return "<script type=\"text/javascript\">
 	if (getCookie(\"tcmod\")==\"yes\") {
-		document.write('&nbsp;&#91;<a href=\"".$chan_webfolder."/manage.php?action=delposts&boarddir=".$board_dir."&del".$post_threadorpost."id=".$post_id."\" onclick=\"return confirm(\\'Are you sure you want to delete this ".$post_threadorpost."?\\');\"><acronym title=\"Delete\">D</acronym></a>&nbsp;<a href=\"".$chan_webfolder."/manage.php?action=delposts&boarddir=".$board_dir."&del".$post_threadorpost."id=".$post_id."&postid=".$post_id."\" onclick=\"return confirm(\\'Are you sure you want to delete and ban the poster of this ".$post_threadorpost."?\\');\"><acronym title=\"Delete &amp; Ban\">&amp;</acronym></a>&nbsp;<a href=\"".$chan_webfolder."/manage.php?action=bans&banboard=".$board_dir."&banpost=".$post_id."\"><acronym title=\"Ban\">B</acronym></a>&#93;');
+		document.write('&nbsp;&#91;<a href=\"".$chan_boardsfolder."/manage.php?action=delposts&boarddir=".$board_dir."&del".$post_threadorpost."id=".$post_id."\" title=\"Delete\" onclick=\"return confirm(\\'Are you sure you want to delete this ".$post_threadorpost."?\\');\">D<\/a>&nbsp;<a href=\"".$chan_boardsfolder."/manage.php?action=delposts&boarddir=".$board_dir."&del".$post_threadorpost."id=".$post_id."&postid=".$post_id."\" title=\"Delete &amp; Ban\" onclick=\"return confirm(\\'Are you sure you want to delete and ban the poster of this ".$post_threadorpost."?\\');\">&amp;<\/a>&nbsp;<a href=\"".$chan_boardsfolder."/manage.php?action=bans&banboard=".$board_dir."&banpost=".$post_id."\" title=\"Ban\">B<\/a>&#93;');
 	}
 	</script>";
 }
@@ -206,10 +223,10 @@ function make_boardlist_checkbox($prefix,$boards) {
 //Configuration
 function config_getvalue($key) {
 	require("config.php");
-	$result = mysql_query("SELECT * FROM `config` WHERE `key` = '".$key."'",$dblink);
+	$result = mysql_query("SELECT * FROM `config` WHERE `key` = '".$key."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			return $line['value'];
 		}
 	} else {
@@ -218,7 +235,7 @@ function config_getvalue($key) {
 }
 function config_setvalue($key,$value) {
 	require("config.php");
-	$result = mysql_query("SELECT * FROM `config` WHERE `key` = '".$key."'",$dblink);
+	$result = mysql_query("SELECT * FROM `config` WHERE `key` = '".$key."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
 		mysql_query("UPDATE `config` SET `value` = '".$value."' WHERE `key` = '".$key."'",$dblink);
@@ -231,12 +248,12 @@ function config_setvalue($key,$value) {
 //Maintenance
 function delunusedimages($verbose = false) {
 	require("config.php");
-	$resultboard = mysql_query("SELECT * FROM `boards`",$dblink);
-	while ($lineboard = mysql_fetch_array($resultboard, MYSQL_ASSOC)) {
+	$resultboard = mysql_query("SELECT `id`,`name` FROM `boards`",$dblink);
+	while ($lineboard = mysql_fetch_assoc($resultboard)) {
 		$imagelist = array();
 		$imagethumbnaillist = array();
-		$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lineboard['id']."'",$dblink);
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		$result = mysql_query("SELECT `image`,`imagetype` FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lineboard['id']."'",$dblink);
+		while ($line = mysql_fetch_assoc($result)) {
 			$imagelist = array_merge($imagelist,array($line['image'].'.'.$line['imagetype']));
 			$imagethumbnaillist = array_merge($imagethumbnaillist,array($line['image'].'s.'.$line['imagetype']));
 		}
@@ -245,11 +262,11 @@ function delunusedimages($verbose = false) {
 		if (is_array($files)) { 
 			foreach ($files as $image) {
 				if (in_array(basename($image),$imagelist)==false) {
-					if (time()-filemtime($chan_rootdir.'/'.$lineboard['name'].'/src/'.basename($image))>120) {
+					if (time()-filemtime($chan_boardsdir.'/'.$lineboard['name'].'/src/'.basename($image))>120) {
 						if ($verbose==true) {
 							echo $image.' NOT IN DATABASE! Deleted.<br />';
 						}
-						unlink($chan_rootdir.'/'.$lineboard['name'].'/src/'.basename($image));
+						unlink($chan_boardsdir.'/'.$lineboard['name'].'/src/'.basename($image));
 					}
 				}
 			}
@@ -259,11 +276,11 @@ function delunusedimages($verbose = false) {
 		if (is_array($files)) { 
 			foreach ($files as $image) {
 				if (in_array(basename($image),$imagethumbnaillist)==false) {
-					if (time()-filemtime($chan_rootdir.'/'.$lineboard['name'].'/thumb/'.basename($image))>120) {
+					if (time()-filemtime($chan_boardsdir.'/'.$lineboard['name'].'/thumb/'.basename($image))>120) {
 						if ($verbose==true) {
 							echo $image.' (thumb) NOT IN DATABASE! Deleted.<br />';
 						}
-						unlink($chan_rootdir.'/'.$lineboard['name'].'/thumb/'.basename($image));
+						unlink($chan_boardsdir.'/'.$lineboard['name'].'/thumb/'.basename($image));
 					}
 				}
 			}
@@ -275,44 +292,45 @@ function delunusedimages($verbose = false) {
 //Boards
 function regenerate_board($board,$pagesonly = false) {
 	is_file("config.php") ? require("config.php") : require("../config.php");
+	$config_numthreadsdisplayed = config_getvalue("numthreadsdisplayed");
 	$resultboard = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
-	while ($lineboard = mysql_fetch_array($resultboard, MYSQL_ASSOC)) {
+	while ($lineboard = mysql_fetch_assoc($resultboard)) {
 		$board_id = $lineboard['id'];
 		$board_dir = $lineboard['name'];
 		$board_desc = $lineboard['desc'];
 		$board_locked = $lineboard['locked'];
 		//Rebuild pages
-		$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."' AND `threadid` = '0' ORDER BY `stickied` DESC, `lastbumped` DESC",$dblink);
+		$result = mysql_query("SELECT `id` FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."' AND `threadid` = '0' ORDER BY `stickied` DESC, `lastbumped` DESC",$dblink);
 		$numpostsleft = mysql_num_rows($result);
-		$boardstooutput = floor(($numpostsleft-1) / 10);
+		$boardstooutput = floor(($numpostsleft-1) / $config_numthreadsdisplayed);
 		$boardpage = 0;
 		if ($numpostsleft>0) {
 			while ($numpostsleft>0) {
 				if (!ob_start()) {
 					die("Unable to initiate the output buffering!");
 				}
+				$executiontime_start = microtime_float();
 				require_once("header.php");
 				echo chan_header($board_dir);
 				require_once("postbox.php");
 				echo chan_postbox($board_dir);
-				$query = "SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."' AND `threadid` = '0' ORDER BY `stickied` DESC, `lastbumped` DESC LIMIT ".($boardpage*10).",10";
+				echo '<form id="delform" action="'.$chan_boardsfolder.'/board.php" method="post"><input type="hidden" name="board" value="'.$board_dir.'" />';
+				$query = "SELECT `id` FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."' AND `threadid` = '0' ORDER BY `stickied` DESC, `lastbumped` DESC LIMIT ".($boardpage*$config_numthreadsdisplayed).','.$config_numthreadsdisplayed;
 				$result_leftposts = mysql_query($query,$dblink);
-				while ($line = mysql_fetch_array($result_leftposts, MYSQL_ASSOC)) {
+				while ($line = mysql_fetch_assoc($result_leftposts)) {
 					$thread_id = $line['id'];
 					echo buildthread($board_dir,$thread_id,true);
 				}
-				/*
-				This will be implemented in 0.4, feel free to modify it if you wish.  If you do implement it yourself, I'd love to see the code :)
-				*/
 				echo '<table class="userdelete"><tbody><tr><td>Delete Post [<label><input type="checkbox" name="fileonly" value="on" />File Only</label>]<br />Password <input type="password" name="postpassword" size="8" />&nbsp;<input value="Delete" type="submit" /></td></tr></tbody></table></form>';
+				echo '<script type="text/javascript">set_delpass("delform")</script>';
 				echo '<table border="1"><tbody><tr><td>';
 				if ($boardpage==0) {
 					echo 'Previous';
 				} else {
 					if ($boardpage-1!=0) {
-						echo '<form method="get" action="'.$chan_webfolder.'/'.$board_dir.'/'.($boardpage-1).'.html"><input value="Previous" type="submit" /></form>';
+						echo '<form method="get" action="'.$chan_boardsfolder.'/'.$board_dir.'/'.($boardpage-1).'.html"><input value="Previous" type="submit" /></form>';
 					} else {
-						echo '<form method="get" action="'.$chan_webfolder.'/'.$board_dir.'/board.html"><input value="Previous" type="submit" /></form>';
+						echo '<form method="get" action="'.$chan_boardsfolder.'/'.$board_dir.'/board.html"><input value="Previous" type="submit" /></form>';
 					}
 				}
 				echo '</td><td>';
@@ -322,9 +340,9 @@ function regenerate_board($board,$pagesonly = false) {
 						echo '&#91;'.$i.'&#93;';
 					} else {
 						if ($i!=0) {
-							echo '&#91;<a href="'.$chan_webfolder.'/'.$board_dir.'/'.$i.'.html">'.$i.'</a>&#93;';
+							echo '&#91;<a href="'.$chan_boardsfolder.'/'.$board_dir.'/'.$i.'.html">'.$i.'</a>&#93;';
 						} else {
-							echo '&#91;<a href="'.$chan_webfolder.'/'.$board_dir.'/board.html">'.$i.'</a>&#93;';
+							echo '&#91;<a href="'.$chan_boardsfolder.'/'.$board_dir.'/board.html">'.$i.'</a>&#93;';
 						}
 					}
 					$i++;
@@ -333,16 +351,17 @@ function regenerate_board($board,$pagesonly = false) {
 				if ($boardpage==$boardstooutput) {
 					echo "Next";
 				} else {
-					echo '<form method="get" action="'.$chan_webfolder.'/'.$board_dir.'/'.($boardpage+1).'.html"><input value="Next" type="submit" /></form>';
+					echo '<form method="get" action="'.$chan_boardsfolder.'/'.$board_dir.'/'.($boardpage+1).'.html"><input value="Next" type="submit" /></form>';
 				}
-				echo '</td></tr></tbody></table></form>';
+				echo '</td></tr></tbody></table>';
+				$executiontime_stop = microtime_float();
 				require_once("footer.php");
-				echo chan_footer();
+				echo chan_footer(false,($executiontime_stop-$executiontime_start));
 				$page = ob_get_clean();
 				if ($boardpage==0) {
-					print_page($chan_rootdir."/".$board_dir."/board.html",$page,$board_dir);
+					print_page($chan_boardsdir."/".$board_dir."/board.html",$page,$board_dir);
 				} else {
-					print_page($chan_rootdir."/".$board_dir."/".$boardpage.".html",$page,$board_dir);
+					print_page($chan_boardsdir."/".$board_dir."/".$boardpage.".html",$page,$board_dir);
 				}
 				$page = "";
 				$boardpage++;
@@ -350,24 +369,26 @@ function regenerate_board($board,$pagesonly = false) {
 			}
 		} else { //Make a blank index
 			ob_start();
+			$executiontime_start = microtime_float();
 			require_once("header.php");
 			echo chan_header($board_dir);
 			require_once("postbox.php");
 			echo chan_postbox($board_dir);
-			require_once("footer.php");
-			echo chan_footer();
+			require("footer.php");
+			$executiontime_stop = microtime_float();
+			echo chan_footer(false,($executiontime_stop-$executiontime_start));
 			$page = ob_get_clean();
-			print_page($chan_rootdir."/".$board_dir."/board.html",$page,$board_dir);
+			print_page($chan_boardsdir."/".$board_dir."/board.html",$page,$board_dir);
 		}
 		//Rebuild /res/
 		if ($pagesonly==false) {
 			$res_threadlist = array();
-			$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lineboard['id']."' AND `threadid` = '0' ORDER BY `lastbumped` DESC",$dblink);
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			$result = mysql_query("SELECT `id` FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lineboard['id']."' AND `threadid` = '0' ORDER BY `lastbumped` DESC",$dblink);
+			while ($line = mysql_fetch_assoc($result)) {
 				$res_threadlist = array_merge($res_threadlist,array($line['id'].'.html'));
 				regenerate_thread($lineboard['name'],$line['id']);
 			}
-			$dir = $chan_rootdir.'/'.$board_dir.'/res';
+			$dir = $chan_boardsdir.'/'.$board_dir.'/res';
 			$files = glob ("$dir/{*.html}",  GLOB_BRACE);
 			if (is_array($files)) { 
 				foreach ($files as $htmlfile) {
@@ -378,7 +399,7 @@ function regenerate_board($board,$pagesonly = false) {
 			}
 		}
 		//Delete old pages
-		$dir = $chan_rootdir.'/'.$board_dir;
+		$dir = $chan_boardsdir.'/'.$board_dir;
 		$files = glob ("$dir/{*.html}",  GLOB_BRACE);
 		if (is_array($files)) { 
 			foreach ($files as $htmlfile) {
@@ -393,8 +414,8 @@ function regenerate_board($board,$pagesonly = false) {
 }
 function regenerate_all_boards($verbose = false) {
 	require("config.php");
-	$resultboard = mysql_query("SELECT * FROM `boards`",$dblink);
-	while ($lineboard = mysql_fetch_array($resultboard, MYSQL_ASSOC)) {
+	$resultboard = mysql_query("SELECT `name` FROM `boards`",$dblink);
+	while ($lineboard = mysql_fetch_assoc($resultboard)) {
 		regenerate_board($lineboard['name']);
 		if ($verbose==true) {
 			echo 'Regenerated /'.$lineboard['name'].'/<br />';
@@ -437,13 +458,13 @@ function removeDir($path) {
 function remove_board($dir){
 	require("config.php");
 	$dir = '/'.$dir;
-	/*if (removeDir($chan_rootdir.$chan_webfolder."/".$dir)) {
+	/*if (removeDir($chan_rootdir.$chan_boardsfolder."/".$dir)) {
 		echo 'Directory removed!';
 	} else {
 		echo 'Error.';
 	}*/
 	
-	define('loc1', $chan_rootdir, true);
+	define('loc1', $chan_boardsdir, true);
 
 	if(!isset($GLOBALS['remerror'])) {
 		$GLOBALS['remerror'] = false;
@@ -479,17 +500,17 @@ function remove_board($dir){
 }
 
 //Threads
-function buildthread($board,$threadid,$page = false) {
+function buildthread($board,$threadid,$page = false,$resurrect = false) {
 	ob_start();
 	require("config.php");
 	if (!$threadid>0||$board=="") {
 		die("Invalid arguments sent to function buildthread()");
 	}
 	if ($board!="") {
-		$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
+		$result = mysql_query("SELECT `id`,`name`,`desc` FROM `boards` WHERE `name` = '".$board."' LIMIT 1",$dblink);
 		$rows = mysql_num_rows($result);
 		if ($rows>0) {
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysql_fetch_assoc($result)) {
 				$board_id = $line['id'];
 				$board_dir = $line['name'];
 				$board_desc = $line['desc'];
@@ -500,44 +521,61 @@ function buildthread($board,$threadid,$page = false) {
 	} else {
 		die("Invlaid board ID.");
 	}
-	
-	$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".$threadid."' AND `boardid` = '".$board_id."' AND `threadid` = '0'",$dblink);
+	if ($resurrect) {
+		$isdeleted_check = '1';
+	} else {
+		$isdeleted_check = '0';
+	}
+	$config_numrepliesdisplayed = config_getvalue("numrepliesdisplayed");
+	$config_numrepliesdisplayedsticky = config_getvalue("numrepliesdisplayedsticky");
+	$config_numthreadsdisplayed = config_getvalue("numthreadsdisplayed");
+	$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '".$isdeleted_check."' AND  `id` = '".$threadid."' AND `boardid` = '".$board_id."' AND `threadid` = '0'",$dblink);
 	$rows = mysql_num_rows($result);
 	if (!$rows>0) {
 		die("No posts in thread to build from.");
 	}
-	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+	if (!$page) {
+		echo '<form id="delform" action="'.$chan_boardsfolder.'/board.php" method="post"><input type="hidden" name="board" value="'.$board_dir.'" />';
+	}
+	while ($line = mysql_fetch_assoc($result)) {
 		$thread_id = $line['id'];
-		if ($line['image']=="removed") {
-			$imgWidth = '0';
-			$imgHeight = '0';
-			$imgWidth_thumb = '189';
-			$imgHeight_thumb = '16';
-		} else {
-			$imageDim = getimagesize($chan_rootdir."/".$board_dir."/src/".$line['image'].'.'.$line['imagetype']);
-			$imgWidth = $imageDim[0];
-			$imgHeight = $imageDim[1];
-			$imageDim_thumb = getimagesize($chan_rootdir."/".$board_dir."/thumb/".$line['image'].'s.'.$line['imagetype']);
-			$imgWidth_thumb = $imageDim_thumb[0];
-			$imgHeight_thumb = $imageDim_thumb[1];
+		if ($resurrect==false) {
+			if ($line['image']=="removed") {
+				$imgWidth = '0';
+				$imgHeight = '0';
+				$imgWidth_thumb = '189';
+				$imgHeight_thumb = '16';
+			} else if ($line['imagetype']=="swf") {
+				$imgWidth = '0';
+				$imgHeight = '0';
+				$imgWidth_thumb = '86';
+				$imgHeight_thumb = '86';
+			} else {
+				$imageDim = getimagesize($chan_boardsdir."/".$board_dir."/src/".$line['image'].'.'.$line['imagetype']);
+				$imgWidth = $imageDim[0];
+				$imgHeight = $imageDim[1];
+				$imageDim_thumb = getimagesize($chan_boardsdir."/".$board_dir."/thumb/".$line['image'].'s.'.$line['imagetype']);
+				$imgWidth_thumb = $imageDim_thumb[0];
+				$imgHeight_thumb = $imageDim_thumb[1];
+			}
 		}
-		$result2 = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."' AND `threadid` = '".$thread_id."'");
+		$result2 = mysql_query("SELECT `id` FROM `posts` WHERE `IS_DELETED` = '".$isdeleted_check."' AND  `boardid` = '".$board_id."' AND `threadid` = '".$thread_id."'");
 		$numReplies = mysql_num_rows($result2);
 		$numImageReplies = 0;
 		if ($page==true) {
 			if ($line['stickied']=="0") {
-				if ($numReplies>3) {
-					$result2 = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."' AND `threadid` = '".$thread_id."' ORDER BY `postedat` ASC LIMIT 0,".($numReplies-3)."",$dblink);
-					while ($line2 = mysql_fetch_array($result2, MYSQL_ASSOC)) {
+				if ($numReplies>$config_numrepliesdisplayed) {
+					$result2 = mysql_query("SELECT `image` FROM `posts` WHERE `IS_DELETED` = '".$isdeleted_check."' AND  `boardid` = '".$board_id."' AND `threadid` = '".$thread_id."' ORDER BY `postedat` ASC LIMIT 0,".($numReplies-$config_numrepliesdisplayed)."",$dblink);
+					while ($line2 = mysql_fetch_assoc($result2)) {
 						if ($line2['image']!="") {
 							$numImageReplies++;
 						}
 					}
 				}
 			} else {
-				if ($numReplies>1) {
-					$result2 = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."' AND `threadid` = '".$thread_id."' ORDER BY `postedat` ASC LIMIT 0,".($numReplies-1)."",$dblink);
-					while ($line2 = mysql_fetch_array($result2, MYSQL_ASSOC)) {
+				if ($numReplies>$config_numrepliesdisplayedsticky) {
+					$result2 = mysql_query("SELECT `image` FROM `posts` WHERE `IS_DELETED` = '".$isdeleted_check."' AND  `boardid` = '".$board_id."' AND `threadid` = '".$thread_id."' ORDER BY `postedat` ASC LIMIT 0,".($numReplies-$config_numrepliesdisplayedsticky)."",$dblink);
+					while ($line2 = mysql_fetch_assoc($result2)) {
 						if ($line2['image']!="") {
 							$numImageReplies++;
 						}
@@ -545,16 +583,12 @@ function buildthread($board,$threadid,$page = false) {
 				}
 			}
 		}
-		/*
-		This will be implemented in 0.4, feel free to modify it if you wish.  If you do implement it yourself, I'd love to see the code :)
-		*/
-		echo '<form id="delform" action="'.$chan_webfolder.'/board.php" method="post"><input type="hidden" name="board" value="'.$board_dir.'" />';
 		?>
-		<span class="filesize">File: <a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($line['image']=="removed") { echo $chan_webfolder."/imageremoved"; } else { echo $chan_webfolder."/".$board_dir."/src/".$line['image']; }?>.<?php if ($line['image']=="removed") { echo 'png'; } else { echo $line['imagetype']; } ?>"><?php if ($line['image']=="removed") { echo 'imageremoved.png'; } else { echo $line['image'].'.'.$line['imagetype']; } ?></a> -(<em><?php
-		if ($line['image']=="removed") { echo '&nbsp'; } else { echo round(filesize($chan_rootdir."/".$board_dir."/src/".$line['image'].'.'.$line['imagetype'])/1024).' KB, '.$imgWidth.'x'.$imgHeight; } ?>
+		<span class="filesize">File: <a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($line['image']=="removed") { echo $chan_boardsfolder."/imageremoved"; } else { echo $chan_boardsfolder."/".$board_dir."/src/".$line['image']; }?>.<?php if ($line['image']=="removed") { echo 'png'; } else { echo $line['imagetype']; } ?>"><?php if ($line['image']=="removed") { echo 'imageremoved.png'; } else { echo $line['image'].'.'.$line['imagetype']; } ?></a> -(<em><?php
+		if ($line['image']=="removed"||$resurrect==true) { echo '&nbsp'; } else { echo round(filesize($chan_boardsdir."/".$board_dir."/src/".$line['image'].'.'.$line['imagetype'])/1024).' KB, '.$imgWidth.'x'.$imgHeight; } ?>
 		</em>)</span><span class="thumbnailmsg"> Thumbnail displayed, click image for full size.</span><br />
-		<a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($line['image']=="removed") { echo $chan_webfolder."/imageremoved"; } else { echo $chan_webfolder."/".$board_dir."/src/".$line['image']; } ?>.<?php if ($line['image']=="removed") { echo "png"; } else { echo $line['imagetype']; } ?>">
-		<img src="<?php if ($line['image']=="removed") { echo $chan_webfolder."/imageremoved"; } else { echo $chan_webfolder."/".$board_dir."/thumb/".$line['image']."s"; } ?>.<?php if ($line['image']=="removed") { echo "png"; } else { echo $line['imagetype']; } ?>" width="<?php echo $imgWidth_thumb; ?>" height="<?php echo $imgHeight_thumb; ?>" alt="<?php echo $thread_id; ?>" class="thumb" /></a><a name="<?php echo $thread_id; ?>">
+		<?php if ($resurrect==false) { ?><a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($line['image']=="removed") { echo $chan_boardsfolder."/imageremoved"; } else { echo $chan_boardspath."/".$board_dir."/src/".$line['image']; } ?>.<?php if ($line['image']=="removed") { echo "png"; } else { echo $line['imagetype']; } ?>">
+		<img src="<?php if ($line['image']=="removed") { echo $chan_boardsfolder."/imageremoved"; } else if ($line['imagetype']=="swf") { echo $chan_boardspath."/flash"; } else { echo $chan_boardspath."/".$board_dir."/thumb/".$line['image']."s"; } ?>.<?php if ($line['image']=="removed"||$line['imagetype']=="swf") { echo "png"; } else { echo $line['imagetype']; } ?>" width="<?php echo $imgWidth_thumb; ?>" height="<?php echo $imgHeight_thumb; ?>" alt="<?php echo $thread_id; ?>" class="thumb" /></a><?php } ?><a name="<?php echo $thread_id; ?>">
 		</a><label><input type="checkbox" name="delete" value="<?php echo $thread_id; ?>" />&nbsp;
 		<?php if ($line['subject']!="") { echo '<span class="filetitle">'.stripslashes($line['subject']).'</span>&nbsp;'; } ?>
 		<span class="postername"><?php
@@ -566,7 +600,7 @@ function buildthread($board,$threadid,$page = false) {
 		} else if ($line['user']==""&&$line['tripcode']!="") {
 			echo ''; // If they have a tripcode, just display the tripcode
 		} else {
-			echo stripslashes($line[user]);
+			echo stripslashes($line['user']);
 		}
 		if ($line['email']!="") {
 			echo '</a>';
@@ -583,9 +617,9 @@ function buildthread($board,$threadid,$page = false) {
 			}
 		}
 		echo '&nbsp;'.date("y/m/d(D)H:i",$line['postedat']); ?></label>&nbsp;
-		<span class="reflink"><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#<?php echo $thread_id; ?>">No.</a><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#i<?php echo $thread_id; ?>" <?php if ($page==false) { echo ' onclick="insert(\'>>'.$thread_id.'\');"'; } ?>><?php echo $thread_id; ?></a><?php if ($line['locked']=="1") { echo '&nbsp;<img style="border: 0;" src="'.$chan_webfolder.'/locked.gif" alt="locked" />'; } ?><?php if ($line['stickied']=="1") { echo '<img style="border: 0;" src="'.$chan_webfolder.'/sticky.gif" alt="stickied" />'; } ?></span>
-		<?php if ($page==true) { echo '&nbsp;&#91;<a href="'.$chan_webfolder.'/'.$board_dir.'/res/'.$thread_id.'.html">Reply</a>&#93;'; } ?>
-		<?php echo moderator_deleteandbanlinks($chan_webfolder,$board_dir,$thread_id,true); ?>
+		<span class="reflink"><a href="<?php echo $chan_boardsfolder."/".$board_dir."/res/".$thread_id; ?>.html#<?php echo $thread_id; ?>">No.</a><a href="<?php echo $chan_boardspath."/".$board_dir."/res/".$thread_id; ?>.html#i<?php echo $thread_id; ?>" <?php if ($page==false) { echo ' onclick="insert(\'>>'.$thread_id.'\');"'; } ?>><?php echo $thread_id; ?></a><?php if ($line['locked']=="1") { echo '&nbsp;<img style="border: 0;" src="'.$chan_boardspath.'/locked.gif" alt="locked" />'; } ?><?php if ($line['stickied']=="1") { echo '<img style="border: 0;" src="'.$chan_boardspath.'/sticky.gif" alt="stickied" />'; } ?></span>
+		<?php if ($page==true) { echo '&nbsp;&#91;<a href="'.$chan_boardspath.'/'.$board_dir.'/res/'.$thread_id.'.html">Reply</a>&#93;'; } ?>
+		<?php echo moderator_deleteandbanlinks($chan_boardsfolder,$board_dir,$thread_id,true); ?>
 		<blockquote>
 		<p><?php if (count(explode("<br />", $line['message']))>15&&$page==true) {
 				$i = 0;
@@ -596,24 +630,23 @@ function buildthread($board,$threadid,$page = false) {
 						echo stripslashes($message_line)."<br />";
 					}
 				}
-				echo '</p><div class="abbrev">Comment too long. Click <a href="'.$chan_webfolder.'/'.$board_dir.'/res/'.$thread_id.'.html">here</a> to view the full text.</div>';
+				echo '<div class="abbrev">Comment too long. Click <a href="'.$chan_boardsfolder.'/'.$board_dir.'/res/'.$thread_id.'.html">here</a> to view the full text.</div>';
 			} else {
 				echo stripslashes($line['message']);
-				echo '</p>';
 			}
 		?>
 		</blockquote>
 		<?php
 		if ($numReplies>0) {
 			if ($page==false) {
-				$result2 = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '".$thread_id."' AND `boardid` = '".$board_id."' ORDER BY `postedat` ASC",$dblink);
+				$result2 = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '".$isdeleted_check."' AND  `threadid` = '".$thread_id."' AND `boardid` = '".$board_id."' ORDER BY `postedat` ASC",$dblink);
 			} else {
-				$query = "SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '".$thread_id."' AND `boardid` = '".$board_id."' ORDER BY `postedat` ASC LIMIT ";
+				$query = "SELECT * FROM `posts` WHERE `IS_DELETED` = '".$isdeleted_check."' AND  `threadid` = '".$thread_id."' AND `boardid` = '".$board_id."' ORDER BY `postedat` ASC LIMIT ";
 				if ($line['stickied']=="0") {
-					$query .= max($numReplies-3,0).",3";
-					if ($numReplies>3) {
-						echo '<span class="omittedposts"> '.($numReplies-3).' post';
-						if ($numReplies-3!=1) {
+					$query .= max($numReplies-$config_numrepliesdisplayed,0).','.$config_numrepliesdisplayed;
+					if ($numReplies>$config_numrepliesdisplayed) {
+						echo '<span class="omittedposts"> '.($numReplies-$config_numrepliesdisplayed).' post';
+						if ($numReplies-$config_numrepliesdisplayed!=1) {
 							echo 's';
 						}
 						if ($numImageReplies>0) {
@@ -625,10 +658,10 @@ function buildthread($board,$threadid,$page = false) {
 						echo ' omitted. Click Reply to view.  </span>';
 					}
 				} else {
-					$query .= max($numReplies-1,0).",1";
-					if ($numReplies>1) {
-						echo '<span class="omittedposts"> '.($numReplies-1).' post';
-						if ($numReplies-1!=1) {
+					$query .= max($numReplies-$config_numrepliesdisplayedsticky,0).','.$config_numrepliesdisplayedsticky;
+					if ($numReplies>$config_numrepliesdisplayedsticky) {
+						echo '<span class="omittedposts"> '.($numReplies-$config_numrepliesdisplayedsticky).' post';
+						if ($numReplies-$config_numrepliesdisplayedsticky!=1) {
 							echo 's';
 						}
 						if ($numImageReplies>0) {
@@ -642,7 +675,7 @@ function buildthread($board,$threadid,$page = false) {
 				}
 				$result2 = mysql_query($query,$dblink);
 			}
-			while ($line2 = mysql_fetch_array($result2, MYSQL_ASSOC)) {
+			while ($line2 = mysql_fetch_assoc($result2)) {
 				$reply_id = $line2['id'];
 				$reply_user = stripslashes($line2['user']);
 				$reply_tripcode = $line2['tripcode'];
@@ -654,18 +687,25 @@ function buildthread($board,$threadid,$page = false) {
 				$reply_imagetype = $line2['imagetype'];
 				$reply_posterauthority = $line2['posterauthority'];
 				if ($reply_image!="") {
-					if ($reply_image=="removed") {
-						$reply_imgWidth = '0';
-						$reply_imgHeight = '0';
-						$reply_imgWidth_thumb = '189';
-						$reply_imgHeight_thumb = '16';
-					} else {
-						$reply_imageDim = getimagesize($chan_rootdir."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype);
-						$reply_imgWidth = $reply_imageDim[0];
-						$reply_imgHeight = $reply_imageDim[1];
-						$reply_imageDim_thumb = getimagesize($chan_rootdir."/".$board_dir."/thumb/".$reply_image.'s.'.$reply_imagetype);
-						$reply_imgWidth_thumb = $reply_imageDim_thumb[0];
-						$reply_imgHeight_thumb = $reply_imageDim_thumb[1];
+					if ($resurrect==false) {
+						if ($reply_image=="removed") {
+							$reply_imgWidth = '0';
+							$reply_imgHeight = '0';
+							$reply_imgWidth_thumb = '189';
+							$reply_imgHeight_thumb = '16';
+						} else if ($reply_imagetype=="swf") {
+							$reply_imgWidth = '0';
+							$reply_imgHeight = '0';
+							$reply_imgWidth_thumb = '86';
+							$reply_imgHeight_thumb = '86';
+						} else {
+							$reply_imageDim = getimagesize($chan_boardsdir."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype);
+							$reply_imgWidth = $reply_imageDim[0];
+							$reply_imgHeight = $reply_imageDim[1];
+							$reply_imageDim_thumb = getimagesize($chan_boardsdir."/".$board_dir."/thumb/".$reply_image.'s.'.$reply_imagetype);
+							$reply_imgWidth_thumb = $reply_imageDim_thumb[0];
+							$reply_imgHeight_thumb = $reply_imageDim_thumb[1];
+						}
 					}
 				}
 				?>
@@ -706,14 +746,14 @@ function buildthread($board,$threadid,$page = false) {
 						echo '&nbsp;<span class="mod">##&nbsp;Mod&nbsp;##</span>';
 					}
 				}
-				echo '&nbsp;'.date("y/m/d(D)H:i",$reply_postedat); ?></label> <span class="reflink"><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#<?php echo $reply_id; ?>">No.</a><a href="<?php echo $chan_webfolder."/".$board_dir."/res/".$thread_id; ?>.html#i<?php echo $reply_id; ?>" <?php if ($page==false) { echo ' onclick="insert(\'>>'.$reply_id.'\');"'; } ?>><?php echo $reply_id; ?></a></span>
-				<?php echo moderator_deleteandbanlinks($chan_webfolder,$board_dir,$reply_id,false); ?>
+				echo '&nbsp;'.date("y/m/d(D)H:i",$reply_postedat); ?></label> <span class="reflink"><a href="<?php echo $chan_boardsfolder."/".$board_dir."/res/".$thread_id; ?>.html#<?php echo $reply_id; ?>">No.</a><a href="<?php echo $chan_boardsfolder."/".$board_dir."/res/".$thread_id; ?>.html#i<?php echo $reply_id; ?>" <?php if ($page==false) { echo ' onclick="insert(\'>>'.$reply_id.'\');"'; } ?>><?php echo $reply_id; ?></a></span>
+				<?php echo moderator_deleteandbanlinks($chan_boardsfolder,$board_dir,$reply_id,false); ?>
 				&nbsp;<br />
 				<?php
 				if ($reply_image!="") {
 					?>
-					<span class="filesize">File: <a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($reply_image=="removed") { echo $chan_webfolder."/imageremoved.png"; } else { echo $chan_webfolder."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype; } ?>"><?php if ($reply_image=="removed") { echo 'imageremoved.png'; } else { echo $reply_image.'.'.$reply_imagetype; } ?></a> -(<em><?php if ($reply_image=="removed") { echo '&nbsp'; } else { echo round(filesize($chan_rootdir."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype)/1024).' KB, '.$reply_imgWidth.'x'.$reply_imgHeight; }  ?></em>)</span> <span class="thumbnailmsg">Thumbnail displayed, click image for full size.</span><br />
-					<a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($reply_image=="removed") { echo $chan_webfolder."/imageremoved.png"; } else {echo $chan_webfolder."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype; } ?>"><img src="<?php if ($reply_image=="removed") { echo $chan_webfolder."/imageremoved.png"; } else { echo $chan_webfolder."/".$board_dir."/thumb/".$reply_image.'s.'.$reply_imagetype; } ?>" width="<?php echo $reply_imgWidth_thumb; ?>" height="<?php echo $reply_imgHeight_thumb; ?>" alt="<?php echo $reply_id; ?>" class="thumb" /></a>
+					<?php if ($resurrect==false) { ?><span class="filesize">File: <a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($reply_image=="removed") { echo $chan_boardsfolder."/imageremoved.png"; } else { echo $chan_boardsfolder."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype; } ?>"><?php if ($reply_image=="removed") { echo 'imageremoved.png'; } else { echo $reply_image.'.'.$reply_imagetype; } ?></a> -(<em><?php if ($reply_image=="removed") { echo '&nbsp'; } else { echo round(filesize($chan_boardsdir."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype)/1024).' KB, '.$reply_imgWidth.'x'.$reply_imgHeight; }  ?></em>)</span> <span class="thumbnailmsg">Thumbnail displayed, click image for full size.</span><br />
+					<a <?php if (config_getvalue("imagesinnewwindow")=="1") { echo "onclick=\"window.open(this.href,'_blank');return false;\""; } ?> href="<?php if ($reply_image=="removed") { echo $chan_webpath."/imageremoved.png"; } else {echo $chan_boardspath."/".$board_dir."/src/".$reply_image.'.'.$reply_imagetype; } ?>"><img src="<?php if ($reply_image=="removed") { echo $chan_webpath."/imageremoved.png"; } else if ($reply_imagetype=="swf") { echo $chan_boardsfolder."/flash.png"; } else { echo $chan_boardspath."/".$board_dir."/thumb/".$reply_image.'s.'.$reply_imagetype; } ?>" width="<?php echo $reply_imgWidth_thumb; ?>" height="<?php echo $reply_imgHeight_thumb; ?>" alt="<?php echo $reply_id; ?>" class="thumb" /></a><?php } ?>
 					<?php
 				}
 				?>
@@ -727,7 +767,7 @@ function buildthread($board,$threadid,$page = false) {
 							echo preg_replace('/<a href="\/'.$board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;', $message_line)."<br />";
 						}
 					}
-					echo '</p><div class="abbrev">Comment too long. Click <a href="'.$chan_webfolder.'/'.$board_dir.'/res/'.$thread_id.'.html">here</a> to view the full text.</div>';
+					echo '<div class="abbrev">Comment too long. Click <a href="'.$chan_boardsfolder.'/'.$board_dir.'/res/'.$thread_id.'.html">here</a> to view the full text.</div>';
 				} else {
 					//echo '/[\<a href\="\/b\/res\/'.$thread_id.'\.html#i]([0-9]+)["\>&gt;&gt;]/'.'<br /><br />'.'<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1">&gt;&gt;\\1</a>'.'<br /><br />';
 					if ($page==true) {
@@ -736,9 +776,8 @@ function buildthread($board,$threadid,$page = false) {
 						echo preg_replace('/<a href="\/'.$board_dir.'\/res\/'.$thread_id.'\.html#i([0-9]+)">&gt;&gt;/', '<a href="/'.$board_dir.'/res/'.$thread_id.'.html#\\1" onclick="highlight(\'\\1\');">&gt;&gt;', $reply_message);
 					}
 					//echo preg_replace('/'.preg_quote('<a href="\/b\/res\/'.$thread_id.'.html#i').'([0-9]+)'.preg_quote('">&gt;&gt;').'/', '<a href="/b/res/'.$thread_id.'.html#\\1">&gt;&gt;',stripslashes($line['message']));
-					echo '</p>';
 				}
-				?></p>
+				?>
 				</blockquote>
 				</td>
 				</tr>
@@ -763,77 +802,81 @@ function buildthread($board,$threadid,$page = false) {
 }
 function regenerate_thread($board,$threadid) {
 	require("config.php");
-	$resultboard = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
-	while ($lineboard = mysql_fetch_array($resultboard, MYSQL_ASSOC)) {
-		if (file_exists($chan_rootdir.'/'.$lineboard['name'].'/res/'.$threadid.'.html')) {
-			unlink($chan_rootdir.'/'.$lineboard['name'].'/res/'.$threadid.'.html');
+	$resultboard = mysql_query("SELECT `id`,`name` FROM `boards` WHERE `name` = '".$board."' LIMIT 1",$dblink);
+	while ($lineboard = mysql_fetch_assoc($resultboard)) {
+		if (file_exists($chan_boardsdir.'/'.$lineboard['name'].'/res/'.$threadid.'.html')) {
+			unlink($chan_boardsdir.'/'.$lineboard['name'].'/res/'.$threadid.'.html');
 		}
-		$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lineboard['id']."' AND `threadid` = '0' AND `id` = '".$threadid."'",$dblink);
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		$result = mysql_query("SELECT `id` FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$lineboard['id']."' AND `threadid` = '0' AND `id` = '".$threadid."' LIMIT 1",$dblink);
+		while ($line = mysql_fetch_assoc($result)) {
+			$executiontime_start = microtime_float();
 			$thread_page = '';
 			$post_id = $line['id'];
 			require_once("header.php");
 			$thread_page .= chan_header($lineboard['name']);
-			$thread_page .= '&#91;<a href="'.$chan_webfolder.'/'.$lineboard['name'].'/board.html">Return</a>&#93; <div class="theader">Posting mode: Reply</div>';
+			$thread_page .= '&#91;<a href="'.$chan_boardspath.'/'.$lineboard['name'].'/board.html">Return</a>&#93; <div class="theader">Posting mode: Reply</div>';
 			require_once("postbox.php");
 			$thread_page .= chan_postbox($lineboard['name'],$threadid);
 			$thread_page .= buildthread($lineboard['name'],$post_id);
 			require_once("footer.php");
-			$thread_page .= chan_footer();
-			print_page($lineboard['name']."/res/".$post_id.".html",$thread_page,$board);
+			$executiontime_stop = microtime_float();
+			$thread_page .= chan_footer(false,($executiontime_stop-$executiontime_start));
+			print_page($chan_boardsdir."/".$lineboard['name']."/res/".$post_id.".html",$thread_page,$board);
 		}
 	}
 }
 function delete_post($post,$board) {
 	require("config.php");
-	$query = "SELECT * FROM `boards` WHERE `name` = '".$board."'";
+	$query = "SELECT `id` FROM `boards` WHERE `name` = '".$board."' LIMIT 1";
 	$result = mysql_query($query,$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			$board_id = $line['id'];
 		}
-		$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".$post."' AND `boardid` = '".$board_id."'",$dblink);	
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		$result = mysql_query("SELECT `threadid` FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".$post."' AND `boardid` = '".$board_id."' LIMIT 1",$dblink);	
+		while ($line = mysql_fetch_assoc($result)) {
 			if ($line['threadid']=="0") {
 				$post_is_thread = true;
 			} else {
 				$post_is_thread = false;
 			}
 		}
+		$i = 0;
 		if ($post_is_thread==true) {
-			$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".$post."' AND `threadid` = '0' AND `boardid` = '".$board_id."'",$dblink);
+			$result = mysql_query("SELECT `image`,`imagetype` FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".$post."' AND `threadid` = '0' AND `boardid` = '".$board_id."' LIMIT 1",$dblink);
 			$rows = mysql_num_rows($result);
 			if ($rows>0) {
-				while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+				while ($line = mysql_fetch_assoc($result)) {
 					if ($line['image']!=""&&$line['image']!="removed") {
-						unlink($chan_rootdir.'/'.$board.'/src/'.$line['image'].'.'.$line['imagetype']);
-						unlink($chan_rootdir.'/'.$board.'/thumb/'.$line['image'].'s.'.$line['imagetype']);
+						unlink($chan_boardsdir.'/'.$board.'/src/'.$line['image'].'.'.$line['imagetype']);
+						unlink($chan_boardsdir.'/'.$board.'/thumb/'.$line['image'].'s.'.$line['imagetype']);
 					}
 				}
-				$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '".$post."' AND `boardid` = '".$board_id."'",$dblink);
-				while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+				$result = mysql_query("SELECT `id`,`image`,`imagetype` FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '".$post."' AND `boardid` = '".$board_id."'",$dblink);
+				while ($line = mysql_fetch_assoc($result)) {
+					$i++;
 					if ($line['image']!=""&&$line['image']!="removed") {
-						unlink($chan_rootdir.'/'.$board.'/src/'.$line['image'].'.'.$line['imagetype']);
-						unlink($chan_rootdir.'/'.$board.'/thumb/'.$line['image'].'s.'.$line['imagetype']);
+						unlink($chan_boardsdir.'/'.$board.'/src/'.$line['image'].'.'.$line['imagetype']);
+						unlink($chan_boardsdir.'/'.$board.'/thumb/'.$line['image'].'s.'.$line['imagetype']);
 					}
-					mysql_query("UPDATE `posts` SET `IS_DELETED` = '1' WHERE `id` = '".$line['id']."' AND `threadid` = '".$post."' AND `boardid` = '".$board_id."'",$dblink);
+					mysql_query("UPDATE `posts` SET `IS_DELETED` = '1' WHERE `id` = '".$line['id']."' AND `threadid` = '".$post."' AND `boardid` = '".$board_id."' LIMIT 1",$dblink);
 				}
-				unlink($chan_rootdir.'/'.$board.'/res/'.$post.'.html');
-				mysql_query("UPDATE `posts` SET `IS_DELETED` = '1' WHERE `id` = '".$post."' AND `boardid` = '".$board_id."'",$dblink);
+				unlink($chan_boardsdir.'/'.$board.'/res/'.$post.'.html');
+				mysql_query("UPDATE `posts` SET `IS_DELETED` = '1' WHERE `id` = '".$post."' AND `boardid` = '".$board_id."' LIMIT 1",$dblink);
 			}
-			return true;
+			return $i;
 		} else {
-			$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".$post."' AND `boardid` = '".$board_id."'",$dblink);
+			$result = mysql_query("SELECT `threadid`,`image`,`imagetype` FROM `posts` WHERE `IS_DELETED` = '0' AND  `id` = '".$post."' AND `boardid` = '".$board_id."'",$dblink);
 			$rows = mysql_num_rows($result);
 			if ($rows>0) {
-				while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+				while ($line = mysql_fetch_assoc($result)) {
 					if ($line['threadid']!="0") {
 						if ($line['image']!="") {
-							unlink($chan_rootdir.'/'.$board.'/src/'.$line['image'].'.'.$line['imagetype']);
-							unlink($chan_rootdir.'/'.$board.'/thumb/'.$line['image'].'s.'.$line['imagetype']);
+							unlink($chan_boardsdir.'/'.$board.'/src/'.$line['image'].'.'.$line['imagetype']);
+							unlink($chan_boardsdir.'/'.$board.'/thumb/'.$line['image'].'s.'.$line['imagetype']);
 						}
-						mysql_query("UPDATE `posts` SET `IS_DELETED` = '1' WHERE `id` = '".$post."' AND `boardid` = '".$board_id."'",$dblink);
+						mysql_query("UPDATE `posts` SET `IS_DELETED` = '1' WHERE `id` = '".$post."' AND `boardid` = '".$board_id."' LIMIT 1",$dblink);
 						return true;
 					} else {
 						return false;
@@ -848,11 +891,10 @@ function delete_post($post,$board) {
 }
 function trimtopagelimit($board) {
 	require("config.php");
-	$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
+	$result = mysql_query("SELECT `id`,`name`,`desc`,`maxage`,`maxpages`,`locked`,`redirecttothread`,`forcedanon` FROM `boards` WHERE `name` = '".$board."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		//print(time()." Trimming board: ".$board."<br />");
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			$board_id = $line['id'];
 			$board_dir = $line['name'];
 			$board_desc = $line['desc'];
@@ -862,29 +904,25 @@ function trimtopagelimit($board) {
 			$board_redirecttothread = $line['redirecttothread'];
 			$board_forcedanon = $line['forcedanon'];
 		}
-		$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '0' AND `boardid` = '".$board_id."' AND `stickied` = '0'",$dblink);
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		$result = mysql_query("SELECT `id`,`postedat` FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '0' AND `boardid` = '".$board_id."' AND `stickied` = '0'",$dblink);
+		while ($line = mysql_fetch_assoc($result)) {
 			if ($line['postedat']+($board_maxage*3600)<time()) {
 				delete_post($line['id'],$board_dir);
 			}
 		}
-		$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '0' AND `boardid` = '".$board_id."'",$dblink);
+		$result = mysql_query("SELECT `id`,`stickied` FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '0' AND `boardid` = '".$board_id."'",$dblink);
 		$rows = mysql_num_rows($result);
 		if ($rows/10>=$board_maxpages) {
-			//print(time()." Board is over the limit!<br />");
 			$board_maxthreads = $board_maxpages * 10;
-			//print(time()." Maximum threads for this board: ".$board_maxthreads."<br />");
 			$numthreadsover = $rows - $board_maxthreads;
-			//print(time()." This board has ".$rows." threads, which makes it ".$numthreadsover." threads too many!<br />");
 			if ($numthreadsover>0) {
 				$resultpost = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '0' AND `boardid` = '".$board_id."' AND `stickied` = '0' ORDER BY `lastbumped` ASC LIMIT ".$numthreadsover."",$dblink);
-				while ($linepost = mysql_fetch_array($resultpost, MYSQL_ASSOC)) {
+				while ($linepost = mysql_fetch_assoc($resultpost)) {
 					$oldthread_id = $linepost['id'];
 					$oldthread_stickied = $linepost['stickied'];
-					//print(time()." Found a thread to delete, it is ID # ".$oldthread_id."<br />");
 					if ($oldthread_stickied=='0') {
 						$result = mysql_query("SELECT * FROM `posts` WHERE `IS_DELETED` = '0' AND  `threadid` = '".$oldthread_id."' AND `boardid` = '".$board_id."'",$dblink);
-						while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+						while ($line = mysql_fetch_assoc($result)) {
 							delete_post($line['id'],$board_dir);
 						}
 						delete_post($oldthread_id,$board_dir);
@@ -892,7 +930,6 @@ function trimtopagelimit($board) {
 				}
 			}
 		}
-		//print(time()." Trim complete!<br />");
 	} else {
 		die("Invalid board.");
 	}
@@ -900,10 +937,10 @@ function trimtopagelimit($board) {
 function display_numuniqueposts($board = "") {
 	require("config.php");
 	if ($board!="") {
-		$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
+		$result = mysql_query("SELECT `id` FROM `boards` WHERE `name` = '".$board."' LIMIT 1",$dblink);
 		$rows = mysql_num_rows($result);
 		if ($rows>0) {
-			while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+			while ($line = mysql_fetch_assoc($result)) {
 				$board_id = $line['id'];
 			}
 			$result = mysql_query("SELECT COUNT(DISTINCT `ip`) FROM `posts` WHERE `IS_DELETED` = '0' AND  `boardid` = '".$board_id."'",$dblink);
@@ -922,7 +959,7 @@ function display_numuniqueposts($board = "") {
 //Users
 function ban_user($ip,$modname,$duration,$reason) {
 	require("config.php");
-	$result = mysql_query("SELECT * FROM `banlist` WHERE `ip` = '".$ip."'",$dblink);
+	$result = mysql_query("SELECT `ip` FROM `banlist` WHERE `ip` = '".$ip."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows==0) {
 		if ($duration>0) {
@@ -932,7 +969,7 @@ function ban_user($ip,$modname,$duration,$reason) {
 			return false;
 		}
 	} else {
-		return true();
+		return true;
 	}
 }
 function display_bannedmessage($globalban,$boards,$reason,$at,$until) {
@@ -952,14 +989,24 @@ function removed_expired_bans() {
 
 //Posting
 function getnextpostid($dblink,$boardid) {
-	$result = mysql_query("SELECT * FROM `posts` WHERE `boardid` = '".$boardid."' ORDER BY `id` DESC LIMIT 1",$dblink);	
+	$result = mysql_query("SELECT `id` FROM `posts` WHERE `boardid` = '".$boardid."' ORDER BY `id` DESC LIMIT 1",$dblink);	
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			return $line['id']+1;
 		}
 	} else {
 		return '1';
+	}
+}
+function check_md5($md5,$boardid) {
+	require("config.php");
+	$result = mysql_query("SELECT `id` FROM `posts` WHERE `imagemd5` = '".mysql_escape_string($md5)."' AND `boardid` = '".mysql_escape_string($boardid)."' AND `IS_DELETED` = '0' LIMIT 1",$dblink);	
+	$rows = mysql_num_rows($result);
+	if ($rows>0) {
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -987,23 +1034,8 @@ function createthumb($name,$filename,$new_w,$new_h) {
 	} else {
 		$percent = $new_h / $old_y;
 	}
-    $thumb_w = round($old_x * $percent);
-    $thumb_h = round($old_y * $percent);
-	/*if ($old_x > $old_y) 
-	{
-		$thumb_w=$new_w;
-		$thumb_h=$old_y*($new_h/$old_x);
-	}
-	if ($old_x < $old_y) 
-	{
-		$thumb_w=$old_x*($new_w/$old_y);
-		$thumb_h=$new_h;
-	}
-	if ($old_x == $old_y) 
-	{
-		$thumb_w=$new_w;
-		$thumb_h=$new_h;
-	}*/
+	$thumb_w = round($old_x * $percent);
+	$thumb_h = round($old_y * $percent);
 	$dst_img=ImageCreateTrueColor($thumb_w,$thumb_h);
 	imagecopyresampled($dst_img,$src_img,0,0,0,0,$thumb_w,$thumb_h,$old_x,$old_y);
 	if (preg_match("/png/",$system[0])) {
@@ -1034,15 +1066,15 @@ function display_boardlist() {
 	$result = mysql_query("SELECT DISTINCT `section` FROM `boards` ORDER BY `section` ASC",$dblink);
 	$rows = mysql_num_rows($result);
 	$board_sections = array();
-	while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+	while ($line = mysql_fetch_assoc($result)) {
 		$board_sections = array_merge($board_sections,array($line['section']));
 	}
 	foreach ($board_sections as $board_section) {
 		$board_this_section = '';
 		$output .= '[';
 		$result = mysql_query("SELECT * FROM `boards` WHERE `section` = '".$board_section."' ORDER BY `order` ASC",$dblink);
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
-			$board_this_section .= ' <a title="'.$line['desc'].'" href="'.$chan_webfolder.'/'.$line['name'].'/">'.$line['name'].'</a> /';
+		while ($line = mysql_fetch_assoc($result)) {
+			$board_this_section .= ' <a title="'.$line['desc'].'" href="'.$chan_boardsfolder.'/'.$line['name'].'/">'.$line['name'].'</a> /';
 		}
 		$board_this_section = substr($board_this_section,0,strlen($board_this_section)-1);
 		$output .= $board_this_section;
@@ -1057,10 +1089,10 @@ function display_boardlist() {
 }
 function format_postboxnotice($notice,$board) {
 	require("config.php");
-	$result = mysql_query("SELECT * FROM `boards` WHERE `name` = '".$board."'",$dblink);
+	$result = mysql_query("SELECT `maximagesize`, `filetypes` FROM `boards` WHERE `name` = '".$board."' LIMIT 1",$dblink);
 	$rows = mysql_num_rows($result);
 	if ($rows>0) {
-		while ($line = mysql_fetch_array($result, MYSQL_ASSOC)) {
+		while ($line = mysql_fetch_assoc($result)) {
 			$notice = str_replace('<!tc_maxthumbwidth />',config_getvalue('maxthumbwidth'),$notice);
 			$notice = str_replace('<!tc_maxthumbheight />',config_getvalue('maxthumbheight'),$notice);
 			$notice = str_replace('<!tc_uniqueposts />',display_numuniqueposts($board),$notice);
@@ -1079,5 +1111,16 @@ function format_postboxnotice($notice,$board) {
 		}
 	}
 	return $notice;
+}
+
+function boardid_to_dir($boardid) {
+	require("config.php");
+	$result = mysql_query("SELECT `name` FROM `boards` WHERE `id` = '".mysql_escape_string($boardid)."' LIMIT 1",$dblink);
+	$rows = mysql_num_rows($result);
+	if ($rows>0) {
+		while ($line = mysql_fetch_assoc($result)) {
+			return $line['name'];
+		}
+	}
 }
 ?>
