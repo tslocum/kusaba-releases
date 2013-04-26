@@ -29,102 +29,108 @@
  */ 
 require 'config.php';
 require KU_ROOTDIR . 'inc/functions.php';
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title><?php echo KU_NAME; ?></title>
-<?php
-echo printStylesheetsSite(KU_DEFAULTMENUSTYLE, false);
-?>
-<link rel="shortcut icon" href="/favicon.ico">
-</head>
-<body>
-<?php
+require_once KU_ROOTDIR . 'lib/smarty.php';
+
 if (!isset($_GET['p'])) {
 	$_GET['p'] = '';
 }
 
-echo '<h1>' . KU_NAME . '</h1>';
+$smarty->assign('name', KU_NAME);
+$smarty->assign('css', printStylesheetsSite(KU_DEFAULTMENUSTYLE, false));
 if (KU_SLOGAN != '') {
-	echo '<h3>' . KU_SLOGAN . '</h3>';
+	$smarty->assign('slogan', '<h3>' . KU_SLOGAN . '</h3>' . "\n");
+} else {
+	$smarty->assign('slogan', '');
 }
+$smarty->assign('favicon', getCWebPath() . 'favicon.ico');
 
-echo '<div class="menu">';
-
-echo ($_GET['p']=='') ? _gettext('News') : '<a href="news.php">' . _gettext('News') . '</a>';
-echo ' | ';
+// {{{ Link bar (news, faq, rules)
+$linkbar = ($_GET['p']=='') ? _gettext('News') : '<a href="news.php">' . _gettext('News') . '</a>';
+$linkbar .= ' | ';
 if (isset($kusabaorg)) {
-	echo '<a href="download.html">Download</a> | ';
+	$linkbar .= '<a href="download.html">Download</a> | ';
 }
-echo ($_GET['p']=='faq') ? _gettext('FAQ') : '<a href="news.php?p=faq">' . _gettext('FAQ') . '</a>';
-echo ' | ';
-echo ($_GET['p']=='rules') ? _gettext('Rules') : '<a href="news.php?p=rules">' . _gettext('Rules') . '</a>';
+$linkbar .= ($_GET['p']=='faq') ? _gettext('FAQ') : '<a href="news.php?p=faq">' . _gettext('FAQ') . '</a>';
+$linkbar .= ' | ';
+$linkbar .= ($_GET['p']=='rules') ? _gettext('Rules') : '<a href="news.php?p=rules">' . _gettext('Rules') . '</a>';
 
 /* Don't worry about this, it only applies to my personal installation of kusaba */
 if (isset($kusabaorg)) {
-	echo '<br><script type="text/javascript"><!--
-	google_ad_client = "pub-6158454562572132";
-	google_ad_width = 728;
-	google_ad_height = 90;
-	google_ad_format = "728x90_as";
-	google_ad_type = "text_image";
-	//2007-08-22: Trevorchan
-	google_ad_channel = "7008956366";
-	google_color_border = "FFFFEE";
-	google_color_bg = "FFFFEE";
-	google_color_link = "800000";
-	google_color_text = "CB7E46";
-	google_color_url = "800000";
-	google_ui_features = "rc:0";
-	//-->
+	$linkbar .= '<br><!-- Begin: AdBrite -->
+	<script type="text/javascript">
+	   var AdBrite_Title_Color = \'CC1105\';
+	   var AdBrite_Text_Color = \'800000\';
+	   var AdBrite_Background_Color = \'FFFFEE\';
+	   var AdBrite_Border_Color = \'FFFFEE\';
 	</script>
-	<script type="text/javascript"
-	  src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-	</script>';
+	<span style="white-space:nowrap;"><script src="http://ads.adbrite.com/mb/text_group.php?sid=568716&amp;zs=3732385f3930" type="text/javascript"></script><!--
+	--><a target="_top" href="http://www.adbrite.com/mb/commerce/purchase_form.php?opid=568716&amp;afsid=1"><img src="http://files.adbrite.com/mb/images/adbrite-your-ad-here-leaderboard.gif" style="background-color:#FFFFEE;border:none;padding:0;margin:0;" alt="Your Ad Here" width="14" height="90" border="0"></a></span>
+	<!-- End: AdBrite --><br>';
 }
 
-echo '</div>';
+$smarty->assign('linkbar', $linkbar);
+// }}}
 
+// {{{ Main content
 if ($_GET['p']=='faq') {
-	echo file_get_contents(KU_ROOTDIR.'inc/pages/faq.html');
+	$content = file_get_contents(KU_ROOTDIR . 'inc/pages/faq.html');
 } else if ($_GET['p']=='rules') {
-	echo file_get_contents(KU_ROOTDIR.'inc/pages/rules.html');
+	$content = file_get_contents(KU_ROOTDIR . 'inc/pages/rules.html');
 } else {
+	$content = '';
 	if (isset($kusabaorg)) {
-		echo '<div class="content" style=""><span style="font-size: 1.4em;"><b>Current release:</b> 1.0.2 - <a href="http://rel.kusaba.org/kusabav102.zip">Quick Download (Install)</a> - For more information/upgrading, click the Download link above.</span></div>';
+		$content .= '<div class="content" style=""><span style="font-size: 1.4em;"><b>Current release:</b> 1.0.3 - <a href="http://rel.kusaba.org/kusabav103.zip">Quick Download (Install)</a> - For more information/upgrading, click the Download link above.</span></div>';
 	}
 	$entries = 0;
 	/* Get all of the news entries, ordered with the newest one placed on top */
 	$results = $tc_db->GetAll("SELECT * FROM `".KU_DBPREFIX."news` ORDER BY `postedat` DESC");
 	foreach($results AS $line) {
 		$entries++;
-		echo '<div class="content">
-		<h2><span class="newssub">'.stripslashes($line['subject']).' by ';
+		$content .= '<div class="content">' . "\n" .
+		'<h2><span class="newssub">'.stripslashes($line['subject']).' by ';
 		/* If the message had an email attached to it, add the proper html to link to it */
 		if ($line['postedemail']!="") {
-			echo '<a href="mailto:'.stripslashes($line['postedemail']).'">';
+			$content .= '<a href="mailto:'.stripslashes($line['postedemail']).'">';
 		}
-		echo stripslashes($line['postedby']);
+		$content .= stripslashes($line['postedby']);
 		if ($line['postedemail']!="") {
-			echo '</a>';
+			$content .= '</a>';
 		}
-		echo ' - '.date("n/j/y @ g:iA T", $line['postedat']);
-		echo '</span><span class="permalink"><a href="#' . $line['id'] . '" name="' . $line['id'] . '" title="permalink">#</a></span></h2>
+		$content .= ' - '.date("n/j/y @ g:iA T", $line['postedat']);
+		$content .= '</span><span class="permalink"><a href="#' . $line['id'] . '" name="' . $line['id'] . '" title="permalink">#</a></span></h2>
 		'.stripslashes($line['message']).'</div><br>';
 	}
 }
 
 /* Don't worry about this, it only applies to my personal installation of kusaba */
-if (isset($kusabaorg)) {
-	echo '<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
-	</script>
-	<script type="text/javascript">
-	_uacct = "UA-71983-11";
-	urchinTracker(document.referrer);
-	</script>';
-}
+if (isset($kusabaorg)) { $content .= '<center>
+<a href=\'http://www.adgridwork.com/?r=14899\' style=\'color: #7FBE00; font-size: 14px\' target=\'_blank\'>Free Advertising</a>
+<script type=\'text/javascript\'>
+var sid = \'14899\'; 
+var title_color = \'000000\'; 
+var description_color = \'646360\'; 
+var link_color = \'7FBE00\'; 
+var background_color = \'FFFFFF\'; 
+var border_color = \'646360\';
+</script><u style=\'display: none\'><a href=\'http://www.freeannualcreditreports.org\'>Free Annual Credit Report</a></u>
+<script type=\'text/javascript\' src=\'http://www.mediagridwork.com/mx.js\'></script>
+</center>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write("\<script src=\'" + gaJsHost + "google-analytics.com/ga.js\' type=\'text/javascript\'>\<\/script>" );
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-71983-11");
+pageTracker._initData();
+pageTracker._trackPageview();
+</script>
+<script language="javascript">
+var woopra_id = \'247037172\';
+</script>
+<script src="http://static.woopra.com/js/woopra.js"></script>'; }
+
+$smarty->assign('content', $content);
+// }}}
+
+$smarty->display('news.tpl');
 ?>
-</body>
-</html>

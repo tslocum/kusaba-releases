@@ -39,5 +39,6 @@ include KU_ROOTDIR . 'inc/func/paths.php';
 include KU_ROOTDIR . 'inc/func/posts.php';
 include KU_ROOTDIR . 'inc/func/stringformatting.php';
 include KU_ROOTDIR . 'inc/func/validation.php';
+include KU_ROOTDIR . 'inc/func/custom.php';
 
 ?>

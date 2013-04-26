@@ -46,36 +46,42 @@ if (!$manage_class->ValidateSession(true)) {
 	$tpl_links .= section_html(_gettext('Home'), 'home') .
 	'<ul>
 	<li><a href="manage_page.php?">'._gettext('Posting rates (past hour)').'</a></li>
-	<li><a href="manage_page.php?action=statistics">' . _gettext('Statistics') . '</a></li>
-	</ul></div>';
+	<li><a href="manage_page.php?action=statistics">' . _gettext('Statistics') . '</a></li>';
+	if ($manage_class->CurrentUserIsAdministrator() || $manage_class->CurrentUserIsModerator()) {
+		$tpl_links .= '<li><a href="manage_page.php?action=changepwd">' . _gettext('Change account password') . '</a></li>';
+	}
+	$tpl_links .= '</ul></div>';
 	/* Administration */
 	if ($manage_class->CurrentUserIsAdministrator()) {
-		$tpl_links .= section_html(_gettext('Administration'), 'administration') .
+		$tpl_links .= section_html(_gettext('Site Administration'), 'siteadministration') .
 		'<ul>
 		<li><a href="manage_page.php?action=news">' . _gettext('News') . '</a></li>';
 		if (KU_BLOTTER) {
 			$tpl_links .= '<li><a href="manage_page.php?action=blotter">' . _gettext('Blotter') . '</a></li>';
 		}
-		$tpl_links .= '<li><a href="manage_page.php?action=addboard">' . _gettext('Add board') . '</a></li>
-		<li><a href="manage_page.php?action=delboard">' . _gettext('Delete board') . '</a></li>
-		<li><a href="manage_page.php?action=wordfilter">' . _gettext('Wordfilter') . '</a></li>
+		$tpl_links .= '<li><a href="manage_page.php?action=spaceused">' . _gettext('Disk space used') . '</a></li>
 		<li><a href="manage_page.php?action=checkversion">' . _gettext('Check for new version') . '</a></li>
-		<li><a href="manage_page.php?action=spaceused">' . _gettext('Disk space used') . '</a></li>
-		<li><a href="manage_page.php?action=viewdeletedthread">' . _gettext('View deleted thread') . '</a></li>
-		<li><a href="manage_page.php?action=cleanup">' . _gettext('Cleanup') . '</a></li>
-		<li><a href="manage_page.php?action=movethread">' . _gettext('Move thread') . '</a></li>
-		<li><a href="manage_page.php?action=search">' . _gettext('Search posts') . '</a></li>
 		<li><a href="manage_page.php?action=staff">' . _gettext('Staff') . '</a></li>
 		<li><a href="manage_page.php?action=modlog">' . _gettext('ModLog') . '</a></li>
-		<li><a href="manage_page.php?action=editfiletypes">' . _gettext('Edit filetypes') . '</a></li>
-		<li><a href="manage_page.php?action=editsections">' . _gettext('Edit sections') . '</a></li>
-		<li><a href="manage_page.php?action=sql">' . _gettext('SQL query') . '</a></li>
 		<li><a href="manage_page.php?action=proxyban">' . _gettext('Ban proxy list') . '</a></li>
-		<li><a href="manage_page.php?action=rebuildall">' . _gettext('Rebuild all html files') . '</a></li>' . "\n";
+		<li><a href="manage_page.php?action=sql">' . _gettext('SQL query') . '</a></li>
+		<li><a href="manage_page.php?action=cleanup">' . _gettext('Cleanup') . '</a></li>' . "\n";
 		if (KU_APC) {
 			$tpl_links .= '<li><a href="manage_page.php?action=apc">APC</a></li>' . "\n";
 		}
-		$tpl_links .= '</ul></div>';
+		$tpl_links .= '</ul></div>' .
+		section_html(_gettext('Boards Administration'), 'boardsadministration') .
+		'<ul>
+		<li><a href="manage_page.php?action=addboard">' . _gettext('Add board') . '</a></li>
+		<li><a href="manage_page.php?action=delboard">' . _gettext('Delete board') . '</a></li>
+		<li><a href="manage_page.php?action=wordfilter">' . _gettext('Wordfilter') . '</a></li>
+		<li><a href="manage_page.php?action=movethread">' . _gettext('Move thread') . '</a></li>
+		<li><a href="manage_page.php?action=search">' . _gettext('Search posts') . '</a></li>
+		<li><a href="manage_page.php?action=viewdeletedthread">' . _gettext('View deleted thread') . '</a></li>
+		<li><a href="manage_page.php?action=editfiletypes">' . _gettext('Edit filetypes') . '</a></li>
+		<li><a href="manage_page.php?action=editsections">' . _gettext('Edit sections') . '</a></li>
+		<li><a href="manage_page.php?action=rebuildall">' . _gettext('Rebuild all html files') . '</a></li>' . "\n" .
+		'</ul></div>';
 		
 		/*$tpl_links .= section_html(_gettext('Modules'), 'modules') .
 		'<ul>
@@ -101,7 +107,7 @@ if (!$manage_class->ValidateSession(true)) {
 		<li><a href="manage_page.php?action=reports">' . _gettext('View Reports') . '</a></li>
 		<li><a href="manage_page.php?action=bans">' . _gettext('View/Add/Remove bans') . '</a></li>
 		<li><a href="manage_page.php?action=deletepostsbyip">' . _gettext('Delete all posts by IP') . '</a></li>
-		<li><a href="manage_page.php?action=changepwd">' . _gettext('Change account password') . '</a></li>
+		<li><a href="manage_page.php?action=recentimages">' . _gettext('Recently uploaded images') . '</a></li>
 		</ul></div>';
 	}
 	

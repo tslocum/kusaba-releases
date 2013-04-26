@@ -360,6 +360,7 @@ class Board {
 				/* If the thread is on the page set to mark, and hasn't been marked yet, mark it */
 				if ($line['deletedat'] == 0 && $this->board_markpage > 0 && $threadpage >= $this->board_markpage) {
 					$tc_db->Execute("UPDATE `".KU_DBPREFIX."posts_".$this->board_dir."` SET `deletedat` = '" . (time() + 7200) . "' WHERE `id` = '" . $line['id'] . "' LIMIT 1");
+					clearPostCache($line['id'], $this->board_dir);
 					$this->RegenerateThread($line['id']);
 				}
 				$master_thread_ids[$threadpage][] = $line[0];
@@ -1172,20 +1173,7 @@ class Board {
 			$info_post .= ' ' . formatDate($post['postedat'], 'post', $CURRENTLOCALE) . "\n" .
 			'		</label>' . "\n" .
 			' <span class="reflink">' . "\n" .
-			'	<a href="'.KU_BOARDSFOLDER.$post_board.'/res/'.$post_thread_start_id.'.html#'.$post['id'].'"';
-			if (!$page) {
-				$info_post .= ' onclick="javascript:highlight(\'' . $post['id'] . '\');"';
-			}
-			$info_post .= '>' . "\n" .
-			'		No.' . "\n" .
-			'	</a>' . "\n" .
-			'	<a href="'.KU_BOARDSFOLDER.$post_board.'/res/'.$post_thread_start_id.'.html#i'.$post['id'].'"';
-			if (!$page) {
-				$info_post .= ' onclick="insert(\'>>'.$post['id'].'\');"';
-			}
-			$info_post .= '>' . "\n" .
-			'		' . $post['id'] . "\n" .
-			'	</a>' . "\n" .
+			formatReflink($post_board, $page, $post_thread_start_id, $post['id'], $CURRENTLOCALE) .
 			'</span>' . "\n";
 			if ($this->board_showid) {
 				$info_post .= ' ID: ' . substr($post['ipmd5'], 0, 6) . "\n";
@@ -1376,7 +1364,7 @@ class Board {
 	 * @return string The built header	 	 	 	 	 	 
 	 */	
 	function PageHeader($replythread = '0', $liststart = '0', $listpage = '-1', $liststooutput = '-1', $isoekaki = false, $hidewatchedthreads = false) {
-		global $tc_db, $kusabaorg, $tpl;
+		global $tc_db, $kusabaorg, $tpl, $CURRENTLOCALE;
 		
 		$tpl['title'] = '';
 		if (KU_DIRTITLE) {
@@ -1446,6 +1434,14 @@ class Board {
 		} else {
 			$tpl['head'] .= '<link rel="stylesheet" href="' . getCLBoardPath() . 'css/txt_global.css">' . "\n" . 
 			printStylesheetsTXT($this->board_defaultstyle);
+		}
+		if ($CURRENTLOCALE == 'ja') {
+			$tpl['head'] .= '<style type="text/css">' . "\n" .
+			'* {' . "\n" .
+			'	font-family: IPAMonaPGothic, Mona, \'MS PGothic\', YOzFontAA97 !important;' . "\n" .
+			'	font-size: 1em;' . "\n" .
+			'}' . "\n" .
+			'</style>' . "\n";
 		}
 		if (KU_RSS) {
 			$tpl['head'] .= '<link rel="alternate" type="application/rss+xml" title="RSS" href="' . KU_BOARDSPATH . '/' . $this->board_dir . '/rss.xml">' . "\n";
@@ -1846,9 +1842,18 @@ class Board {
 	 * @return string The generated postbox 	 	 	 	 	 
 	 */	
 	function Postbox($replythread = 0, $oekaki = '', $postboxnotice = '') {
-		global $tc_db;
+		global $tc_db, $sevenchanorg;
 		
 		$output = '';
+		if (isset($sevenchanorg)) {
+			if ($this->board_dir == 'test') { // Only NSFW boards
+				$output .= '<div id="ad" style="display: inline;position: absolute;right: 5px;">
+				<!--Start AVN Ads Code-->
+				<script language="javascript" type="text/javascript" charset="utf-8" src="http://pages.etology.com/js2/43663.php"></script>
+				<!--End AVN Ads Code-->
+				</div>';
+			}
+		}
 		if (!($this->board_type == 1 && $replythread != 0)) {
 			if ($this->board_type ==0 || $this->board_type == 2 || $this->board_type == 3) {
 				$output .= '<div class="postarea">' . "\n";
@@ -2170,7 +2175,7 @@ class Board {
 	 * @return string The generated footer
 	 */	 	 	 	 	 	 	
 	function Footer($noboardlist = false, $executiontime = '', $hide_extra = false) {
-		global $tc_db;
+		global $tc_db, $kusabaorg;
 		$output = '';
 		if (!$hide_extra && !$noboardlist) {
 			$output .= '<br>' . $this->DisplayBoardList();
@@ -2187,6 +2192,13 @@ class Board {
 			$output .= '<div class="legal">' . $footer . '<br>- <a href="' . KU_CGIPATH . '/manage.php" target="_top">' . _gettext('Manage boards') . '</a> -</div>';
 		} else {
 			$output .= '<br><div class="footer" style="clear: both;">' . $footer . '</div>';
+		}
+		
+		if (isset($kusabaorg)) {
+			$output .= '<script language="javascript"><!--
+			var woopra_id = \'228219709\';
+			//--></script>
+			<script src="http://static.woopra.com/js/woopra.js"></script>';
 		}
 		
 		return $output;

@@ -32,6 +32,9 @@ require KU_ROOTDIR . 'inc/classes/board-post.class.php';
 $board_name = $tc_db->GetOne("SELECT `name` FROM `" . KU_DBPREFIX . "boards` WHERE `name` = '" . mysql_real_escape_string($_GET['board']) . "'");
 if ($board_name != '') {
 	$board_class = new Board($board_name);
+	if ($board_class->board_locale != '') {
+		changeLocale($board_class->board_locale);
+	}
 } else {
 	die('<font color="red">Invalid board.</font>');
 }

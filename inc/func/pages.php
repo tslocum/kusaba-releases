@@ -143,9 +143,15 @@ function print_page($filename, $contents, $board) {
  * @return string Thread links
  */ 
 function threadLinks($type, $threadid, $board, $boardtype, $modifier_last50, $modifier_first100, $forcereplymodehide = false, $forceentirethreadlink = false) {
+	global $CURRENTLOCALE;
 	if ($boardtype != 1) {
-		$leftbracket = '&#91;';
-		$rightbracket = '&#93;';
+		if ($CURRENTLOCALE == 'ja') {
+			$leftbracket = '［';
+			$rightbracket = '］';
+		} else {
+			$leftbracket = '&#91;';
+			$rightbracket = '&#93;';
+		}
 	} else {
 		$leftbracket = '';
 		$rightbracket = '';

@@ -1,59 +1,71 @@
 <?php
 
 /* Config */
-define('TC_FULLDIR', dirname(__FILE__) . '/');
-define('TC_PASSWORD', 'changeme');
-define('TC_THUMBWIDTH', 200);
-define('TC_THUMBHEIGHT', 200);
-define('TC_REPLYTHUMBWIDTH', 125);
-define('TC_REPLYTHUMBHEIGHT', 125);
-define('TC_CATTHUMBWIDTH', 50);
-define('TC_CATTHUMBHEIGHT', 50);
+define('KU_FULLDIR', 'change this to the same value as your KU_ROOTDIR');
+define('KU_PASSWORD', 'changeme');
+define('KU_THUMBWIDTH', 200);
+define('KU_THUMBHEIGHT', 200);
+define('KU_REPLYTHUMBWIDTH', 125);
+define('KU_REPLYTHUMBHEIGHT', 125);
+define('KU_CATTHUMBWIDTH', 50);
+define('KU_CATTHUMBHEIGHT', 50);
 
-if ($_POST['password'] != TC_PASSWORD) die('bad password');
+if ($_POST['password'] != KU_PASSWORD) die('bad password');
 if (!isset($_POST['type'])) die('failure');
 
 if ($_POST['type'] == 'thumbnail' || $_POST['type'] == 'direct') {
 	if (isset($_POST['file']) && isset($_POST['targetname'])) {
-		if (is_file($_POST['targetname'])) die('file already exists');
-		if (!@copy($_POST['file'], $_POST['targetname'])) die('unable to copy');
+		$target_file = KU_FULLDIR . $_POST['targetname'];
+		
+		if (is_file($target_file)) die('file already exists');
+		
+		if (!$handle = fopen($target_file, 'w+')) {
+			die('unable to copy');
+		}
+		
+		if (fwrite($handle, base64_decode($_POST['file'])) === false) {
+			die('unable to copy');
+		}
+    
+		fclose($handle);
 		
 		if ($_POST['type'] == 'thumbnail') {
 			if ($_POST['targetthumb'] == '' || $_POST['targetthumb_c'] == '') {
 				@unlink($_POST['targetname']);
 				die('failure');
 			}
-			$thumbloc = $_POST['targetthumb'];
-			$thumbloc_c = $_POST['targetthumb_c'];
 			
-			$imageDim = getimagesize($_POST['targetname']);
+			$target_thumb = KU_FULLDIR . $_POST['targetthumb'];
+			$target_thumb_catalog = KU_FULLDIR . $_POST['targetthumb_c'];
+			
+			$imageDim = getimagesize($target_file);
 			$imgw = $imageDim[0];
 			$imgh = $imageDim[1];
 			
-			if (($_POST['isreply'] == '0' && ($imgw > TC_THUMBWIDTH || $imgh > TC_THUMBHEIGHT)) || ($_POST['isreply'] == '1' && ($imgw > TC_REPLYTHUMBWIDTH || $imgh > TC_REPLYTHUMBHEIGHT))) {
+			if (($_POST['isreply'] == '0' && ($imgw > KU_THUMBWIDTH || $imgh > KU_THUMBHEIGHT)) || ($_POST['isreply'] == '1' && ($imgw > KU_REPLYTHUMBWIDTH || $imgh > KU_REPLYTHUMBHEIGHT))) {
 				if ($_POST['isreply'] == '0') {
-					if (!@createThumbnail($_POST['targetname'], $thumbloc, TC_THUMBWIDTH, TC_THUMBHEIGHT)) {
-						@unlink($_POST['targetname']);
+					if (!@createThumbnail($target_file, $target_thumb, KU_THUMBWIDTH, KU_THUMBHEIGHT)) {
+						@unlink($target_file);
 						die('unable to thumbnail');
 					}
 				} else {
-					if (!@createThumbnail($_POST['targetname'], $thumbloc, TC_REPLYTHUMBWIDTH, TC_REPLYTHUMBHEIGHT)) {
-						@unlink($_POST['targetname']);
+					if (!@createThumbnail($target_file, $target_thumb, KU_REPLYTHUMBWIDTH, KU_REPLYTHUMBHEIGHT)) {
+						@unlink($target_file);
 						die('unable to thumbnail');
 					}
 				}
 			} else {
-				if (!@createThumbnail($_POST['targetname'], $thumbloc, $imgw, $imgh)) {
-					@unlink($_POST['targetname']);
+				if (!@createThumbnail($target_file, $target_thumb, $imgw, $imgh)) {
+					@unlink($target_file);
 					die('unable to thumbnail');
 				}
 			}
-			if (!@createThumbnail($_POST['targetname'], $thumbloc_c, TC_CATTHUMBWIDTH, TC_CATTHUMBHEIGHT)) {
-				@unlink($_POST['targetname']);
+			if (!@createThumbnail($target_file, $target_thumb_catalog, KU_CATTHUMBWIDTH, KU_CATTHUMBHEIGHT)) {
+				@unlink($target_file);
 				die('unable to thumbnail');
 			}
 			
-			$imageDim_thumb = getimagesize($thumbloc);
+			$imageDim_thumb = getimagesize($target_thumb);
 			$imgw_thumb = $imageDim_thumb[0];
 			$imgh_thumb = $imageDim_thumb[1];
 			

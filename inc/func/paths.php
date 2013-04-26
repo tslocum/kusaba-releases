@@ -16,7 +16,7 @@ function getCLBoardPath($board = '', $loadbalanceurl = '', $archivedir = '') {
 			return KU_BOARDSPATH . '/' . $board . $archivedir;
 		}
 	} elseif ($board != '') {
-		return $board_class->board_loadbalanceurl_formatted;
+		return $loadbalanceurl;
 	}
 }
 ?>

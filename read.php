@@ -2,7 +2,11 @@
 header('Content-type: text/html; charset=utf-8');
 
 require 'config.php';
-if (KU_TRADITIONALREAD) {
+if (!isset($_GET['b']) || !isset($_GET['t']) || !isset($_GET['p'])) {
+	if (!isset($_SERVER['PATH_INFO'])) {
+		die();
+	}
+	
 	$pairs = explode('/', $_SERVER['PATH_INFO']);
 	if (count($pairs) < 4) {
 		die();
@@ -12,10 +16,6 @@ if (KU_TRADITIONALREAD) {
 	$thread = $pairs[2];
 	$posts  = $pairs[3];
 } else {
-	if (!isset($_GET['b']) || !isset($_GET['t']) || !isset($_GET['p'])) {
-		die();
-	}
-	
 	$board  = $_GET['b'];
 	$thread = $_GET['t'];
 	$posts  = $_GET['p'];
@@ -24,6 +24,8 @@ if (KU_TRADITIONALREAD) {
 if ($board == '' || $thread == '' || $posts == '') {
 	die();
 }
+
+$singlepost = (isset($_GET['single'])) ? true : false;
 
 require KU_ROOTDIR . 'inc/functions.php';
 require KU_ROOTDIR . 'inc/classes/board-post.class.php';
@@ -36,6 +38,11 @@ if ($results == 0) {
 }
 $board_class = new Board($board);
 
+if ($board_class->board_type == 1) {
+	$replies = $tc_db->GetOne("SELECT COUNT(*) FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `parentid` = '" . mysql_real_escape_string($thread) . "'");
+} else {
+	$replies = false;
+}
 $postids = getQuoteIds($posts, $replies);
 if (count($postids) == 0) {
 	die('No valid posts specified.');
@@ -44,7 +51,6 @@ if (count($postids) == 0) {
 if ($board_class->board_type == 1) {
 	$noboardlist = true;
 	$hide_extra = true;
-	$replies = $tc_db->GetOne("SELECT COUNT(*) FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE `parentid` = '" . mysql_real_escape_string($thread) . "'");
 } else {
 	$noboardlist = false;
 	$hide_extra = false;
@@ -63,9 +69,18 @@ if ($board_class->board_type == 1) {
 }
 
 $board_class->InitializeSmarty();
-$board_class->CachePageHeaderData();
-$page = $board_class->PageHeader($thread, 0, -1, -1, false, true);
-$page .= threadLinks('return', $thread, $board_class->board_dir, $board_class->board_type, false, false, true, true);
+
+$page ='';
+
+if (!$singlepost) {
+	$board_class->CachePageHeaderData();
+	$page .= $board_class->PageHeader($thread, 0, -1, -1, false, true);
+	$page .= threadLinks('return', $thread, $board_class->board_dir, $board_class->board_type, false, false, true, true);
+} else {
+	$tpl['title'] = '';
+	$tpl['head'] = '';
+	$page .= '<link rel="stylesheet" href="' . getCLBoardPath() . 'css/img_global.css">';
+}
 
 if ($board_class->board_type == 1) {
 	$page .= '<form id="delform" action="http://cgi.kusaba.org/board.php" method="post">' . "\n";
@@ -107,18 +122,24 @@ if ($board_class->board_type == 1) {
 	
 	$page .= '</form>';
 } else {
-	$page .= '<br>' . "\n";
+	if (!$singlepost) {
+		$page .= '<br>' . "\n";
+	}
 	
 	$results = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "posts_" . $board_class->board_dir . "` WHERE (" . $postidquery . ") AND `IS_DELETED` = 0");
 	foreach ($results as $line) {
 		$page .= $board_class->BuildPost(false, $board_class->board_dir, $board_class->board_type, $line);
 	}
 	
-	$page .= '<br clear="left">' . "\n";
+	if (!$singlepost) {
+		$page .= '<br clear="left">' . "\n";
+	}
 }
 
-$page .= '<hr>' . "\n" .
-$board_class->Footer($noboardlist, (microtime_float() - $executiontime_start), $hide_extra);
+if (!$singlepost) {
+	$page .= '<hr>' . "\n" .
+	$board_class->Footer($noboardlist, (microtime_float() - $executiontime_start), $hide_extra);
+}
 
 $board_class->PrintPage('', $page, true);
 ?>

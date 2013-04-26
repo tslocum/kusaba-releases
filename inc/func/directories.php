@@ -136,18 +136,26 @@ function recursive_directory_size($directory, $format=FALSE)
 				/* If the new path is a directory */
 				}elseif(is_dir($path))
 				{
-					/* We call this function with the new path */
-					$handlesize = recursive_directory_size($path);
-
-					/* If the function returns more than zero */
-					if($handlesize >= 0)
-					{
-						/* We add the result to the total size */
-						$size += $handlesize;
-
-					/* Else we return -1 and exit the function */
-					}else{
-						return -1;
+					/* If $format is set to true, follow the directory and recalculate from there */
+					if ($format) {
+						/* We call this function with the new path */
+						$handlesize = recursive_directory_size($path);
+						
+						if (is_int($handlesize)) {
+							/* If the function returns more than zero */
+							if($handlesize >= 0)
+							{
+								/* We add the result to the total size */
+								$size += $handlesize;
+		
+							/* Else we return -1 and exit the function */
+							}else{
+								return -1;
+							}
+						/* Else we return -1 and exit the function */
+						}else{
+							return -1;
+						}
 					}
 				}
 			}

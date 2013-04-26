@@ -69,15 +69,20 @@ function sendStaffMail($subject, $message) {
 /* Depending on the configuration, use either a meta refresh or a direct header */
 function do_redirect($url, $ispost = false, $file = '') {
 	global $board_class;
+	$headermethod = true;
 	
-	if ($ispost && $file != '') {
-		echo sprintf(_gettext('%s uploaded.'), $file) . ' ' . _gettext('Updating pages.');
-	} elseif ($ispost) {
-		echo _gettext('Post added.') . ' ' . _gettext('Updating pages.'); # TEE COME BACK
+	if ($headermethod) {
+		header('Location: ' . $url);
+		die();
 	} else {
-		echo '---> ---> --->';
+		if ($ispost && $file != '') {
+			echo sprintf(_gettext('%s uploaded.'), $file) . ' ' . _gettext('Updating pages.');
+		} elseif ($ispost) {
+			echo _gettext('Post added.') . ' ' . _gettext('Updating pages.'); # TEE COME BACK
+		} else {
+			echo '---> ---> --->';
+		}
+		die('<meta http-equiv="refresh" content="1;url=' . $url . '">');
 	}
-	
-	die('<meta http-equiv="refresh" content="1;url=' . $url . '">');
 }
 ?>

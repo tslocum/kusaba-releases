@@ -318,7 +318,10 @@ class Upload {
 			
 			$thumbpath = KU_BOARDSDIR . $board_class->board_dir . '/thumb/' . $this->file_name . 's' . $this->file_type;
 			$thumbpath_cat = KU_BOARDSDIR . $board_class->board_dir . '/thumb/' . $this->file_name . 'c' . $this->file_type;
-			if ((!$this->isreply && ($this->imgWidth > KU_THUMBWIDTH || $this->imgHeight > KU_THUMBHEIGHT)) || ($this->isreply && ($this->imgWidth > KU_REPLYTHUMBWIDTH || $this->imgHeight > KU_REPLYTHUMBHEIGHT))) {
+			if (
+				(!$this->isreply && ($this->imgWidth > KU_THUMBWIDTH || $this->imgHeight > KU_THUMBHEIGHT)) || 
+				($this->isreply && ($this->imgWidth > KU_REPLYTHUMBWIDTH || $this->imgHeight > KU_REPLYTHUMBHEIGHT))
+			) {
 				if (!$this->isreply) {
 					if (!createThumbnail($oekaki, $thumbpath, KU_THUMBWIDTH, KU_THUMBHEIGHT)) {
 						exitWithErrorPage(_gettext('Could not create thumbnail.'));

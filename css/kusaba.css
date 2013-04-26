@@ -226,3 +226,7 @@ a:hover {
 .restorewatchedthreads {
 	background: transparent url('./icons/green/icons.gif') -16px 0px no-repeat;
 }
+
+.reflinkpreview {
+	background-color: #DAF0D6 !important;
+}

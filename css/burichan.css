@@ -190,3 +190,7 @@ a:hover {
 	border: 1px dotted #D6DAF0 !important;
 	border-top: 0px none !important;
 }
+
+.reflinkpreview {
+	background-color: #D6DAF0 !important;
+}

@@ -79,13 +79,29 @@ function getBlotterLastUpdated() {
 function getfiletypeinfo($filetype) {
 	global $tc_db;
 	
-	$query = "SELECT * FROM `".KU_DBPREFIX."filetypes` WHERE `filetype` = '".mysql_real_escape_string($filetype)."' LIMIT 1";
-	$results = $tc_db->GetAll($query);
-	foreach($results AS $line) {
-		return array($line['image'],$line['image_w'],$line['image_h']);
+	$return = '';
+	if (KU_APC) {
+		$return = apc_fetch('filetype|' . $filetype);
 	}
 	
-	/* No info was found, return the generic icon */
-	return array('generic.png',48,48);
+	if ($return != '') {
+		return unserialize($return);
+	}
+	
+	$results = $tc_db->GetAll("SELECT `image`, `image_w`, `image_h` FROM `" . KU_DBPREFIX . "filetypes` WHERE `filetype` = '" . mysql_real_escape_string($filetype) . "' LIMIT 1");
+	if (count($results) > 0) {
+		foreach($results AS $line) {
+			$return = array($line['image'],$line['image_w'],$line['image_h']);
+		}
+	} else {
+		/* No info was found, return the generic icon */
+		$return = array('generic.png',48,48);
+	}
+	
+	if (KU_APC) {
+		apc_store('filetype|' . $filetype, serialize($return), 600);
+	}
+	
+	return $return;
 }
 ?>

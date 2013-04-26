@@ -37,7 +37,7 @@ $output = '';
 
 if (isset($_GET['do'])) {
 	switch($_GET['do']) {
-		case 'addthread':
+	case 'addthread':
 		$viewing_thread_is_watched = $tc_db->GetOne("SELECT COUNT(*) FROM `" . KU_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
 		if ($viewing_thread_is_watched == 0) {
 			$newestreplyid = $tc_db->GetOne('SELECT `id` FROM `'.KU_DBPREFIX.'posts_'.mysql_real_escape_string($_GET['board']).'` WHERE `IS_DELETED` = 0 AND `parentid` = '.mysql_real_escape_string($_GET['threadid']).' ORDER BY `id` DESC LIMIT 1');
@@ -45,7 +45,7 @@ if (isset($_GET['do'])) {
 			
 			$tc_db->Execute("INSERT INTO `" . KU_DBPREFIX . "watchedthreads` ( `threadid` , `board` , `ip` , `lastsawreplyid` ) VALUES ( " . mysql_real_escape_string($_GET['threadid']) . " , '" . mysql_real_escape_string($_GET['board']) . "' , '" . $_SERVER['REMOTE_ADDR'] . "' , " . $newestreplyid . " )");
 			
-			if (KU_APC) apc_delete('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
+			if (KU_APC) apc_delete('watchedthreads|' . $_SERVER['REMOTE_ADDR'] . '|' . $_GET['board']);
 		}
 		break;
 		
@@ -54,7 +54,7 @@ if (isset($_GET['do'])) {
 		if ($viewing_thread_is_watched > 0) {
 			$tc_db->Execute("DELETE FROM `" . KU_DBPREFIX . "watchedthreads` WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
 			
-			if (KU_APC) apc_delete('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
+			if (KU_APC) apc_delete('watchedthreads|' . $_SERVER['REMOTE_ADDR'] . '|' . $_GET['board']);
 		}
 		break;
 		
@@ -71,13 +71,13 @@ if (isset($_GET['do'])) {
 			
 			$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "watchedthreads` SET `lastsawreplyid` = " . $newestreplyid . " WHERE `ip` = '" . $_SERVER['REMOTE_ADDR'] . "' AND `board` = '" . mysql_real_escape_string($_GET['board']) . "' AND `threadid` = '" . mysql_real_escape_string($_GET['threadid']) . "'");
 			
-			if (KU_APC) apc_delete('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
+			if (KU_APC) apc_delete('watchedthreads|' . $_SERVER['REMOTE_ADDR'] . '|' . $_GET['board']);
 		}
 	}
 	
 	$cached = false;
 	if (KU_APC) {
-		$cache_threadwatch = apc_fetch('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR']);
+		$cache_threadwatch = apc_fetch('watchedthreads|' . $_SERVER['REMOTE_ADDR'] . '|' . $_GET['board']);
 		if ($cache_threadwatch !== false) {
 			$cached = true;
 			$output .= $cache_threadwatch;
@@ -120,7 +120,7 @@ if (isset($_GET['do'])) {
 			$output .= 'None.<br>';
 		}	
 		
-		if (KU_APC) apc_store('watchedthreads|' . $_GET['board'] . '|' . $_SERVER['REMOTE_ADDR'], $output, 600);
+		if (KU_APC) apc_store('watchedthreads|' . $_SERVER['REMOTE_ADDR'] . '|' . $_GET['board'], $output, 600);
 	}
 }
 

@@ -16,7 +16,7 @@ CREATE TABLE `PREFIX_banlist` (
   `reason` text NOT NULL,
   `appealat` int(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -30,7 +30,7 @@ CREATE TABLE `PREFIX_bannedhashes` (
   `bantime` int(10) NOT NULL default '0',
   `description` text NOT NULL,
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -44,7 +44,7 @@ CREATE TABLE `PREFIX_blotter` (
   `at` int(20) NOT NULL,
   `message` text NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -98,7 +98,7 @@ CREATE TABLE `PREFIX_boards` (
 CREATE TABLE `PREFIX_board_filetypes` (
   `boardid` tinyint(5) NOT NULL default '0',
   `typeid` mediumint(5) NOT NULL default '0'
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -109,7 +109,7 @@ CREATE TABLE `PREFIX_board_filetypes` (
 CREATE TABLE `PREFIX_events` (
   `name` varchar(255) NOT NULL,
   `at` int(20) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -126,7 +126,7 @@ CREATE TABLE `PREFIX_filetypes` (
   `image_h` int(7) NOT NULL default '0',
   `force_thumb` int(1) NOT NULL default '1',
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -138,7 +138,7 @@ CREATE TABLE `PREFIX_loginattempts` (
   `username` varchar(255) NOT NULL,
   `ip` varchar(20) NOT NULL,
   `timestamp` int(20) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -151,7 +151,7 @@ CREATE TABLE `PREFIX_modlog` (
   `user` varchar(255) NOT NULL,
   `category` tinyint(2) NOT NULL default '0',
   `timestamp` int(20) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -164,7 +164,7 @@ CREATE TABLE `PREFIX_module_settings` (
   `key` varchar(255) NOT NULL,
   `value` text character set utf8 collate utf8_unicode_ci NOT NULL,
   `type` varchar(255) NOT NULL default 'string'
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -180,7 +180,7 @@ CREATE TABLE `PREFIX_news` (
   `postedby` varchar(75) NOT NULL,
   `postedemail` varchar(75) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -196,7 +196,7 @@ CREATE TABLE `PREFIX_reports` (
   `when` int(20) NOT NULL,
   `ip` varchar(75) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -211,7 +211,7 @@ CREATE TABLE `PREFIX_sections` (
   `name` varchar(255) NOT NULL,
   `abbreviation` varchar(10) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -226,8 +226,9 @@ CREATE TABLE `PREFIX_staff` (
   `type` tinyint(1) NOT NULL default '0',
   `boards` text,
   `addedon` int(20) NOT NULL,
+  `lastactive` int(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -242,7 +243,7 @@ CREATE TABLE `PREFIX_watchedthreads` (
   `ip` char(15) NOT NULL,
   `lastsawreplyid` int(20) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 -- --------------------------------------------------------
 
@@ -258,8 +259,8 @@ CREATE TABLE `PREFIX_wordfilter` (
   `time` int(20) NOT NULL,
   `regex` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM;
 
 
 INSERT INTO `PREFIX_filetypes` (`filetype`, `force_thumb`) VALUES ('jpg', 0), ('gif', 0), ('png', 0) ;
-INSERT INTO `PREFIX_events` (`name`, `at`) VALUES ('pingback', 0);
+INSERT INTO `PREFIX_events` (`name`, `at`) VALUES ('pingback', 0), ('sitemap', 0);

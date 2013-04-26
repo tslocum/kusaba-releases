@@ -169,7 +169,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 	$parse_class->id = $nextid;
 	
 	/* If they are just a normal user, or vip... */
-	if ($user_authority == 0 || $user_authority == 3) {
+	if (isNormalUser($user_authority)) {
 		/* If the thread is locked */
 		if ($thread_locked == 1) {
 			/* Don't let the user post */
@@ -178,7 +178,7 @@ if ($posting_class->CheckValidPost($is_oekaki)) {
 		
 		$post_message = $parse_class->ParsePost($_POST['message'], $board_class->board_dir, $board_class->board_type, $thread_replyto);
 	/* Or, if they are a moderator/administrator... */
-	} elseif ($user_authority == 1 || $user_authority == 2) {
+	} else {
 		/* If they checked the D checkbox, set the variable to tell the script to display their staff status (Admin/Mod) on the post during insertion */
 		if (isset($_POST['displaystaffstatus'])) {
 			$post_displaystaffstatus = true;

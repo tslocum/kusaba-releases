@@ -57,6 +57,9 @@ class Manage {
 				session_destroy();
 				exitWithErrorPage(_gettext('Invalid session.'), '<a href="manage_page.php">' . _gettext('Log in again.') . '</a>');
 			}
+			
+			$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "staff` SET `lastactive` = " . time() . " WHERE `username` = '" . mysql_real_escape_string($_SESSION['manageusername']) . "' LIMIT 1");		
+			
 			return true;
 		} else {
 			if (!$is_menu) {
@@ -284,6 +287,9 @@ class Manage {
 				if (isset($_POST['filetype'])) {
 					if ($_POST['filetype'] != '' && $_POST['image'] != '') {
 						$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "filetypes` SET `filetype` = '" . mysql_real_escape_string($_POST['filetype']) . "' , `mime` = '" . mysql_real_escape_string($_POST['mime']) . "' , `image` = '" . mysql_real_escape_string($_POST['image']) . "' , `image_w` = '" . mysql_real_escape_string($_POST['image_w']) . "' , `image_h` = '" . mysql_real_escape_string($_POST['image_h']) . "' WHERE `id` = '" . mysql_real_escape_string($_GET['filetypeid']) . "'");
+						if (KU_APC) {
+							apc_delete('filetype|' . $_POST['filetype']);
+						}
 						$tpl_page .= _gettext('Filetype updated.');
 					}
 				} else {
@@ -345,7 +351,7 @@ class Manage {
 	function rebuildall() {
 		global $tc_db, $smarty, $tpl_page;
 		$this->AdministratorsOnly();
-		
+				
 		$tpl_page .= '<h2>' . ucwords(_gettext('Rebuild all html files')) . '</h2><br>';
 		$time_start = time();
 		$results = $tc_db->GetAll("SELECT HIGH_PRIORITY `id`, `name` FROM `" . KU_DBPREFIX . "boards`");
@@ -1535,11 +1541,12 @@ class Manage {
 			$ban_ip = $_GET['ip'];
 		}
 		
-		$tpl_page .= '<label for="ip">'._gettext('IP').':</label>
+		$tpl_page .= '<fieldset>
+		<legend>IP address and ban type</legend>
+		<label for="ip">'._gettext('IP').':</label>
 		<input type="text" name="ip" value="'.$ban_ip.'">';
 		if ($ban_ip != '') { $tpl_page .= '&nbsp;&nbsp;<a href="?action=deletepostsbyip&ip=' . $ban_ip . '" target="_blank">' . _gettext('Delete all posts by this IP') . '</a>'; }
 		$tpl_page .= '<br>
-		
 		<label for="allowread">Allow read:</label>
 		<select name="allowread"><option value="1">Yes</option><option value="0">No</option></select>
 		<div class="desc">Whether or not the user(s) affected by this ban will be allowed to read the boards.<br><b>Warning</b>: Selecting No will prevent any reading of any page on the level of the boards on the server.<br>Changing this option to No will provide a global ban, whether or not you set the option below.</div><br>
@@ -1554,13 +1561,18 @@ class Manage {
 			<div class="desc">If checked, the configured ban message will be added to the end of the post.</div><br>';
 		}
 		
-		$tpl_page .= _gettext('Ban from').':&nbsp;<label for="banfromall"><b>'._gettext('All boards').'</b></label>
-		<input type="checkbox" name="banfromall"><br>OR<br>' .
+		$tpl_page .= '</fieldset>
+		<fieldset>
+		<legend>' . _gettext('Ban from') . '</legend>
+		<label for="banfromall"><b>'._gettext('All boards').'</b></label>
+		<input type="checkbox" name="banfromall"><br><hr><br>' .
 		$this->MakeBoardListCheckboxes('bannedfrom', $this->BoardList($_SESSION['manageusername'])) .
-		'<br>';
+		'</fieldset>';
 		
 		if (isset($ban_hash)) {
-			$tpl_page .= '<input type="hidden" name="hash" value="' . $ban_hash . '">
+			$tpl_page .= '<fieldset>
+			<legend>Ban file</legend>
+			<input type="hidden" name="hash" value="' . $ban_hash . '">
 			
 			<label for="banhashtime">Ban file hash for:</label>
 			<input type="text" name="banhashtime">
@@ -1568,10 +1580,13 @@ class Manage {
 			
 			<label for="banhashdesc">Ban file hash description:</label>
 			<input type="text" name="banhashdesc">
-			<div class="desc">The description of the image being banned.  Not applicable if the above box is blank.</div><br>';
+			<div class="desc">The description of the image being banned.  Not applicable if the above box is blank.</div>
+			</fieldset>';
 		}
 		
-		$tpl_page .= '<label for="seconds">'._gettext('Seconds').':</label>
+		$tpl_page .= '<fieldset>
+		<legend>Ban duration, reason, and appeal information</legend>
+		<label for="seconds">'._gettext('Seconds').':</label>
 		<input type="text" name="seconds">
 		<div class="desc">'._gettext('Presets').':&nbsp;<a href="#" onclick="document.banform.seconds.value=\'3600\';">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'604800\';">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'1209600\';">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'2592000\';">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'31536000\';">1yr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'0\';">never</a></div><br>
 		
@@ -1585,7 +1600,8 @@ class Manage {
 			<div class="desc">'._gettext('Presets').':&nbsp;<a href="#" onclick="document.banform.appealdays.value=\'0\';">No Appeal</a>&nbsp;<a href="#" onclick="document.banform.appealdays.value=\'5\';">5 days</a>&nbsp;<a href="#" onclick="document.banform.appealdays.value=\'10\';">10 days</a>&nbsp;<a href="#" onclick="document.banform.appealdays.value=\'30\';">30 days</a></div><br>';
 		}
 		
-		$tpl_page .= '<input type="submit" value="'._gettext('Add ban').'">
+		$tpl_page .= '</fieldset>
+		<input type="submit" value="'._gettext('Add ban').'">
 		
 		</form>
 		<hr><br>';
@@ -2079,6 +2095,7 @@ class Manage {
 							  `stickied` tinyint(1) NOT NULL default '0',
 							  `locked` tinyint(1) NOT NULL default '0',
 							  `posterauthority` tinyint(1) NOT NULL default '0',
+							  `reviewed` TINYINT( 1 ) UNSIGNED NOT NULL DEFAULT '0',
 							  `deletedat` int(20) NOT NULL default '0',
 							  `IS_DELETED` tinyint(1) NOT NULL default '0',
 							  UNIQUE KEY `id` (`id`),
@@ -2421,21 +2438,37 @@ class Manage {
 		</form>
 		<hr><br>';
 		
-		$tpl_page .= '<table border="1" width="100%"><tr><th>Username</th><th>Added on</th><th>' . _gettext('Moderating boards') . '</th><th>&nbsp;</th></tr>' . "\n";
-		$tpl_page .= '<tr><td align="center" colspan="4"><font size="+1"><b>' . _gettext('Administrators') . '</b></font></td></tr>' . "\n";
+		$tpl_page .= '<table border="1" width="100%"><tr><th>' . _gettext('Username') . '</th><th>' . _gettext('Added on') . '</th><th>' . _gettext('Last active') . '</th><th>' . _gettext('Moderating boards') . '</th><th>&nbsp;</th></tr>' . "\n";
+		$tpl_page .= '<tr><td align="center" colspan="5"><font size="+1"><b>' . _gettext('Administrators') . '</b></font></td></tr>' . "\n";
 		$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "staff` WHERE `type` = '1' ORDER BY `username` ASC");
 		if (count($results) > 0) {
 			foreach ($results as $line) {
-				$tpl_page .= '<tr><td>' . $line['username'] . '</td><td>' . date("y/m/d(D)H:i", $line['addedon']) . '</td><td>&nbsp;</td><td>[<a href="?action=staff&edit=' . $line['id'] . '">' . _gettext('Edit') . '</a>]&nbsp;[<a href="?action=staff&del=' . $line['id'] . '">x</a>]</td></tr>' . "\n";
+				$tpl_page .= '<tr><td>' . $line['username'] . '</td><td>' . date("y/m/d(D)H:i", $line['addedon']) . '</td><td>';
+				if ($line['lastactive'] == 0) {
+					$tpl_page .= _gettext('Never');
+				} elseif ((time() - $line['lastactive']) > 300) {
+					$tpl_page .= timeDiff($line['lastactive'], false);
+				} else {
+					$tpl_page .= _gettext('Online now');
+				}
+				$tpl_page .= '</td><td>&nbsp;</td><td>[<a href="?action=staff&edit=' . $line['id'] . '">' . _gettext('Edit') . '</a>]&nbsp;[<a href="?action=staff&del=' . $line['id'] . '">x</a>]</td></tr>' . "\n";
 			}
 		} else {
 			$tpl_page .= '<tr><td colspan="4">' . _gettext('None') . '</td></tr>' . "\n";
 		}
-		$tpl_page .= '<tr><td align="center" colspan="4"><font size="+1"><b>' . _gettext('Moderators') . '</b></font></td></tr>' . "\n";
+		$tpl_page .= '<tr><td align="center" colspan="5"><font size="+1"><b>' . _gettext('Moderators') . '</b></font></td></tr>' . "\n";
 		$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "staff` WHERE `type` = '2' ORDER BY `username` ASC");
 		if (count($results) > 0) {
 			foreach ($results as $line) {
 				$tpl_page .= '<tr><td>' . $line['username'] . '</td><td>' . date("y/m/d(D)H:i", $line['addedon']) . '</td><td>';
+				if ($line['lastactive'] == 0) {
+					$tpl_page .= _gettext('Never');
+				} elseif ((time() - $line['lastactive']) > 300) {
+					$tpl_page .= timeDiff($line['lastactive'], false);
+				} else {
+					$tpl_page .= _gettext('Online now');
+				}
+				$tpl_page .= '</td><td>';
 				if ($line['boards'] != '') {
 					if ($line['boards'] == 'allboards') {
 						$tpl_page .= 'All boards';
@@ -2450,11 +2483,19 @@ class Manage {
 		} else {
 			$tpl_page .= '<tr><td colspan="4">' . _gettext('None') . '</td></tr>' . "\n";
 		}
-		$tpl_page .= '<tr><td align="center" colspan="4"><font size="+1"><b>' . _gettext('Janitors') . '</b></font></td></tr>' . "\n";
+		$tpl_page .= '<tr><td align="center" colspan="5"><font size="+1"><b>' . _gettext('Janitors') . '</b></font></td></tr>' . "\n";
 		$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "staff` WHERE `type` = '0' ORDER BY `username` ASC");
 		if (count($results) > 0) {
 			foreach ($results as $line) {
 				$tpl_page .= '<tr><td>' . $line['username'] . '</td><td>' . date("y/m/d(D)H:i", $line['addedon']) . '</td><td>';
+				if ($line['lastactive'] == 0) {
+					$tpl_page .= _gettext('Never');
+				} elseif ((time() - $line['lastactive']) > 300) {
+					$tpl_page .= timeDiff($line['lastactive'], false);
+				} else {
+					$tpl_page .= _gettext('Online now');
+				}
+				$tpl_page .= '</td><td>';
 				if ($line['boards'] != '') {
 					if ($line['boards'] == 'allboards') {
 						$tpl_page .= 'All boards';
@@ -2467,17 +2508,17 @@ class Manage {
 				$tpl_page .= '</td><td>[<a href="?action=staff&edit=' . $line['id'] . '">' . _gettext('Edit') . '</a>]&nbsp;[<a href="?action=staff&del=' . $line['id'] . '">x</a>]</td></tr>' . "\n";
 			}
 		} else {
-			$tpl_page .= '<tr><td colspan="4">' . _gettext('None') . '</td></tr>' . "\n";
+			$tpl_page .= '<tr><td colspan="5">' . _gettext('None') . '</td></tr>' . "\n";
 		}
-		$tpl_page .= '<tr><td align="center" colspan="4"><font size="+1"><b>VIP</b></font></td></tr>' . "\n";
-		$tpl_page .= '<tr><th>Posting password</th><th colspan="2">Added on</th><th>&nbsp;</th>' . "\n";;
+		$tpl_page .= '<tr><td align="center" colspan="5"><font size="+1"><b>VIP</b></font></td></tr>' . "\n";
+		$tpl_page .= '<tr><th>' . _gettext('Posting password') . '</th><th colspan="3">' . _gettext('Added on') . '</th><th>&nbsp;</th>' . "\n";;
 		$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "staff` WHERE `type` = '3' ORDER BY `username` ASC");
 		if (count($results) > 0) {
 			foreach ($results as $line) {
 				$tpl_page .= '<tr><td>' . $line['username'] . '</td><td colspan="2">' . date("y/m/d(D)H:i", $line['addedon']) . '</td><td>[<a href="?action=staff&edit=' . $line['id'] . '">' . _gettext('Edit') . '</a>]&nbsp;[<a href="?action=staff&del=' . $line['id'] . '">x</a>]</td></tr>' . "\n";
 			}
 		} else {
-			$tpl_page .= '<tr><td colspan="4">' . _gettext('None') . '</td></tr>' . "\n";
+			$tpl_page .= '<tr><td colspan="5">' . _gettext('None') . '</td></tr>' . "\n";
 		}
 		$tpl_page .= '</table>';
 	}
@@ -2795,12 +2836,69 @@ class Manage {
 		}
 	}
 	
-	/* Display links to miscellaneous administrator functions */
-	function misc() {
+	/* View recently uploaded images */
+	function recentimages() {
 		global $tc_db, $smarty, $tpl_page;
-		$this->AdministratorsOnly();
-	
-		$tpl_page .= '<a href="?action=rebuildall">' . _gettext('Rebuild all boards and html files') . '</a><br><a href="?action=checkversion">' . _gettext('Check for new version') . '</a><br><a href="?action=spaceused">' . _gettext('Disk space used') . '</a><br><a href="?action=viewdeletedthread">' . _gettext('View deleted thread') . '</a><br><a href="?action=cleanup">' . _gettext('Cleanup') . '</a><br><a href="?action=search">' . _gettext('Search posts') . '</a><br><a href="?action=staff">' . _gettext('Staff') . '</a><br><a href="?action=modlog">' . _gettext('ModLog') . '</a><br><a href="?action=editfiletypes">' . 'Edit filetypes' . '</a><br><a href="?action=editsections">' . 'Edit sections' . '</a><br><a href="?action=sql">' . _gettext('SQL query') . '</a>';
+		$this->ModeratorsOnly();
+		
+		if (!isset($_SESSION['imagesperpage'])) {
+			$_SESSION['imagesperpage'] = 50;
+		}
+		
+		if (isset($_GET['show'])) {
+			if ($_GET['show'] == '25' || $_GET['show'] == '50' || $_GET['show'] == '75' || $_GET['show'] == '100') {
+				$_SESSION['imagesperpage'] = $_GET['show'];
+			}
+		}
+		
+		$tpl_page .= '<h2>' . ucwords(_gettext('Recently uploaded images')) . '</h2><br>
+		Number of images to show per page: <a href="?action=recentimages&show=25">25</a>, <a href="?action=recentimages&show=50">50</a>, <a href="?action=recentimages&show=75">75</a>, <a href="?action=recentimages&show=100">100</a> (note that this is a rough limit, more may be shown)<br>';
+		if (isset($_POST['clear'])) {
+			if ($_POST['clear'] != '') {
+				$clear_decrypted = md5_decrypt($_POST['clear'], KU_RANDOMSEED);
+				if ($clear_decrypted != '') {
+					$clear_unserialized = unserialize($clear_decrypted);
+					
+					foreach ($clear_unserialized as $clear_sql) {
+						$tc_db->Execute($clear_sql);
+					}
+					$tpl_page .= 'Successfully marked previous images as reviewed.<hr>';
+				}
+			}
+		}
+		
+		$dayago = (time() - 86400);
+		$imagesshown = 0;
+		$reviewsql_array = array();
+		
+		$boardlist = $this->BoardList($_SESSION['manageusername']);
+		foreach ($boardlist as $board) {
+			if ($imagesshown <= $_SESSION['imagesperpage']) {
+				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY `id`, `parentid`, `filename`, `filetype`, `thumb_w`, `thumb_h` FROM `" . KU_DBPREFIX . "posts_" . $board . "` WHERE `postedat` > " . $dayago . " AND (`filetype` = 'jpg' OR `filetype` = 'gif' OR `filetype` = 'png') AND `reviewed` = 0 AND `IS_DELETED` = 0 ORDER BY RAND() LIMIT " . mysql_real_escape_string($_SESSION['imagesperpage']));
+				if (count($results) > 0) {
+					$reviewsql = "UPDATE `" . KU_DBPREFIX . "posts_" . $board . "` SET `reviewed` = 1 WHERE ";
+					foreach ($results as $line) {
+						$reviewsql .= '`id` = ' . $line['id'] . ' OR ';
+						$real_parentid = ($line['parentid'] == 0) ? $line['id'] : $line['parentid'];
+						$tpl_page .= '<a href="' . KU_BOARDSPATH . '/' . $board . '/res/' . $real_parentid . '.html#' . $line['id'] . '"><img src="' . KU_BOARDSPATH . '/' . $board . '/thumb/' . $line['filename'] . 's.' . $line['filetype'] . '" width="' . $line['thumb_w'] . '" height="' . $line['thumb_h'] . '" border="0"></a> ';
+					}
+					
+					$reviewsql = substr($reviewsql, 0, -3) . 'LIMIT ' . count($results);
+					$reviewsql_array[] = $reviewsql;
+					$imagesshown += count($results);
+				}
+			}
+		}
+		
+		if ($imagesshown > 0) {
+			$tpl_page .= '<br><br>' . $imagesshown . ' images shown.<br>
+			<form action="?action=recentimages" method="post">
+			<input type="hidden" name="clear" value="' . md5_encrypt(serialize($reviewsql_array), KU_RANDOMSEED) . '">
+			<input type="submit" value="Clear All On Page As Reviewed">
+			</form>';
+		} else {
+			$tpl_page .= '<br><br>No recent images currently need review.';
+		}
 	}
 	
 	/* Display posting rates for the past hour */

@@ -71,4 +71,11 @@ function timeDiff($timestamp,$detailed=false, $max_detail_levels=8, $precision_l
 function microtime_float() {
 	return array_sum(explode(' ', microtime()));
 }
+
+function formatJapaneseNumbers($input) {
+	$patterns = array('/1/', '/2/', '/3/', '/4/', '/5/', '/6/', '/7/', '/8/', '/9/', '/0/');
+	$replace = array('１', '２', '３', '４', '５', '６', '７', '８', '９', '０');
+	
+	return preg_replace($patterns, $replace, $input);
+}
 ?>

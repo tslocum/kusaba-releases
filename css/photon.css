@@ -222,3 +222,7 @@ table td {
 .restorewatchedthreads {
 	background: transparent url('./icons/beige/icons.gif') -16px 0px no-repeat;
 }
+
+.reflinkpreview {
+	background-color: #DDDDDD !important;
+}

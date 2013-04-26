@@ -39,7 +39,7 @@ class Menu {
 			$styles = explode(':', KU_MENUSTYLES);
 			$styleswitcher = _gettext('Styles') . ': ';
 			foreach ($styles as $style) {
-				$styleswitcher .= '[<a href="#" onclick="javascript:set_stylesheet(\\\'' . ucfirst($style) . '\\\', false, true);reloadmain();" style="display: inline;" target="_self">' . strtoupper(substr($style, 0, 1)) . '</a>] ';
+				$styleswitcher .= '[<a href="#" onclick="javascript:set_stylesheet(\\\'' . ucfirst($style) . '\\\', false, true);reloadmain();" style="display: inline;" target="_self">' . strtoupper(substr($style, 0, 1)) . '<\/a>] ';
 			}
 			$styleswitcher = substr($styleswitcher, 0, -1);
 		} else {
@@ -82,6 +82,7 @@ class Menu {
 			<ul>
 			<li><a href="chans.php">Directory</a></li>
 			<li><a href="http://code.google.com/p/kusaba/w/list" target="_top">Wiki (Guides and more)</a></li>
+			<li><a href="http://code.google.com/p/kusaba/wiki/Tips" target="_top">&nbsp;-&nbsp;Tips</a></li>
 			<li><a href="http://code.google.com/p/kusaba/wiki/InstallationGuide" target="_top">&nbsp;-&nbsp;Installing</a></li>
 			<li><a href="http://code.google.com/p/kusaba/wiki/AdministrationGuide" target="_top">&nbsp;-&nbsp;Administration</a></li>
 			<li><a href="http://code.google.com/p/kusaba/wiki/StaffGuide" target="_top">&nbsp;-&nbsp;Staff</a></li>
@@ -94,25 +95,20 @@ class Menu {
 			<li><a href="http://kusaba.org/doc/index.html">Code Documentation</a></li>
 			</ul>
 			
-			<script type="text/javascript"><!--
-			google_ad_client = "pub-6158454562572132";
-			google_ad_width = 120;
-			google_ad_height = 600;
-			google_ad_format = "120x600_as";
-			google_ad_type = "text_image";
-			//2007-08-22: Trevorchan
-			google_ad_channel = "7008956366";
-			google_color_border = "FFFFEE";
-			google_color_bg = "FFFFEE";
-			google_color_link = "800000";
-			google_color_text = "CB7E46";
-			google_color_url = "800000";
-			google_ui_features = "rc:0";
-			//-->
+			<!-- Begin: AdBrite -->
+			<script type="text/javascript">
+			   var AdBrite_Title_Color = \'800000\';
+			   var AdBrite_Text_Color = \'CB7E46\';
+			   var AdBrite_Background_Color = \'FFFFEE\';
+			   var AdBrite_Border_Color = \'FFFFEE\';
 			</script>
-			<script type="text/javascript"
-			  src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
-			</script>';
+			<script src="http://ads.adbrite.com/mb/text_group.php?sid=534855&amp;zs=3132305f363030" type="text/javascript"></script>
+			<div><a target="_top" href="http://www.adbrite.com/mb/commerce/purchase_form.php?opid=534855&amp;afsid=1" style="font-weight:bold;font-family:Arial;font-size:13px;">Your Ad Here</a></div>
+			<!-- End: AdBrite -->
+			<script language="javascript">
+			var woopra_id = \'247037172\';
+			</script>
+			<script src="http://static.woopra.com/js/woopra.js"></script>';
 		}
 		$smarty->assign('irc', $tpl_irc);
 		

@@ -12,4 +12,12 @@ function validateIds($ids) {
 	}
 }
 
+function isNormalUser($authority) {
+	if ($authority == 1 || $authority == 2) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
 ?>
